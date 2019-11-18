@@ -1,0 +1,15 @@
+{% extends "error/error_base.html" %}
+
+{% block heading %}
+    Internal Server Error - HTTP 500
+{% endblock %}
+
+
+{% block js %}
+<script src="https://cdn.ravenjs.com/2.3.0/raven.min.js"></script>
+{% endblock %}
+
+
+{% block description %}
+    There was an error processing your request.<br />Please try again later.
+{% endblock %}
