@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "director.apps.auth",
     "director.apps.users",
+    "director.apps.sites",
 ]
 
 MIDDLEWARE = [

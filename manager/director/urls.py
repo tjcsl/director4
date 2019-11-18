@@ -20,4 +20,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("social_django.urls", namespace="social")),
     path("", include("director.apps.auth.urls", namespace="auth")),
+    path("sites/", include("director.apps.sites.urls", namespace="sites")),
 ]

@@ -1,12 +1,14 @@
 from django.contrib.auth import logout
 from django.shortcuts import redirect, render
 
+from ..sites import views as sites_views
+
 # Create your views here.
 
 
 def index_view(request):
     if request.user.is_authenticated:
-        return login_view(request)
+        return sites_views.index_view(request)
     else:
         return login_view(request)
 
