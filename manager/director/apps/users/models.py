@@ -70,13 +70,3 @@ class User(AbstractBaseUser):
 
     def __repr__(self):
         return "<User: {} ({})>".format(self.username, self.id)
-
-
-class Group(models.Model):
-    id = models.AutoField(primary_key=True)
-    is_service = models.BooleanField(default=False)
-    name = models.CharField(max_length=32)
-    users = models.ManyToManyField(User, related_name="unix_groups")
-
-    def __str__(self):
-        return self.name
