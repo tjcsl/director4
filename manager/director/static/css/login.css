@@ -36,4 +36,15 @@
 
 .login-box {
     text-align: center;
+    background: white;
+    padding: 15px;
+    border: 1px solid #0048ab;
+    margin: 15px auto;
+    max-width: 438px;
+    box-sizing: border-box;
+}
+
+.login-box p {
+    margin-top: 0;
+    font-size: 16px;
 }

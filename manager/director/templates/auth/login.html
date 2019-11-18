@@ -9,6 +9,9 @@
 
 {% block main %}
   <div class="login-box">
-    <a href="{% url 'social:begin' 'ion' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-ion">Log in with Ion</a>
+      <p>
+        <span class="bold">Log in with your Intranet account</span> to access the Director management interface.
+      </p>
+      <a href="{% url 'social:begin' 'ion' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-ion">Log in with Ion</a>
   </div>
 {% endblock %}

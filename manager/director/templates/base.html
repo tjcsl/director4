@@ -22,7 +22,7 @@
 <body>
   <div id="nav">
     <ul>
-      <li><a href="{% url 'auth:index' %}"><h1>Director</h1></a></li>
+      <li><a href="{% url 'auth:index' %}"><h1><i class="fas fa-cloud"></i> Director</h1></a></li>
       {% if request.user.is_authenticated %}
         {% if nav_item %}
           <li><i class="fa fa-chevron-right"></i></li>

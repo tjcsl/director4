@@ -6,13 +6,13 @@
   font-size: 16px;
   color: white;
   line-height: 40px;
-  background: black;
+  background: #0048ab;
 }
 #nav ul {
   min-height: 40px;
   overflow: auto;
   margin: 0px;
-  padding-left: 26px;
+  padding-left: 15px;
   padding-right: 15px;
 }
 #nav ul li {
@@ -31,7 +31,7 @@
 #nav ul li a h1 {
   margin: 6px 3px 9px 0px;
   line-height: 25px;
-  font-size: 25px;
+  font-size: 1.25rem;
   font-weight: normal;
 }
 
@@ -78,12 +78,14 @@ body {
   margin: 0px;
   font-family: "Open Sans", "Helvetica Neue", sans-serif;
   font-size: 13px;
-  background-color: white;
+  line-height: 1.5;
+  color: #484848;
+  background-color: #f2f2f4;
 }
 
 #content {
   margin: 0px 0px 0px 0px;
-  padding: 5px 26px 26px 26px;
+  padding: 15px 26px 26px 26px;
 }
 
 #main {
