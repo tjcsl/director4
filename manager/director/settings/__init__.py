@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "social_django",
+    "channels",
     "django_extensions",
     "director.apps.auth",
     "director.apps.users",
@@ -72,6 +73,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "director.wsgi.application"
+ASGI_APPLICATION = "director.routing.application"
 
 
 # Database
