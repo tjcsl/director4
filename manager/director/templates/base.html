@@ -1,0 +1,43 @@
+{% load staticfiles %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Director{% block titlesuffix %}{% endblock %}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:100italic,400italic,700italic,100,400,700" />
+  <link rel="stylesheet" href="{% static 'vendor/jquery-ui/jquery-ui-1.12.1.min.css' %}" />
+  <script src="{% static 'js/vendor/jquery-3.3.1.min.js' %}"></script>
+  <script src="{% static 'vendor/jquery-ui/jquery-ui-1.12.1.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'vendor/selectize/selectize.default.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/highlight/styles/default.css' %}">
+  <script src="{% static 'vendor/highlight/highlight.pack.js' %}"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <script type="text/javascript" src="{% static 'vendor/selectize/selectize.min.js' %}"></script>
+  <script>$(function(){$(".continuous-progress").css({height: "15px"}).progressbar({value: false})});</script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div id="nav">
+    <ul>
+      <li><a href="{% url 'auth:index' %}"><h1>Director</h1></a></li>
+      {% if request.user.is_authenticated %}
+        {% if nav_item %}
+          <li><i class="fa fa-chevron-right"></i></li>
+          <li><a href="">{{ nav_item }}</a></li>
+        {% endif %}
+        <li class="right"><i class="fa fa-sign-out"></i><a href="{% url 'auth:logout' %}">Logout ({{ request.user.username }})</a></li>
+      {% endif %}
+    </ul>
+  </div>
+  <div id="content">
+    <div id="main">
+      {% block main %}
+      {% endblock %}
+    </div>
+    <br>
+  </div>
+</body>
+</html>
+

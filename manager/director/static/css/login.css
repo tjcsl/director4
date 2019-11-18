@@ -1,0 +1,39 @@
+.btn.btn-ion {
+    text-decoration: none;
+    color: #484848;
+    display: inline-block;
+    line-height: 18px;
+    padding: 7px 10px;
+    margin: 2px 0;
+    font-size: 13px;
+    font-weight: bold;
+    text-shadow: 0 1px 0 rgba(255,255,255,.9);
+    white-space: nowrap;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    background: #f7f7f4;
+    background: -moz-linear-gradient(top,#f7f7f4 0%,#eaeaea 100%);
+    background: -webkit-linear-gradient(top,#f7f7f4 0%,#eaeaea 100%);
+    background: linear-gradient(to bottom,#f7f7f4 0%,#eaeaea 100%);
+    border: 1px solid #ddd;
+    border-bottom-color: #c5c5c5;
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    -pie-box-shadow: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    -o-appearance: none;
+    appearance: none;
+}
+
+.login-box {
+    text-align: center;
+}

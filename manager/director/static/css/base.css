@@ -1,0 +1,251 @@
+#nav {
+  width: 100%;
+  min-height: 40px;
+  overflow: auto;
+
+  font-size: 16px;
+  color: white;
+  line-height: 40px;
+  background: black;
+}
+#nav ul {
+  min-height: 40px;
+  overflow: auto;
+  margin: 0px;
+  padding-left: 26px;
+  padding-right: 15px;
+}
+#nav ul li {
+  float: left;
+  list-style-type: none;
+  position: relative;
+}
+#nav ul li.right {
+  float: right;
+}
+#nav ul li a {
+  color: inherit;
+  font-weight: normal;
+  text-decoration: none;
+}
+#nav ul li a h1 {
+  margin: 6px 3px 9px 0px;
+  line-height: 25px;
+  font-size: 25px;
+  font-weight: normal;
+}
+
+#nav ul li + li.right {
+  padding-left: 10px;
+}
+
+#nav .fa {
+  font-size: 16px;
+}
+
+#nav .fa-chevron-right {
+  margin-left: 10px;
+  margin-right: 7px;
+}
+
+#nav .fa-sign-out {
+  width: 14px;
+  padding-right: 2px;
+}
+
+.header {
+  display: flex;
+  clear: both;
+}
+.header > .left {
+  margin-right: auto;
+  text-align: left;
+}
+.header > .right {
+  margin-left: 5px;
+}
+.header > .left + .right {
+  margin-left: auto;
+  text-align: right;
+}
+.header > .tin-btn.right {
+  height: min-content;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+body {
+  margin: 0px;
+  font-family: "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 13px;
+  background-color: white;
+}
+
+#content {
+  margin: 0px 0px 0px 0px;
+  padding: 5px 26px 26px 26px;
+}
+
+#main {
+  text-align: left;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tbl {
+  display: table;
+}
+.tbl-row {
+  display: table-row;
+}
+.tbl-cell {
+  display: table-cell;
+}
+
+#footer {
+  background-color: #f2f2f4;
+  border-top: 1px solid #AAAAAA;
+  box-sizing: border-box;
+  z-index: 10;
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
+  width: 100%;
+  padding: 4px;
+  font-size: 10px;
+  text-align: right;
+}
+
+ul#course-list, ul#assignment-list {
+  padding-left: 0px;
+  margin-left: 0px;
+}
+ul#course-list li, ul#assignment-list li {
+  display: flex;
+  list-style-type: none;
+  padding: 10px 0px;
+  border-top: 1px solid lightgray;
+}
+ul#course-list li:last-child, ul#assignment-list li:last-child {
+  border-bottom: 1px solid lightgray;
+
+}
+ul#course-list li a, ul#assignment-list li a {
+  height: min-content;
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+}
+ul#course-list li a:hover, ul#assignment-list li a:hover {
+  text-decoration: underline;
+}
+
+ul#course-list li .left, ul#assignment-list li .left {
+  margin-right: auto;
+  flex: 0 0 auto;
+  text-align: left;
+}
+ul#course-list li .right, ul#assignment-list li .right {
+  margin-left: auto;
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+table.has-border {
+  min-width: 100px;
+  border-collapse: collapse;
+}
+table.has-border th, table.has-border td {
+  border: 1px solid black;
+  padding: 3px;
+}
+
+a {
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.italic {
+  font-style: italic;
+}
+.bold {
+  font-weight: bold;
+}
+.center {
+  text-align: center;
+}
+
+a.tin-btn {
+  border: 1px solid #cfcfcf;
+
+  border-radius: 4px;
+  padding: 3px 5px;
+  background: linear-gradient(to bottom, #dfdfdf 0%, #cfcfcf 100%);
+}
+
+input[type=submit], input[type=button] {
+  border: 1px solid #cfcfcf;
+  border-radius: 4px;
+
+  margin-top: 5px;
+  padding: 3px 5px;
+  background: linear-gradient(to bottom, #dfdfdf 0%, #cfcfcf 100%);
+
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+@media(min-width:1000px) {
+  #upload-container {
+    display: table;
+  }
+  #upload-row {
+    display: table-row;
+  }
+  #file-upload, #text-upload {
+    display: table-cell;
+  }
+  #text-upload {
+    width: 100%;
+  }
+}
+
+#text-upload .tbl {
+  width: 100%;
+}
+#text-upload .tbl-row .tbl-cell:first-child {
+  width: 15px;
+}
+
+#editor {
+  position: relative;
+  top: 0px;
+  left: 0px;
+  height: 300px;
+  min-width: 400px;
+  max-width: 700px;
+  width: 75%;
+}
+
+code > pre {
+  white-space: pre-wrap;
+}
+
+.complete .continuous-progress {
+  display: none;
+}
+
+.errors {
+  color: red;
+}
+h3.errors {
+  margin-bottom: 0.5em;
+}
+ul.errors {
+  margin-top: 0.5em;
+}
