@@ -9,4 +9,5 @@ app_name = "sites"
 
 urlpatterns = [
     path("", views.index_view, name="index"),
+    path("<int:site_id>/", views.info_view, name="info"),
 ]

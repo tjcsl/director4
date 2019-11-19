@@ -13,6 +13,14 @@
   <link rel="stylesheet" type="text/css" href="{% static 'vendor/selectize-0.12.6/selectize.default.css' %}" />
   <script type="text/javascript" src="{% static 'vendor/selectize-0.12.6/selectize.min.js' %}"></script>
   <script src="{% static 'vendor/reconnecting-websocket-fd7c819.js' %}"></script>
+  <script>
+  {% if DJANGO_SETTINGS.DEBUG %}
+  var DEBUG = true;
+  {% else %}
+  var DEBUG = false;
+  {% endif %}
+  </script>
+  {% block head %}{% endblock %}
 </head>
 <body>
   <div id="nav">

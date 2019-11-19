@@ -9,3 +9,10 @@ from django.shortcuts import render
 @login_required
 def index_view(request: HttpRequest) -> HttpResponse:
     return render(request, "sites/list.html")
+
+
+@login_required
+def info_view(  # pylint: disable=unused-argument
+    request: HttpRequest, site_id: int
+) -> HttpResponse:
+    return render(request, "sites/info.html")
