@@ -1,0 +1,15 @@
+dist: bionic
+language: python
+python:
+- '3.6'
+- '3.7'
+cache:
+  directories:
+  - "$HOME/.cache/pip"
+install:
+- pip install -U pip setuptools pipenv
+- (cd manager && pipenv install --dev --deploy)
+script:
+- (cd manager && ./scripts/format.sh)
+- (cd manager && test -z "$(git status --porcelain=v1)")  # If this fails, you forgot to run scripts/format.sh
+- (cd manager && ./scripts/check.sh)
