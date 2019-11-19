@@ -7,7 +7,7 @@ from channels.generic.websocket import JsonWebsocketConsumer
 
 
 class SiteConsumer(JsonWebsocketConsumer):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.site = None
         self.connected = False
@@ -26,7 +26,7 @@ class SiteConsumer(JsonWebsocketConsumer):
         self.site = None
         self.connected = False
 
-    def receive_json(self, content: Any, **kwargs) -> None:
+    def receive_json(self, content: Any, **kwargs: Any) -> None:
         if self.connected:
             pass
 

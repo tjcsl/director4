@@ -2,6 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import logging
+from typing import Any
 
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import UserManager as DjangoUserManager
@@ -37,10 +38,10 @@ class User(AbstractBaseUser):
 
     date_joined = models.DateTimeField(auto_now_add=True)
 
-    def has_perm(self, perm, obj=None) -> bool:  # pylint: disable=unused-argument
+    def has_perm(self, perm: str, obj: Any = None) -> bool:  # pylint: disable=unused-argument
         return self.is_superuser
 
-    def has_module_perms(self, app_label) -> bool:  # pylint: disable=unused-argument
+    def has_module_perms(self, app_label: str) -> bool:  # pylint: disable=unused-argument
         return self.is_superuser
 
     @property
@@ -68,8 +69,8 @@ class User(AbstractBaseUser):
     def get_social_auth(self):
         return self.social_auth.get(provider="ion")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.username
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<User: {} ({})>".format(self.username, self.id)
