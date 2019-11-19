@@ -13,7 +13,7 @@ mypy = "~=0.740"
 
 [packages]
 flask = "~=1.1.1"
-docker-py = "~=1.10.6"
+docker = "~=4.1.0"
 
 [pipenv]
 allow_prereleases = true

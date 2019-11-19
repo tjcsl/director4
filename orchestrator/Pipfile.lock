@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "de7f65ac84c68b60028e9885aa21b7f1a3537974ccba86034c2461896da8279f"
+            "sha256": "524bd6191182ce898a1d3d04c7b3ef33f54f27e6e69be04dc121c5a91a689e53"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -35,20 +35,13 @@
             ],
             "version": "==7.0"
         },
-        "docker-py": {
+        "docker": {
             "hashes": [
-                "sha256:35b506e95861914fa5ad57a6707e3217b4082843b883be246190f57013948aba",
-                "sha256:4c2a75875764d38d67f87bc7d03f7443a3895704efc57962bdf6500b8d4bc415"
+                "sha256:6e06c5e70ba4fad73e35f00c55a895a448398f3ada7faae072e2bb01348bafc1",
+                "sha256:8f93775b8bdae3a2df6bc9a5312cce564cade58d6555f2c2570165a1270cd8a7"
             ],
             "index": "pypi",
-            "version": "==1.10.6"
-        },
-        "docker-pycreds": {
-            "hashes": [
-                "sha256:6ce3270bcaf404cc4c3e27e4b6c70d3521deae82fb508767870fdbf772d584d4",
-                "sha256:7266112468627868005106ec19cd0d722702d2b7d5912a28e19b826c3d37af49"
-            ],
-            "version": "==0.4.0"
+            "version": "==4.1.0"
         },
         "flask": {
             "hashes": [
