@@ -6,8 +6,6 @@ from django.shortcuts import redirect, render
 
 from ..sites import views as sites_views
 
-# Create your views here.
-
 
 def index_view(request):
     if request.user.is_authenticated:
