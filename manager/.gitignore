@@ -1,3 +1,4 @@
 db.sqlite3
+/director/serve
 
 secret.py
