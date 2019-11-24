@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: MIT
+# (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
+
 """Django's command-line utility for administrative tasks."""
 import os
 import sys

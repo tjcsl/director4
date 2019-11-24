@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
+
 """director URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
