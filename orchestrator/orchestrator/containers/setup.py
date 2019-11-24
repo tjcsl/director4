@@ -50,8 +50,9 @@ def main() -> None:
 
     delete_all_containers(client)
 
-    ctr = client.containers.run("ubuntu:18.04", detach=True, tty=True,
-        stdin_open=True, name="director_theo_test")
+    ctr = client.containers.run(
+        "ubuntu:18.04", detach=True, tty=True, stdin_open=True, name="director_theo_test"
+    )
     rc, output = ctr.exec_run("whoami")
     print(rc)
     print(output)
