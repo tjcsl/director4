@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
+
 import docker
 
 
@@ -11,11 +14,27 @@ def create_client() -> docker.client.DockerClient:
     return docker.from_env()
 
 
-def delete_all_containers(client: docker.client.DockerClient, force: bool = False) -> None:
-    if not force:
-        print("Deleting all images.")
+def is_container_running(client: docker.client.DockerClient, ctr_name_or_id):
+    running_by_id = client.containers.list(filters={"id": ctr_name_or_id})
+    running_by_name = client.containers.list(filters={"name": ctr_name_or_id})
+    return len(running_by_id) > 0 or len(running_by_name) > 0
 
-    for ctr in client.container.list():
+
+def delete_all_containers(client: docker.client.DockerClient, force: bool = False) -> None:
+    """ Deletes all containers.
+
+    Useful when resetting the environment. This is dangerous.
+
+    Args:
+        force: Whether to not prompt for confirmation on deletion.
+    """
+    if not force:
+        print("Starting to delete all images.")
+
+    for ctr in client.containers.list():
+        running = is_container_running(client, ctr.name)
+        if running:
+            print("Removing container {}".format(ctr.name))
         ctr.remove()
 
 
@@ -24,18 +43,18 @@ def main() -> None:
     docker_images = client.images.list()
     print("Images", docker_images)
 
-    """
-    ctr = client.containers.run("ubuntu:18.04", name="director_33797_test", detach=True)
-    print(ctr)
-    print(ctr.logs())
-    containers_list = client.containers.list()
-    for container in containers_list:
-        print(container.image)
-    """
     all_ctrs = client.containers.list(all=True)
     print("All Containers", all_ctrs)
-    running_ctrs = client.containers.list(all=True)
+    running_ctrs = client.containers.list()
     print("Running Containers", running_ctrs)
+
+    delete_all_containers(client)
+
+    ctr = client.containers.run("ubuntu:18.04", detach=True, tty=True,
+        stdin_open=True, name="director_theo_test")
+    rc, output = ctr.exec_run("whoami")
+    print(rc)
+    print(output)
 
 
 if __name__ == "__main__":
