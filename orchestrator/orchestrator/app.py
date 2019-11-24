@@ -7,6 +7,7 @@ from flask import Flask  # , jsonify, redirect, request, url_for
 
 # from flask_cors import CORS
 
+# pylint: disable=pointless-string-statement
 """
 try:
     from secret import *
