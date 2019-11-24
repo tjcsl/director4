@@ -11,9 +11,9 @@ install:
 - (cd manager && pipenv install --dev --deploy)
 - (cd orchestrator && pipenv install --dev --deploy)
 script:
-- (cd manager && ./scripts/format.sh)
+- (cd manager && pipenv run ./scripts/format.sh)
 - (cd manager && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
-- (cd manager && ./scripts/check.sh)
-- (cd orchestrator && ./scripts/format.sh)
+- (cd manager && pipenv run ./scripts/check.sh)
+- (cd orchestrator && pipenv run ./scripts/format.sh)
 - (cd orchestrator && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
-- (cd orchestrator && ./scripts/check.sh)
+- (cd orchestrator && pipenv run ./scripts/check.sh)
