@@ -132,3 +132,6 @@ dmypy.json
 .pytype
 
 secret.py
+
+# Vagrant
+.vagrant/
