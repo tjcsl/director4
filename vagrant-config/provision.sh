@@ -47,8 +47,8 @@ systemctl restart postgresql
 
 ## Setup Redis
 apt-get -y install redis
-sed -i 's/^bind 127.0.0.1 ::1$/#bind 127.0.0.1 ::1/' /etc/redis/redis.conf
-sed -i 's/^protected-mode yes$/protected-mode no/' /etc/redis/redis.conf
+sed -i 's/^#\(bind 127.0.0.1 ::1\)$/\1/' /etc/redis/redis.conf
+sed -i 's/^\(protected-mode\) no$/\1 yes/' /etc/redis/redis.conf
 systemctl restart redis
 
 ## Setup RabbitMQ

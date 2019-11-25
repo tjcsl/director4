@@ -10,13 +10,10 @@ Vagrant.configure("2") do |config|
 
   config.vm.boot_timeout = 1000
 
-  # Manager HTTP port (can also run on the host)
+  # Manager HTTP port
   config.vm.network "forwarded_port", guest: 8080, host: 8080, host_ip: "127.0.0.1"
-  # Redis/RabbitMQ ports for manager to run on the host
-  config.vm.network "forwarded_port", guest: 6379, host: 6380, host_ip: "127.0.0.1"
-  config.vm.network "forwarded_port", guest: 5672, host: 5673, host_ip: "127.0.0.1"
   # Balancer HTTP port (currently not set up)
-  config.vm.network "forwarded_port", guest: 80, host: 8001, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 80, host: 8081, host_ip: "127.0.0.1"
 
   # Define the VM and set up some things
   config.vm.hostname = "directorvm"
