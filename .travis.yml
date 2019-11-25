@@ -8,6 +8,9 @@ cache:
   - "$HOME/.cache/pip"
   - "$HOME/.cache/pipenv"
   - "$HOME/.local/share/virtualenvs"
+env:
+  global:
+    - PIPENV_IGNORE_VIRTUALENVS=1
 install:
 - pip install -U pip setuptools pipenv
 - (cd manager && pipenv install --dev --deploy)
