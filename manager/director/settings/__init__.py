@@ -166,6 +166,17 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "serve")
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
+# Celery
+CELERY_BROKER_URL = "amqp://guest:guest@localhost:5672//"
+
+# Channels
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
+    }
+}
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:
