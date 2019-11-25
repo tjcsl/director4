@@ -6,6 +6,9 @@ set -e
 
 cd /home/vagrant/director
 
+## Always show a colored prompt when possible
+sed -i 's/^#\(force_color_prompt=yes\)/\1/' /home/vagrant/.bashrc
+
 export DEBIAN_FRONTEND=noninteractive
 
 ## System upgrade
