@@ -16,8 +16,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic.base import RedirectView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -25,3 +27,6 @@ urlpatterns = [
     path("", include("director.apps.auth.urls", namespace="auth")),
     path("sites/", include("director.apps.sites.urls", namespace="sites")),
 ]
+
+if settings.DEBUG:
+    urlpatterns.append(path("favicon.ico", RedirectView.as_view(url="/static/img/favicon.ico")))
