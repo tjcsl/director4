@@ -152,6 +152,8 @@ LOGIN_REDIRECT_URL = "auth:index"
 LOGOUT_REDIRECT_URL = "auth:index"
 
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 2 * 7 * 24 * 60 * 60
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
 SOCIAL_AUTH_LOGIN_ERROR_URL = "/"
@@ -168,3 +170,5 @@ try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:
     pass
+
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE = not DEBUG
