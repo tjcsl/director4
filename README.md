@@ -8,7 +8,7 @@ Our project is to develop a website management and hosting platform (based on th
 It is composed of three primary components:
 * `orchestrator`: The code that orchestrates the Docker containers
 * `manager`: The public-facing Django web application that provides an easy-to-use interface for managing websites.
-* `balancer`: (NOT STARTED)
+* `router`: (NOT STARTED)
 
 ## Architecture
 A full description of the project's architecture can be found in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -23,7 +23,7 @@ A full description of the project's architecture can be found in [docs/ARCHITECT
 * [Redis](https://redis.io/): Used by Django Channels on the manager as a channel layer
 * [PostgreSQL](https://www.postgresql.org/): Used by the manager as the relational database
 * [Nginx](https://nginx.org/): Used by the manager/orchestrator as a reverse proxy and for serving static files
-* [HAProxy](https://www.haproxy.org/): Used by the balancer to balance the load between the appservers
+* [HAProxy](https://www.haproxy.org/): Used by the router to balance the load between the appservers
 
 Each of the three components has specific Python dependencies described in each `Pipfile`.
 
