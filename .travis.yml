@@ -6,6 +6,8 @@ python:
 cache:
   directories:
   - "$HOME/.cache/pip"
+  - "$HOME/.cache/pipenv"
+  - "$HOME/.local/share/virtualenvs"
 install:
 - pip install -U pip setuptools pipenv
 - (cd manager && pipenv install --dev --deploy)
