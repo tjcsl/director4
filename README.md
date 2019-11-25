@@ -7,7 +7,7 @@ Our project is to develop a website management and hosting platform (based on th
 
 It is composed of three primary components:
 * `orchestrator`: The code that orchestrates the Docker containers
-* `manager`: The Django web application
+* `manager`: The public-facing Django web application that provides an easy-to-use interface for managing websites.
 * `balancer`: (NOT STARTED)
 
 ## Architecture
@@ -16,14 +16,14 @@ A full description of the project's architecture can be found in [docs/ARCHITECT
 ## Requirements
 
 ### Software Requirements
-* [Docker Engine](https://docs.docker.com/engine/): Used by the orchestrator to host sites
-* [Python 3.7+](https://www.python.org/): Used by all components
+* [Docker Engine](https://docs.docker.com/engine/): Used by the orchestrator to host sites that require dynamic generation
+* [Python 3.6+](https://www.python.org/): Used by all components
 * [RabbitMQ](https://www.rabbitmq.com/): Used by the manager/orchestrator to broker messages for long-running tasks
 * [Celery](http://www.celeryproject.org/): Used by the manager/orchestrator to manage long-running tasks
-* [Redis](https://redis.io/): Used by the manager to cache data
+* [Redis](https://redis.io/): Used by Django Channels on the manager as a channel layer
 * [PostgreSQL](https://www.postgresql.org/): Used by the manager as the relational database
-* [Nginx](https://nginx.org/): Used by the manager/orchestrator as a reverse proxy
-* [HAProxy](https://www.haproxy.org/): Used by the balancer to balance incoming web traffic
+* [Nginx](https://nginx.org/): Used by the manager/orchestrator as a reverse proxy and for serving static files
+* [HAProxy](https://www.haproxy.org/): Used by the balancer to balance the load between the appservers
 
 Each of the three components has specific Python dependencies described in each `Pipfile`.
 
