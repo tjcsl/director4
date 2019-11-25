@@ -19,7 +19,8 @@ sudo apt-get -y dist-upgrade
 timedatectl set-timezone America/New_York
 
 ## Dependencies
-apt-get -y install python3-pip
+# Pip for obvious reasons, tmux and expect for the launch script
+apt-get -y install python3-pip tmux expect
 sudo pip3 install pipenv fabric
 
 ## Helpful utilities

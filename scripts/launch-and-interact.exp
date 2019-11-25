@@ -1,0 +1,7 @@
+# Based on https://serverfault.com/a/368152
+log_user 0
+spawn bash
+log_user 1
+expect -re ".*\\$ "
+send "[lindex $argv 0]\n"
+interact
