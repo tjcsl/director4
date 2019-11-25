@@ -7,10 +7,16 @@ RABBITMQ_PORT = 5672
 REDIS_HOST = "127.0.0.1"
 REDIS_PORT = "6379"
 
+CHANNELS_REDIS_DB = 0
+CHANNELS_REDIS_PREFIX = "manager-channels:"
+
 CELERY_BROKER_URL = "amqp://guest:guest@{}:{}/manager".format(RABBITMQ_HOST, RABBITMQ_PORT)
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [(REDIS_HOST, REDIS_PORT)]},
+        "CONFIG": {
+            "hosts": ["redis://{}:{}/{}".format(REDIS_HOST, REDIS_PORT, CHANNELS_REDIS_DB)],
+            "prefix": CHANNELS_REDIS_PREFIX,
+        },
     }
 }
