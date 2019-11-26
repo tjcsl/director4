@@ -29,29 +29,29 @@
         <a class="navbar-brand" href="/">
             <i class="fas fa-cloud"></i> Director
         </a>
-        <ul class="nav navbar-nav ml-auto">
+        <div class="nav navbar-nav ml-auto">
             {% if request.user.is_authenticated %}
-            <div class="dropdown" id="user-dropdown">
-                <button class="dropdown-toggle" data-toggle="dropdown"><i class="fas fa-user"></i> <span class="hidden-xs-down">{{ request.user.full_name }}</span></button>
-                <ul class="dropdown-menu">
+            <div class="nav-item dropdown" id="user-dropdown">
+                <button class="dropdown-toggle" data-toggle="dropdown"><i class="fas fa-user"></i> <span class="d-none d-sm-inline">{{ request.user.full_name }}</span></button>
+                <div class="dropdown-menu">
                     <div class="arrow"></div>
                     <!--<li><a href=""><i class="fa fa-fw fa-cog"></i> Settings</a></li>-->
                     {% if request.user.is_superuser %}
                         <!--<li><a href=""><i class="fa fa-fw fa-users"></i> User Admin</a></li>-->
                         {% if request.user.is_staff %}
-                            <li><a href="{% url 'admin:index' %}"><i class="fas fa-fw fa-star"></i> Django Admin</a></li>
+                            <a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-fw fa-star"></i> Django Admin</a>
                         {% endif %}
                     {% endif %}
                     <!--<li class="feedback"><a href=""><i class="fa fa-fw fa-smile-o"></i> Send Feedback</a></li>
                     <li><a href=""><i class="fa fa-fw fa-question-circle"></i> Documentation</a></li>
                     <li><a href=""><i class="fa fa-fw fa-info-circle"></i> About/Credits</a></li>-->
-                    <li><a href="{% url 'auth:logout' %}"><i class="fas fa-fw fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
+                    <a class="dropdown-item" href="{% url 'auth:logout' %}"><i class="fas fa-fw fa-sign-out-alt"></i> Logout</a>
+                </div>
             </div>
             {% block navbar %}
             {% endblock %}
             {% endif %}
-        </ul>
+        </div>
     </div>
   <div id="content">
     <div id="main">
