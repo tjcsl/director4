@@ -5,13 +5,16 @@
   <meta charset="utf-8">
   <title>{% block title %}Director{% block titlesuffix %}{% endblock %}{% endblock %}</title>
   <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/fontawesome-free-5.11.2/css/all.css' %}">
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:100italic,400italic,700italic,100,400,700" />
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-4.3.1/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/bootstrap-ion.css' %}">
   <script src="{% static 'vendor/jquery-3.4.1.min.js' %}"></script>
   <link rel="stylesheet" type="text/css" href="{% static 'vendor/selectize-0.12.6/selectize.default.css' %}" />
   <script type="text/javascript" src="{% static 'vendor/selectize-0.12.6/selectize.min.js' %}"></script>
   <script src="{% static 'vendor/reconnecting-websocket-fd7c819.js' %}"></script>
+  <script src="{% static 'vendor/bootstrap-4.3.1/js/bootstrap.min.js' %}"></script>
   <script>
   {% if DJANGO_SETTINGS.DEBUG %}
   var DEBUG = true;
@@ -22,18 +25,34 @@
   {% block head %}{% endblock %}
 </head>
 <body>
-  <div id="nav">
-    <ul>
-      <li><a href="{% url 'auth:index' %}"><h1><i class="fas fa-cloud"></i> Director</h1></a></li>
-      {% if request.user.is_authenticated %}
-        {% if nav_item %}
-          <li><i class="fa fa-chevron-right"></i></li>
-          <li><a href="">{{ nav_item }}</a></li>
-        {% endif %}
-        <li class="right"><i class="fa fa-sign-out"></i><a href="{% url 'auth:logout' %}">Logout ({{ request.user.username }})</a></li>
-      {% endif %}
-    </ul>
-  </div>
+  <div class="navbar navbar-light bg-faded navbar-expand">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-cloud"></i> Director
+        </a>
+        <ul class="nav navbar-nav ml-auto">
+            {% if request.user.is_authenticated %}
+            <div class="dropdown" id="user-dropdown">
+                <button class="dropdown-toggle" data-toggle="dropdown"><i class="fas fa-user"></i> <span class="hidden-xs-down">{{ request.user.full_name }}</span></button>
+                <ul class="dropdown-menu">
+                    <div class="arrow"></div>
+                    <!--<li><a href=""><i class="fa fa-fw fa-cog"></i> Settings</a></li>-->
+                    {% if request.user.is_superuser %}
+                        <!--<li><a href=""><i class="fa fa-fw fa-users"></i> User Admin</a></li>-->
+                        {% if request.user.is_staff %}
+                            <li><a href="{% url 'admin:index' %}"><i class="fas fa-fw fa-star"></i> Django Admin</a></li>
+                        {% endif %}
+                    {% endif %}
+                    <!--<li class="feedback"><a href=""><i class="fa fa-fw fa-smile-o"></i> Send Feedback</a></li>
+                    <li><a href=""><i class="fa fa-fw fa-question-circle"></i> Documentation</a></li>
+                    <li><a href=""><i class="fa fa-fw fa-info-circle"></i> About/Credits</a></li>-->
+                    <li><a href="{% url 'auth:logout' %}"><i class="fas fa-fw fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+            {% block navbar %}
+            {% endblock %}
+            {% endif %}
+        </ul>
+    </div>
   <div id="content">
     <div id="main">
       {% block main %}
