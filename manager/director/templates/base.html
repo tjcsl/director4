@@ -2,30 +2,30 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>{% block title %}Director{% block titlesuffix %}{% endblock %}{% endblock %}</title>
-  <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
-  <link rel="stylesheet" href="{% static 'vendor/fontawesome-free-5.11.2/css/all.css' %}">
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:100italic,400italic,700italic,100,400,700">
-  <link rel="stylesheet" href="{% static 'vendor/bootstrap-4.3.1/css/bootstrap.min.css' %}">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
-  <link rel="stylesheet" href="{% static 'css/bootstrap-ion.css' %}">
-  <script src="{% static 'vendor/jquery-3.4.1.min.js' %}"></script>
-  <link rel="stylesheet" type="text/css" href="{% static 'vendor/selectize-0.12.6/selectize.default.css' %}">
-  <script type="text/javascript" src="{% static 'vendor/selectize-0.12.6/selectize.min.js' %}"></script>
-  <script src="{% static 'vendor/reconnecting-websocket-fd7c819.js' %}"></script>
-  <script src="{% static 'vendor/bootstrap-4.3.1/js/bootstrap.min.js' %}"></script>
-  <script>
-  {% if DJANGO_SETTINGS.DEBUG %}
-  var DEBUG = true;
-  {% else %}
-  var DEBUG = false;
-  {% endif %}
-  </script>
-  {% block head %}{% endblock %}
+    <meta charset="utf-8">
+    <title>{% block title %}Director{% block titlesuffix %}{% endblock %}{% endblock %}</title>
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome-free-5.11.2/css/all.css' %}">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:100italic,400italic,700italic,100,400,700">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-4.3.1/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-ion.css' %}">
+    <script src="{% static 'vendor/jquery-3.4.1.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'vendor/selectize-0.12.6/selectize.default.css' %}">
+    <script type="text/javascript" src="{% static 'vendor/selectize-0.12.6/selectize.min.js' %}"></script>
+    <script src="{% static 'vendor/reconnecting-websocket-fd7c819.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap-4.3.1/js/bootstrap.min.js' %}"></script>
+    <script>
+    {% if DJANGO_SETTINGS.DEBUG %}
+    var DEBUG = true;
+    {% else %}
+    var DEBUG = false;
+    {% endif %}
+    </script>
+    {% block head %}{% endblock %}
 </head>
 <body>
-  <div class="navbar navbar-light bg-faded navbar-expand">
+    <div class="navbar navbar-light bg-faded navbar-expand">
         <a class="navbar-brand" href="/">
             <i class="fas fa-cloud"></i> Director
         </a>
@@ -54,14 +54,14 @@
             </div>
             {% endif %}
         </div>
-  </div>
-  <div id="content">
-    <div id="main">
-      {% block main %}
-      {% endblock %}
     </div>
-    <br>
-  </div>
+    <div id="content">
+        <div id="main">
+            {% block main %}
+            {% endblock %}
+        </div>
+        <br>
+    </div>
 </body>
 </html>
 
