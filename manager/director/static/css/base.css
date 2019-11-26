@@ -2,6 +2,20 @@
     outline: none;
 }
 
+.search-box {
+    font-size: 1rem;
+    line-height: 1.20;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: .25rem;
+    width: 300px;
+}
+.search-box::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+    font-family: "Font Awesome 5 Free", "Open Sans", "Helvetica Neue", sans-serif;
+    font-weight: 900;
+}
+
 .header {
   display: flex;
   clear: both;
