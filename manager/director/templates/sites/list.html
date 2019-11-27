@@ -18,6 +18,10 @@
                 padding-bottom: 40px;
             }
         }
+
+        #content {
+            padding: 0;
+        }
     </style>
 {% endblock %}
 
@@ -26,4 +30,12 @@
 {% endblock %}
 
 {% block main %}
+    <div class="subheading clearfix">
+        <h3 class="float-left d-none d-sm-block">{% if show_all %}All{% else %}Your{% endif %} Sites</h3>
+        {% if show_all %}
+            <a href="{% url 'auth:index' %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="far fa-star"></i> Hide All</a>
+        {% else %}
+            <a href="{% url 'auth:index' %}?all=1" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-star"></i> Show All</a>
+        {% endif %}
+    </div>
 {% endblock %}

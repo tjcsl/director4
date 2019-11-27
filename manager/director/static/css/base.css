@@ -57,6 +57,17 @@ body {
   margin-right: auto;
 }
 
+.subheading {
+    padding: 10px 20px;
+    background-color: #fafafa;
+    border-bottom: 1px solid #ccc;
+}
+.subheading h3 {
+    font-size: 1.5rem;
+    line-height: 34px;
+    margin-bottom: 0px;
+}
+
 .tbl {
   display: table;
 }

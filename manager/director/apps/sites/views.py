@@ -8,7 +8,11 @@ from django.shortcuts import render
 
 @login_required
 def index_view(request: HttpRequest) -> HttpResponse:
-    return render(request, "sites/list.html")
+    show_all = request.user.is_superuser and bool(request.GET.get("all"))
+    context = {
+        "show_all": show_all,
+    }
+    return render(request, "sites/list.html", context)
 
 
 @login_required
