@@ -17,3 +17,11 @@ def runserver(c, port=8080):
 @task
 def shell(c):
     c.run("pipenv run python ./manage.py shell_plus", env=env, pty=True)
+
+@task
+def makemigrations(c):
+    c.run("pipenv run python ./manage.py makemigrations", env=env, pty=True)
+
+@task
+def migrate(c):
+    c.run("pipenv run python ./manage.py migrate", env=env, pty=True)
