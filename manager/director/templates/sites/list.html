@@ -2,27 +2,9 @@
 {% load staticfiles %}
 
 {% block head %}
-    <style>
-        @media (max-width: 576px) {
-            .search-box {
-                width: 100%;
-                margin: 0;
-                border-radius: 0px;
-                border-left: none;
-                border-right: none;
-                position: absolute;
-                left: 0;
-                top: 45px;
-            }
-            .navbar {
-                padding-bottom: 40px;
-            }
-        }
-
-        #content {
-            padding: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/site-list.css' %}">
+    <script type="text/javascript" src="{% static 'js/search.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/sites/tooltip.js' %}"></script>
 {% endblock %}
 
 {% block navbar %}
@@ -32,10 +14,30 @@
 {% block main %}
     <div class="subheading clearfix">
         <h3 class="float-left d-none d-sm-block">{% if show_all %}All{% else %}Your{% endif %} Sites</h3>
-        {% if show_all %}
-            <a href="{% url 'auth:index' %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="far fa-star"></i> Hide All</a>
-        {% else %}
-            <a href="{% url 'auth:index' %}?all=1" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-star"></i> Show All</a>
+        <a href="{% url 'sites:create' %}" class="float-right btn btn-ion"><i class="fas fa-plus"></i><span class="d-none d-inline-md"> Create</span> Site</a>
+        {% if request.user.is_superuser or not request.user.has_webdocs %}
+            <a href="{% url 'sites:create_webdocs' %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-user-plus"></i><span class="hidden-xs-down"> Create</span> Webdocs</a>
         {% endif %}
+
+        {% if request.user.is_superuser %}
+            {% if show_all %}
+                <a href="{% url 'auth:index' %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="far fa-star"></i> Hide All</a>
+            {% else %}
+                <a href="{% url 'auth:index' %}?all=1" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-star"></i> Show All</a>
+            {% endif %}
+        {% endif %}
+    </div>
+    <div id="sites">
+    {% for site in sites %}
+        <a href="{% url 'sites:info' site.id %}" class="site" id="{{ site.id }}">
+            {% if site.database %}<span data-toggle="tooltip" class="float-right tag tag-primary tag-database">{{ site.database.get_category_display }}</span>{% endif %}
+            <i class="icon float-left fas fa-2x fa-fw {% if site.purpose == 'user' %}fa-user{% elif site.purpose == 'activity' %}fa-globe{% elif site.purpose == 'legacy' %}fa-snowflake-o{% else %}fa-cube{% if site.purpose == 'project' %} project{% endif %}{% endif %}">
+            </i>
+            <b class="name">{{ site.name }}</b><span class="sub"><span class="type">{{ site.get_type_display }}</span> - <span class="desc">{{ site.description|default:"No Description" }}</span> - <span class="users">{{ site.users.count }} user{% if site.users.count != 2 %}s{% endif %}</span></span>
+        </a>
+    {% endfor %}
+    {% if sites.count == 0 and other_sites.count == 0 %}
+    <div id="empty">You don't have any sites! Click <a href="{% url 'sites:create' %}">here</a> to create a new site.</div>
+    {% endif %}
     </div>
 {% endblock %}

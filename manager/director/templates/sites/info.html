@@ -3,4 +3,70 @@
 
 {% block head %}
     <script src="{% static 'js/site.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/site-info.css' %}" />
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-md-6">
+            <h3>{{ site.name }}</h3>
+            <p>
+                <b>URL:</b> {% if site.url %}<a href="{{ site.url }}" target="_blank">{{ site.url }}</a>{% else %}None{% endif %}<br />
+                <b>Type:</b> {{ site.get_purpose_display }} - {{ site.get_type_display }}<br />
+                <b>Description:</b> {{ site.description|default:"None" }}<br />
+                <b>Users:</b> {{ site.users.all|join:", "|default:"None" }}<br />
+                {% if site.type == "dynamic" %}
+                <b>Process:</b> <a href="{% url 'sites:edit_process' site.id %}">{% if site.process %}<span class="path">{{ site.process.path }}</span>{% else %}None (click to add){% endif %}</a><br />
+                {% if site.process %}<b>Process Status</b>: <span id="process-status" class="path">{{ status }}</span><br />
+                <a href="{% url 'sites:restart_process' site.id %}" class="btn btn-ion"><i class="fa fa-retweet"></i> Restart Process</a>
+                <a href="{% url 'sites:delete_process' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-o"></i> Delete Process</a>
+                {% endif %}
+                {% endif %}
+            </p>
+
+            <p>
+                <a href="{% url 'sites:web_terminal' site.id %}" class="btn btn-ion"><i class="fa fa-terminal"></i> Web Terminal</a>
+                <a href="{% url 'sites:editor' site.id %}" class="btn btn-ion"><i class="fa fa-folder-open"></i> Online Editor</a>
+                <a href="{% url 'sites:install_options' site.id %}" class="btn btn-ion"><i class="fa fa-archive"></i> Quick Install</a>
+            </p>
+
+            <p>
+            <a href="{% url 'sites:config' site.id %}" class="btn btn-ion"><i class="fa fa-refresh"></i> Rewrite Configuration</a>
+            {% if site.category != "vm" %}
+            <a href="{% url 'sites:permissions' site.id %}" class="btn btn-ion"><i class="fa fa-wrench"></i> Reset File Permissions</a>
+            {% endif %}
+            </p>
+
+            <p>
+                <a href="{% url 'auth:index' %}" class="btn btn-ion"><i class="fa fa-undo"></i> Back</a>
+                <a href="{% url 'sites:edit' site.id %}" class="btn btn-ion"><i class="fa fa-pencil"></i> Configure Site</a>
+                {% if request.user.is_superuser or site.purpose == "project" %}
+                <a href="{% url 'sites:delete' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-o"></i> Delete Site</a>
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-6">
+            {% if site.category != "static" or site.database or request.user.is_superuser %}
+            <h4><i class="fa fa-database"></i> Databases</h4>
+            {% if site.database %}
+            <p>This site has a <b>{{ site.database.get_category_display }}</b> database associated with it.</p>
+            <div class="form-group">
+                <div id="database-url" class="form-control" tabindex="0" title="{{ site.database }}">
+                    {% with d=site.database %}
+                        {{ d.db_type }}://{{ d.username }}:<span id="database-pass" class="hide"><span>{{ d.password }}</span></span>@{{ d.db_full_host }}/{{ d.db_name }}
+                    {% endwith %}
+                </div>
+                <span class="help-text"><small>&lt;type&gt;://&lt;username&gt;:&lt;password&gt;@&lt;server&gt;:&lt;port&gt;/&lt;database&gt;</small></span>
+            </div>
+            <a href="{% url 'sites:edit_database' site.id %}" class="btn btn-ion"><i class="fa fa-pencil"></i> Edit Database</a>
+            <form style="display:inline-block" method="POST" action="{% url 'sites:regenerate_database_password' site.id %}">{% csrf_token %}<button id="generate-database-password" class="btn btn-ion"><i class="fa fa-key"></i> Regenerate Password</a></button></form>
+            <a href="{% url 'sites:delete_database' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-o"></i> Delete Database</a>
+            {% else %}
+            <p>This site has no databases associated with it.</p>
+            <a href="{% url 'sites:create_database' site.id %}" class="btn btn-ion"><i class="fa fa-plus"></i> Add Database</a>
+            {% endif %}
+            <br /><br />
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}

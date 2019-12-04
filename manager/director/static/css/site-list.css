@@ -1,0 +1,74 @@
+#content {
+    padding: 40px 0px 0px 0px;
+}
+@media (max-width:576px) {
+    #content {
+        padding-top: 80px;
+    }
+    .search-box {
+        width: 100%;
+        margin: 0;
+        border-radius: 0px;
+        border-left: none;
+        border-right: none;
+        position: absolute;
+        left: 0;
+        top: 45px;
+    }
+    .navbar {
+        padding-bottom: 40px;
+    }
+}
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+#sites .site {
+    color: #484848;
+    display: block;
+    text-decoration: none;
+    padding: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-bottom: 1px solid #ccc;
+}
+#sites .site .tag {
+    margin-left: 5px;
+}
+#sites .site .project {
+    color: #00a;
+}
+#sites .site:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+.site .sub {
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+#sites .site .icon {
+    padding: 8px;
+    margin-right: 5px;
+    vertical-align: middle;
+    position: relative;
+}
+#sites .site .icon span {
+    display: block;
+    width: 14px;
+    height: 14px;
+    border-radius: 14px;
+    position: absolute;
+    bottom: 6px;
+    right: 2px;
+    background-color: #FFEB3B;
+}
+#sites .site .icon span.red {
+    background-color: #F44336;
+}
+#sites .site .icon span.green {
+    background-color: #4CAF50;
+}
