@@ -4,6 +4,7 @@
 # import logging
 
 from flask import Flask  # , jsonify, redirect, request, url_for
+from containers.containers import demo_main
 
 # from flask_cors import CORS
 
@@ -19,11 +20,13 @@ app = Flask(__name__)
 
 # CORS(app)
 
-
 @app.route("/")
 def index_page():
     return "Hello World!!"
 
+@app.route("/demo")
+def demo_page():
+    return str(demo_main())
 
 if __name__ == "__main__":
     app.run()
