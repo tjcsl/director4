@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-import docker
 import json
+
+import docker
 
 from .services import create_service, is_service_existing
 from .utils import pprint_json

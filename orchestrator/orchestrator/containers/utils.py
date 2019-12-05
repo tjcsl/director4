@@ -1,5 +1,6 @@
 import json
 
+
 def pprint_json(js: dict) -> None:
     """Prints out provided JSON in pretty, indented format.
 

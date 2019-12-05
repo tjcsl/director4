@@ -1,4 +1,3 @@
-
 def convert_cpu_limit(cpus: float) -> int:
     """Convert a provided 
 
@@ -10,7 +9,8 @@ def convert_cpu_limit(cpus: float) -> int:
     """
     # Multiply by 10^9
     # 1 CPU is equivalent to one CPU
-    return int(cpus * 1E9)
+    return int(cpus * 1e9)
+
 
 def convert_memory_limit(memory: str) -> int:
     """Converts a provided memory limit with units into
