@@ -177,6 +177,30 @@ CHANNEL_LAYERS = {
     }
 }
 
+
+# Director-related stuff
+
+# The hosts the appservers are running on (or can be reached on).
+# These are host:port combos. They are NOT URLs. They should not be taken from
+# unsafe sources, as they may be interpolated into URLs without any form of
+# escaping or validation.
+# Example: ["localhost:5443", "director-app1.example.com:5443"]
+DIRECTOR_APPSERVER_HOSTS = None
+
+# Set this to None to disable SSL. Set it to a dictionary like this to enable SSL:
+# {
+#     "cafile": "<path to CA file used to verify appserver certificates>",
+#     "client_cert": {
+#         "certfile": "<path to client certificate file>",  # Required
+#         "keyfile": "<path to client private key file>",  # Taken from certfile
+#         # if not passed
+#         "password": "<private key password>",  # Required if private key is
+#         # encrypted
+#     },
+# }
+# Yes, the SSL settings must be the same for all appservers. This is by design.
+DIRECTOR_APPSERVER_SSL = None
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:
