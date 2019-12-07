@@ -180,10 +180,12 @@ CHANNEL_LAYERS = {
 
 # Director-related stuff
 
-# The hosts the appservers are running on (or can be reached on).
-# These are host:port combos. They are NOT URLs. They should not be taken from
-# unsafe sources, as they may be interpolated into URLs without any form of
-# escaping or validation.
+# A list of the hosts each of the appservers are running on (or can be reached
+# on via some kind of proxy). If a proxy is used, it should support both HTTP
+# requests and Websocket connections.
+# These are host:port combos. They are NOT URLs. This list should also not be
+# taken from unsafe sources, as they may be interpolated into URLs without any
+# form of escaping or validation.
 # Example: ["localhost:5443", "director-app1.example.com:5443"]
 DIRECTOR_APPSERVER_HOSTS = None
 
@@ -207,3 +209,5 @@ except ImportError:
     pass
 
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE = not DEBUG
+
+DIRECTOR_NUM_APPSERVERS = len(DIRECTOR_APPSERVER_HOSTS) if DIRECTOR_APPSERVER_HOSTS else 0
