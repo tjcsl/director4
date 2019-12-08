@@ -71,7 +71,9 @@ done
 
 ## Setup Docker
 wget -q -O - 'https://download.docker.com/linux/ubuntu/gpg' | sudo apt-key add -
-add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sed -i "s,^\(deb.*https://download.docker.com/linux/ubuntu.*stable\)$,#\1," /etc/apt/sources.list
+echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" >/etc/apt/sources.list.d/docker
+apt-get update
 apt-get install -y docker-ce
 systemctl start docker
 systemctl enable docker
