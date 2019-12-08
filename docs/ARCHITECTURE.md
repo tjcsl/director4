@@ -14,4 +14,4 @@ It also runs a Flask application that handles updating Nginx's configuration and
 
 ## Router
 
-The router runs HAProxy to forward requests to the orchestrator(s), as well as a small Flask application to update HAProxy's configuration upon requests from the manager.
+The router runs Nginx to forward requests to the orchestrator(s), as well as a small Flask application to update Nginx's configuration and generate Let's Encrypt certificates upon requests from the manager.

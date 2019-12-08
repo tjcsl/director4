@@ -22,8 +22,7 @@ A full description of the project's architecture can be found in [docs/ARCHITECT
 * [Celery](http://www.celeryproject.org/): Used by the manager/orchestrator to manage long-running tasks
 * [Redis](https://redis.io/): Used by Django Channels on the manager as a channel layer
 * [PostgreSQL](https://www.postgresql.org/): Used by the manager as the relational database
-* [Nginx](https://nginx.org/): Used by the manager/orchestrator as a reverse proxy and for serving static files
-* [HAProxy](https://www.haproxy.org/): Used by the router to balance the load between the appservers
+* [Nginx](https://nginx.org/): Used by the manager, orchestrator, and router as a reverse proxy, a load balancer, and for serving static files
 
 Each of the three components has specific Python dependencies described in each `Pipfile`.
 
