@@ -59,6 +59,19 @@ for vhost in 'manager'; do
     fi
 done
 
+## Setup Docker
+wget -q -O - 'https://download.docker.com/linux/ubuntu/gpg' | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+apt-get install -y docker-ce
+systemctl start docker
+systemctl enable docker
+if [[ "$(docker info)" != *'Swarm: active'* ]]; then
+    docker swarm init
+fi
+
+# Add vagrant user to docker group
+usermod -a -G docker vagrant
+
 ## Setup secret.py(s)
 if [[ ! -e manager/director/settings/secret.py ]]; then
     cp manager/director/settings/secret.{sample,py}
