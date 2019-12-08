@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-import json
-
 import docker
 
 from .services import create_service, is_service_existing
@@ -78,9 +76,10 @@ def demo_main() -> None:
         return "Service ({}) already exists".format(service_name)
 
     try:
-        service = create_service(client, service_name)
+        _ = create_service(client, service_name)
     except Exception as e:
         return "An exception has occured: {}".format(str(e))
+
 
     """
     ctr = client.containers.run(

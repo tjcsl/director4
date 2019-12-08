@@ -1,5 +1,5 @@
 def convert_cpu_limit(cpus: float) -> int:
-    """Convert a provided 
+    """Convert a provided
 
     Args:
         cpus: Represents the number of CPUs
