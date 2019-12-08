@@ -9,7 +9,7 @@ pylint = "~=2.4.4"
 isort = "~=4.3.21"
 black = "~=19.10b0"
 autopep8 = "~=1.4.4"
-mypy = "~=0.740"
+mypy = "~=0.750"
 
 [packages]
 flask = "~=1.1.1"
