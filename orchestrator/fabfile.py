@@ -12,4 +12,4 @@ def install(c):
 
 @task
 def runserver(c):
-    c.run("cd orchestrator; pipenv run python app.py", env=env, pty=True)
+    c.run("pipenv run python -m orchestrator.app", env=env, pty=True)
