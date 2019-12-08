@@ -48,7 +48,9 @@ def demo_view(request: HttpRequest) -> HttpResponse:
     except json.JSONDecodeError as ex:
         messages.error(request, "Invalid response from appserver: {}".format(ex))
     else:
-        messages.info(request, resp.text)
+        messages.info(
+            request, "Response from appserver #{}: {}".format(resp.appserver_index + 1, resp.text)
+        )
 
     return redirect("auth:index")
 
