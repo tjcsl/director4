@@ -43,19 +43,12 @@ def demo_view(request: HttpRequest) -> HttpResponse:
     try:
         # Connect to a random appserver
         resp = appserver_open_http_request(-1, "/demo", method="POST")
-        data = resp.json()
     except AppserverRequestError as ex:
         messages.error(request, "Error connecting to appserver: {}".format(ex))
     except json.JSONDecodeError as ex:
         messages.error(request, "Invalid response from appserver: {}".format(ex))
     else:
-        if not isinstance(data, dict) or "success" not in data:
-            messages.error(request, "Invalid response from server")
-        else:
-            if data["success"]:
-                messages.success(request, "Successfully created Docker container on appserver {}.".format(resp.appserver_index))
-            else:
-                messages.error(request, "Error creating Docker container.")
+        messages.info(request, resp.text)
 
     return redirect("auth:index")
 
