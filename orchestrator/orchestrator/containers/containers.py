@@ -42,8 +42,10 @@ def delete_all_containers(client: docker.client.DockerClient, force: bool = Fals
         ctr.remove()
 
 
-def demo_main() -> None:
+def demo_main() -> str:
     client = create_client()
+
+    # pylint: disable=pointless-string-statement
     """
     docker_images = client.images.list()
     print("Images", docker_images)
@@ -77,18 +79,11 @@ def demo_main() -> None:
         return "Service ({}) already exists".format(service_name)
 
     try:
-        _ = create_service(client, service_name)
-    except Exception as e:
-        return "An exception has occured: {}".format(str(e))
+        service = create_service(client, service_name)
+    except docker.errors.DockerException as exc:
+        return "An exception has occured: {}".format(str(exc))
 
-    """
-    ctr = client.containers.run(
-        "ubuntu:18.04", detach=True, tty=True, stdin_open=True, name="director_theo_test"
-    )
-    rc, output = ctr.exec_run("whoami")
-    print(rc)
-    print(output)
-    """
+    return str(service)
 
 
 if __name__ == "__main__":
