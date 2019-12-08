@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+from typing import List
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -187,7 +188,7 @@ CHANNEL_LAYERS = {
 # taken from unsafe sources, as they may be interpolated into URLs without any
 # form of escaping or validation.
 # Example: ["localhost:5443", "director-app1.example.com:5443"]
-DIRECTOR_APPSERVER_HOSTS = None
+DIRECTOR_APPSERVER_HOSTS: List[str] = []
 
 # Set this to None to disable SSL. Set it to a dictionary like this to enable SSL:
 # {
