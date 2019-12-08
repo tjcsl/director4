@@ -4,7 +4,7 @@
 import docker
 
 from .services import create_service, is_service_existing
-from .utils import pprint_json
+# from .utils import pprint_json
 
 
 def create_client() -> docker.client.DockerClient:
