@@ -26,7 +26,7 @@ def index_page():
     return "Hello World!!"
 
 
-@app.route("/demo")
+@app.route("/demo", methods=["GET", "POST"])
 def demo_page():
     return str(demo_main())
 
