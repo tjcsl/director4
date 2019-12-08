@@ -73,6 +73,14 @@ for vhost in 'manager'; do
 done
 
 
+## Setup Nginx
+apt-get -y install nginx-full
+cp vagrant-config/nginx.conf /etc/nginx/nginx.conf
+mkdir -p /etc/nginx/director.d/
+systemctl restart nginx
+systemctl enable nginx
+
+
 ## Setup Docker
 wget -q -O - 'https://download.docker.com/linux/ubuntu/gpg' | sudo apt-key add -
 sed -i "s,^\(deb.*https://download.docker.com/linux/ubuntu.*stable\)$,#\1," /etc/apt/sources.list
