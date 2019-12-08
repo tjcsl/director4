@@ -51,17 +51,21 @@ for line in "host sameuser all 127.0.0.1/32 password" "host sameuser all ::1/128
     fi
 done
 systemctl restart postgresql
+systemctl enable postgresql
 
 
 ## Setup Redis
 apt-get -y install redis
 sed -i 's/^#\(bind 127.0.0.1 ::1\)$/\1/' /etc/redis/redis.conf
 sed -i 's/^\(protected-mode\) no$/\1 yes/' /etc/redis/redis.conf
-systemctl restart redis
+systemctl restart redis-server
+systemctl enable redis-server
 
 
 ## Setup RabbitMQ
 apt-get -y install rabbitmq-server
+systemctl start rabbitmq-server
+systemctl enable rabbitmq-server
 for vhost in 'manager'; do
     if [[ "$(rabbitmqctl list_vhosts)\n" != *$'\n'"$vhost"$'\n'* ]]; then
         rabbitmqctl add_vhost "$vhost"
