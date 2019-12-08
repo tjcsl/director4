@@ -14,7 +14,7 @@
 {% block main %}
     <div class="subheading clearfix">
         <h3 class="float-left d-none d-sm-block">{% if show_all %}All{% else %}Your{% endif %} Sites</h3>
-        <a href="{% url 'sites:create' %}" class="float-right btn btn-ion"><i class="fas fa-plus"></i><span class="d-none d-inline-md"> Create</span> Site</a>
+        <a href="{% url 'sites:create' %}" class="float-right btn btn-ion"><i class="fas fa-plus"></i><span class="d-none d-md-inline"> Create</span> Site</a>
         {% if request.user.is_superuser or not request.user.has_webdocs %}
             <a href="{% url 'sites:create_webdocs' %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-user-plus"></i><span class="hidden-xs-down"> Create</span> Webdocs</a>
         {% endif %}
