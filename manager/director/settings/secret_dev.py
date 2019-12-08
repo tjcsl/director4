@@ -20,3 +20,5 @@ CHANNEL_LAYERS = {
         },
     }
 }
+
+DIRECTOR_APPSERVER_HOSTS = ["localhost:5000"]
