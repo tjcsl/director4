@@ -80,7 +80,6 @@ def demo_main() -> None:
     except Exception as e:
         return "An exception has occured: {}".format(str(e))
 
-
     """
     ctr = client.containers.run(
         "ubuntu:18.04", detach=True, tty=True, stdin_open=True, name="director_theo_test"

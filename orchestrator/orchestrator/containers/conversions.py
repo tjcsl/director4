@@ -20,7 +20,7 @@ def convert_memory_limit(memory: str) -> int:
 
     Args:
         memory: String representation of memory.
-    
+
     Returns:
         The provided memory in bytes.
 
