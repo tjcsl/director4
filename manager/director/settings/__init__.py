@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-from typing import List
+from typing import Container, Iterable, List, Pattern
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -180,6 +180,20 @@ CHANNEL_LAYERS = {
 
 
 # Director-related stuff
+
+# Site name blacklisting/whitelisting
+
+# Sites with these names will be allowed, even if they are blacklisted below.
+WHITELISTED_SITE_NAMES: Container[str] = set()
+
+# Creating sites with these names that are in BLACKLISTED_SITE_NAMES, or with names that match a
+# regular expression in BLACKLISTED_SITE_REGEXES (for efficiency, regexes must be compiled with
+# re.compile()), will be blocked (unless they are whitelisted above).
+# Editing sites with these names may also not work properly, so sites should be deleted before
+# blacklisting their name or blacklisting by regex.
+BLACKLISTED_SITE_NAMES: Container[str] = set()
+BLACKLISTED_SITE_REGEXES: Iterable[Pattern[str]] = []
+
 
 # A list of the hosts each of the appservers are running on (or can be reached
 # on via some kind of proxy). If a proxy is used, it should support both HTTP

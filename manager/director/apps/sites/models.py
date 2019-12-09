@@ -2,8 +2,11 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
+from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models  # pylint: disable=unused-import # noqa
+
+from ...utils.site_names import is_site_name_allowed
 
 
 class Site(models.Model):
@@ -22,7 +25,19 @@ class Site(models.Model):
     ]
 
     # Website name
-    name = models.CharField(max_length=32, unique=True)
+    name = models.CharField(
+        max_length=32,
+        unique=True,
+        # Don't replace these classes with "\w". That allows Unicode characters. We just want ASCII.
+        validators=[
+            MinLengthValidator(2),
+            RegexValidator(
+                regex=r"^[a-zA-Z0-9_]+(-[a-zA-Z0-9_]+)*$",
+                message="Site names must consist of letters, numbers, underscores, and dashes. "
+                "Dashes must go between two non-dash characters.",
+            ),
+        ],
+    )
     # Some kind of description.
     description = models.TextField(blank=True)
 
@@ -52,6 +67,14 @@ class Site(models.Model):
     @property
     def site_path(self) -> str:
         return "/web/site-{}".format(self.id)
+
+    def clean(self) -> None:
+        if not is_site_name_allowed(self.name):
+            raise ValidationError("This site name is not allowed.")
+
+    def save(self, *args, **kwargs):  # pylint: disable=arguments-differ
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class DockerImage(models.Model):
