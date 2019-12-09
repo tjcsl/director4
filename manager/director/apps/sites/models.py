@@ -251,7 +251,12 @@ class Action(models.Model):
     operation = models.ForeignKey(Operation, null=False, on_delete=models.PROTECT)
 
     # Example: "update_nginx_config"
-    slug = models.CharField(max_length=32, null=False, blank=False)
+    slug = models.CharField(
+        max_length=32,
+        null=False,
+        blank=False,
+        validators=[MinLengthValidator(4), RegexValidator(regex=r"^[a-z]+(_[a-z]+)+$")],
+    )
     # May be displayed to the user for progress updates. Example: "Updating Nginx config"
     name = models.CharField(max_length=32, null=False, blank=False)
     # Time this action was started. Only None if it hasn't been started yet.
