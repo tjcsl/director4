@@ -13,14 +13,14 @@ from director.apps.sites.consumers import SiteConsumer
 
 
 class WebsocketCloseConsumer(WebsocketConsumer):
-    def connect(self):
+    def connect(self) -> None:
         self.accept()
         self.close()
 
-    def receive(self, text_data: Optional[str] = None, bytes_data: Optional[bytes] = None):
+    def receive(self, text_data: Optional[str] = None, bytes_data: Optional[bytes] = None) -> None:
         pass
 
-    def disconnect(self, code):
+    def disconnect(self, code: int) -> None:
         pass
 
 
