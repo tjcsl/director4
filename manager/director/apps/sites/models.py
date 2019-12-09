@@ -285,6 +285,14 @@ class Action(models.Model):
     message = models.TextField(null=False, blank=True)
 
     @property
+    def has_started(self) -> bool:
+        return self.started_time is not None
+
+    def start_action(self) -> None:
+        self.started_time = timezone.localtime()
+        self.save(update_fields=["started_time"])
+
+    @property
     def finished(self) -> bool:
         return self.result is not None
 
