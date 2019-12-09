@@ -262,6 +262,12 @@ class Action(models.Model):
     equivalent_command = models.CharField(max_length=200, null=False, blank=True)
     # None=Not finished, True=Successful, False=Failed
     result = models.BooleanField(null=True, default=None)
+    # Some kind of message describing the actions taken or anything that failed in further detail.
+    # *** ONLY VISIBLE TO SUPERUSERS ***
+    # For example, if there was a syntax error in the Nginx config, this should contain the output
+    # of the command run to check the Nginx config.
+    # Should always be set for failed actions. Optional, but encouraged, for successful actions.
+    message = models.TextField(null=False, blank=True)
 
     @property
     def finished(self) -> bool:
