@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models  # pylint: disable=unused-import # noqa
+from django.utils import timezone
 
 from ...utils.site_names import is_site_name_allowed
 
@@ -212,7 +213,16 @@ class Operation(models.Model):
 
     site = models.OneToOneField(Site, null=False, on_delete=models.PROTECT)
     type = models.CharField(max_length=16, choices=OPERATION_TYPES)
-    started_time = models.DateTimeField(auto_now_add=True, null=False)
+    created_time = models.DateTimeField(auto_now_add=True, null=False)
+    started_time = models.DateTimeField(null=True)
+
+    @property
+    def has_started(self) -> bool:
+        return self.started_time is not None
+
+    def start_operation(self) -> None:
+        self.started_time = timezone.localtime()
+        self.save(update_fields=["started_time"])
 
     @property
     def locks_database(self) -> bool:
