@@ -73,7 +73,9 @@ class Site(models.Model):
         return "/web/site-{}".format(self.id)
 
     def list_urls(self) -> List[str]:
-        urls = ["https://" + domain for domain in self.domain_set.values_list("domain")]
+        urls = [
+            ("https://" + domain) for domain in self.domain_set.values_list("domain", flat=True)
+        ]
 
         if self.sites_domain_enabled:
             urls.append(self.sites_url)
@@ -82,7 +84,9 @@ class Site(models.Model):
 
     @property
     def sites_url(self) -> str:
-        return settings.SITE_URL_FORMATS.get(self.purpose, settings.SITE_URL_FORMATS[None]).format(self.name)
+        return settings.SITE_URL_FORMATS.get(self.purpose, settings.SITE_URL_FORMATS[None]).format(
+            self.name
+        )
 
     @property
     def main_url(self) -> Optional[str]:

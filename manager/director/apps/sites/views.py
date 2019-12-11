@@ -11,6 +11,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from ...utils.appserver import AppserverRequestError, appserver_open_http_request
+from . import operations
+from .forms import SiteRenameForm
 from .models import Site
 
 
@@ -37,6 +39,23 @@ def dummy_view(  # pylint: disable=unused-argument
     return HttpResponse("")
 
 
+@login_required
+def rename_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site, id=site_id, users=request.user)
+
+    if request.method == "POST":
+        form = SiteRenameForm(request.POST)
+        if form.is_valid():
+            operations.rename_site(site, form.cleaned_data["name"])
+            return redirect("sites:info", site.id)
+    else:
+        form = SiteRenameForm({"name": site.name})
+
+    context = {"site": site, "form": form}
+
+    return render(request, "sites/rename.html", context)
+
+
 @require_POST
 @login_required
 def demo_view(request: HttpRequest) -> HttpResponse:
@@ -57,6 +76,6 @@ def demo_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site, id=site_id)
+    site = get_object_or_404(Site, id=site_id, users=request.user)
     context = {"site": site}
     return render(request, "sites/info.html", context)

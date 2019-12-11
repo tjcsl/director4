@@ -13,6 +13,7 @@ urlpatterns = [
     path("create/", views.dummy_view, name="create"),
     path("create/webdocs/", views.dummy_view, name="create_webdocs"),
     path("<int:site_id>/", views.info_view, name="info"),
+    path("<int:site_id>/rename/", views.rename_view, name="rename"),
     path("<int:site_id>/edit/", views.dummy_view, name="edit"),
     path("<int:site_id>/delete/", views.dummy_view, name="delete"),
     path("<int:site_id>/terminal/", views.dummy_view, name="web_terminal"),

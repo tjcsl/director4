@@ -1,5 +1,7 @@
 # This file is in Git. For local customizations, edit secret.py instead.
 
+from typing import Dict, Optional
+
 DEBUG = True
 
 RABBITMQ_HOST = "localhost"
@@ -23,6 +25,6 @@ CHANNEL_LAYERS = {
 
 DIRECTOR_APPSERVER_HOSTS = ["localhost:5000"]
 
-SITE_URL_FORMATS = {
+SITE_URL_FORMATS: Dict[Optional[str], str] = {
     None: "http://127.0.0.1:8081/{}/",
 }
