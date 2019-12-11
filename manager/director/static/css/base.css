@@ -2,6 +2,20 @@
     outline: none;
 }
 
+body .navbar a {
+    color: white;
+    text-decoration: none;
+}
+body .navbar a:hover {
+    color: #cccccc;
+    text-decoration: none;
+}
+
+.navbar .fa-chevron-right {
+    margin-right: 5px;
+    margin-left: -5px;
+}
+
 .search-box {
     font-size: 1rem;
     line-height: 1.20;

@@ -54,10 +54,14 @@
         <a class="navbar-brand" href="/">
             <i class="fas fa-cloud"></i> Director
         </a>
-        <div class="nav navbar-nav">
+        <ul class="nav navbar-nav">
+            {% if site %}
+                <li><i class="fas fa-chevron-right"></i></li>
+                <li><a href="{% url 'sites:info' site.id %}">{{ site.name }}</a></li>
+            {% endif %}
             {% block navbar %}
             {% endblock %}
-        </div>
+        </ul>
         <div class="nav navbar-nav ml-auto float-right">
             {% if request.user.is_authenticated %}
             <div class="nav-item dropdown" id="user-dropdown">
