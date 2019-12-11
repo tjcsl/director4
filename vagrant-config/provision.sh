@@ -70,6 +70,7 @@ for vhost in 'manager'; do
     if [[ "$(rabbitmqctl list_vhosts)\n" != *$'\n'"$vhost"$'\n'* ]]; then
         rabbitmqctl add_vhost "$vhost"
     fi
+    rabbitmqctl set_permissions -p "$vhost" guest '.*' '.*' '.*'
 done
 
 
