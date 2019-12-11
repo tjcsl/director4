@@ -60,6 +60,8 @@ class OperationWrapper:
 
         result = callback(self.site, scope)
 
+        action.result = True
+
         if isinstance(result, dict):
             action.before_state = result.get("before_state", "")
             action.after_state = result.get("after_state", "")
@@ -69,7 +71,6 @@ class OperationWrapper:
         else:
             raise TypeError("Action callback must return either a dictionary or a tuple")
 
-        action.result = True
         action.save()
 
 
@@ -94,4 +95,5 @@ def auto_run_operation_wrapper(
     result = wrapper.execute_operation(scope)
 
     if result:
+        operation.action_set.all().delete()
         operation.delete()
