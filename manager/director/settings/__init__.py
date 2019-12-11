@@ -195,6 +195,20 @@ BLACKLISTED_SITE_NAMES: Container[str] = set()
 BLACKLISTED_SITE_REGEXES: Iterable[Pattern[str]] = []
 
 
+# The URL that will be used for various site types.
+# The site name is interpolated into this using str.format(). It is guaranteed to be
+# URL/domain-safe.
+# The key indicates that this format should be used for a given site "purpose" (e.g. the "user"
+# URL is used for user sites). The "None" key indicates the default format if there is not an
+# explicit entry for a given site's "purpose" (and it MUST be specified).
+SITE_URL_FORMATS = {
+    "user": "https://user.tjhsst.edu/{}/",
+    "activity": "https://activities.tjhsst.edu/{}/",
+    "legacy": "https://www.tjhsst.edu/~{}/",
+    None: "https://{}.sites.tjhsst.edu",
+}
+
+
 # A list of the hosts each of the appservers are running on (or can be reached
 # on via some kind of proxy). If a proxy is used, it should support both HTTP
 # requests and Websocket connections.

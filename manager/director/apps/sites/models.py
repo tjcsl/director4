@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from typing import List, Optional
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator, RegexValidator
@@ -68,6 +71,31 @@ class Site(models.Model):
     @property
     def site_path(self) -> str:
         return "/web/site-{}".format(self.id)
+
+    def list_urls(self) -> List[str]:
+        urls = ["https://" + domain for domain in self.domain_set.values_list("domain")]
+
+        if self.sites_domain_enabled:
+            urls.append(self.sites_url)
+
+        return urls
+
+    @property
+    def sites_url(self) -> str:
+        return settings.SITE_URL_FORMATS.get(self.purpose, settings.SITE_URL_FORMATS[None]).format(self.name)
+
+    @property
+    def main_url(self) -> Optional[str]:
+        # Use the first custom domain if one exists
+        domain = self.domain_set.values_list("domain").first()
+        if domain is not None:
+            return "https://{}".format(domain)
+
+        # Then the "sites" URL if it's enabled
+        if self.sites_domain_enabled:
+            return self.sites_url
+
+        return None
 
     def clean(self) -> None:
         if not is_site_name_allowed(self.name):
