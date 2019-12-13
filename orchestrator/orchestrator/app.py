@@ -3,7 +3,7 @@
 
 # import logging
 
-from flask import Flask  # , jsonify, redirect, request, url_for
+from flask import Flask, request  # , jsonify, redirect, url_for
 
 from .containers.containers import demo_main
 
@@ -25,6 +25,11 @@ app = Flask(__name__)
 @app.route("/")
 def index_page():
     return "Hello World!!"
+
+
+@app.route("/ping")
+def ping_page():
+    return "{}\n".format(request.args.get("message", "Pong"))
 
 
 @app.route("/demo", methods=["GET", "POST"])
