@@ -22,6 +22,11 @@ def runserver(c, port=8080):
 
 
 @task
+def celery(c):
+    c.run("pipenv run celery -A director worker", env=env, pty=True)
+
+
+@task
 def shell(c):
     c.run("pipenv run python ./manage.py shell_plus", env=env, pty=True)
 
