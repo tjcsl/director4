@@ -28,7 +28,7 @@ Vagrant.configure("2") do |config|
   end
 
   # Sync this repo to /home/vagrant/director
-  config.vm.synced_folder ".", "/home/vagrant/director"
+  config.vm.synced_folder ".", "/home/vagrant/director", SharedFoldersEnableSymlinksCreate: false
 
   # Provision from a script
   config.vm.provision "shell", path: "vagrant-config/provision.sh"
