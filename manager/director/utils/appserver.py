@@ -40,6 +40,10 @@ class AppserverProtocolError(AppserverRequestError):
     pass
 
 
+class AppserverConnectionError(AppserverRequestError):
+    pass
+
+
 class AppserverTimeoutError(AppserverRequestError):
     pass
 
@@ -159,9 +163,17 @@ def appserver_open_http_request(
     try:
         response = urllib.request.urlopen(request, timeout=timeout, context=appserver_ssl_context)
     except urllib.error.URLError as ex:
+        if isinstance(ex.reason, ConnectionError):
+            raise AppserverConnectionError(str(ex)) from ex
+
+        if isinstance(ex.reason, socket.timeout):
+            raise AppserverTimeoutError(str(ex)) from ex
+
         raise AppserverProtocolError(str(ex)) from ex
     except socket.timeout as ex:
         raise AppserverTimeoutError(str(ex)) from ex
+    except ConnectionError as ex:
+        raise AppserverConnectionError(str(ex)) from ex
     except OSError as ex:
         raise AppserverRequestError(str(ex)) from ex
 
