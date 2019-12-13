@@ -6,7 +6,7 @@ import socket
 import ssl
 import urllib.error
 import urllib.request
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Iterator, Optional, Union
 
 from django.conf import settings
 
@@ -111,6 +111,37 @@ class AppserverHTTPResponse:  # pylint: disable=too-many-instance-attributes
         return json.loads(self.text)
 
 
+def get_appserver_addr(appserver: Union[int, str], *, allow_random: bool = True) -> str:
+    """Given the index or address for a given appserver, normalizes it to a
+    "host:port" address combo.
+
+    Args:
+        appserver: Either 1) the "host:port" combo for the appserver to connect
+            to (as a string), 2) the index (0-based) of the appserver in
+            ``settings.DIRECTOR_APPSERVER_HOSTS`` to connect to, or 3) a
+            negative number to indicate that a random appserver should be
+            chosen (if allow_random is ``True``).
+        allow_random:
+            Whether to allow selecting a random appserver.
+
+    Returns:
+        The "host:port" combo for the appserver to connect to
+
+    """
+    if isinstance(appserver, int):
+        assert settings.DIRECTOR_NUM_APPSERVERS
+
+        if appserver < 0:
+            if allow_random:
+                appserver = random.randint(0, settings.DIRECTOR_NUM_APPSERVERS - 1)
+            else:
+                raise ValueError("appserver index cannot be negative if allow_random is False")
+
+        appserver = settings.DIRECTOR_APPSERVER_HOSTS[appserver]
+
+    return appserver
+
+
 def appserver_open_http_request(
     appserver: Union[int, str],
     path: str,
@@ -138,16 +169,13 @@ def appserver_open_http_request(
         timeout: A timeout in seconds to be used for blocking operations.
 
     Returns:
+        An AppserverHTTPResponse object representing the response from the
+        appserver.
 
     """
     assert path[0] == "/"
 
-    if isinstance(appserver, int):
-        assert settings.DIRECTOR_NUM_APPSERVERS
-        if appserver < 0:
-            appserver = random.randint(0, settings.DIRECTOR_NUM_APPSERVERS - 1)
-
-        appserver = settings.DIRECTOR_APPSERVER_HOSTS[appserver]
+    appserver = get_appserver_addr(appserver, allow_random=True)
 
     if headers is None:
         headers = {}
@@ -180,3 +208,52 @@ def appserver_open_http_request(
     return AppserverHTTPResponse(
         appserver=appserver, path=path, full_url=full_url, response=response
     )
+
+
+def ping_appserver(appserver: Union[int, str], *, timeout: Union[int, float] = 2) -> bool:
+    """Attempts to ping the given appserver by issuing a request to /ping.
+    Returns whether the attempt was successful.
+
+    Args:
+        appserver: Either the "host:port" combo for the appserver to connect
+            to (as a string) or the index (0-based) of the appserver in
+            ``settings.DIRECTOR_APPSERVER_HOSTS`` to connect to.
+        timeout: The timeout to use when connecting to the given appserver.
+
+    Returns:
+        Whether the attempt to contact the given appserver was successful.
+
+    """
+    message = "Pong {}".format(appserver)
+
+    try:
+        response = appserver_open_http_request(
+            get_appserver_addr(appserver, allow_random=False),
+            "/ping?" + urllib.parse.urlencode({"message": message}),
+            method="GET",
+            timeout=timeout,
+        )
+    except AppserverRequestError:
+        return False
+    else:
+        return response.content == message.encode() + b"\n"
+
+
+def iter_pingable_appservers(*, timeout: Union[int, float] = 2) -> Iterator[int]:
+    """Attempts to ping every appserver listed in ``settings.DIRECTOR_APPSERVER_HOSTS``
+    and returns a iterator yielding the indices of each appserver that was successfully
+    pinged.
+
+    Appservers are only pinged as necessary to yield the next value. If you want to ping
+    all of them at once, create a list or a tuple from the items yielded by this iterator.
+
+    Args:
+        timeout: The timeout to use when connecting to the appservers.
+
+    Returns:
+        A list of the indices of each appserver that was successfully pinged.
+
+    """
+    for i in range(settings.DIRECTOR_NUM_APPSERVERS):
+        if ping_appserver(i, timeout=timeout):
+            yield i
