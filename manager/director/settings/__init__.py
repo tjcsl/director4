@@ -232,6 +232,11 @@ DIRECTOR_APPSERVER_HOSTS: List[str] = []
 # Yes, the SSL settings must be the same for all appservers. This is by design.
 DIRECTOR_APPSERVER_SSL = None
 
+# These are the same as DIRECTOR_APPSERVER_HOSTS and DIRECTOR_APPSERVER_SSL above,
+# but for connecting to the balancers.
+DIRECTOR_BALANCER_HOSTS: List[str] = []
+DIRECTOR_BALANCER_SSL = None
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:
@@ -240,3 +245,4 @@ except ImportError:
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE = not DEBUG
 
 DIRECTOR_NUM_APPSERVERS = len(DIRECTOR_APPSERVER_HOSTS) if DIRECTOR_APPSERVER_HOSTS else 0
+DIRECTOR_NUM_BALANCERS = len(DIRECTOR_BALANCER_HOSTS) if DIRECTOR_BALANCER_HOSTS else 0

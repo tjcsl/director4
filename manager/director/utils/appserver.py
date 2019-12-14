@@ -5,8 +5,9 @@ import re
 import socket
 import ssl
 import urllib.error
+import urllib.parse
 import urllib.request
-from typing import Any, Dict, Iterator, Optional, Union
+from typing import Any, Dict, Iterator, Optional, Sequence, Tuple, Union
 
 from django.conf import settings
 
@@ -147,6 +148,7 @@ def appserver_open_http_request(
     path: str,
     *,
     method: str = "GET",
+    params: Union[Dict[str, str], Sequence[Tuple[str, str]], None] = None,
     data: Optional[bytes] = None,
     headers: Optional[Dict[str, str]] = None,
     timeout: Union[int, float] = socket._GLOBAL_DEFAULT_TIMEOUT,  # pylint:disable=protected-access
@@ -180,11 +182,17 @@ def appserver_open_http_request(
     if headers is None:
         headers = {}
 
+    if params is None:
+        params = {}
+
     if method == "POST" and data is None:
         data = b""
 
-    full_url = "{}://{}{}".format(
-        "https" if settings.DIRECTOR_APPSERVER_SSL else "http", appserver, path
+    full_url = "{}://{}{}{}".format(
+        "https" if settings.DIRECTOR_APPSERVER_SSL else "http",
+        appserver,
+        path,
+        "?" + urllib.parse.urlencode(params) if params else "",
     )
 
     request = urllib.request.Request(full_url, method=method, data=data, headers=headers)

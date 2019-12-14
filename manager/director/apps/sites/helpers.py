@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 from .models import Action, Operation, Site
 
-ActionCallback = Callable[[Site, Dict[str, Any]], Union[Dict[str, str], Tuple[str, ...]]]
+ActionCallback = Callable[[Site, Dict[str, Any]], Iterator[Union[Tuple[str, str], str]]]
 
 
 class OperationWrapper:
@@ -48,7 +48,7 @@ class OperationWrapper:
             try:
                 self.run_action(action, callback, scope)
             except BaseException as ex:  # pylint: disable=broad-except
-                action.message = "{}\nScope: {}".format(ex, scope)
+                action.message += "{}: {}\nScope: {}".format(ex.__class__.__name__, ex, scope)
                 action.result = False
                 action.save()
                 return False
@@ -58,19 +58,28 @@ class OperationWrapper:
     def run_action(self, action: Action, callback: ActionCallback, scope: Dict[str, Any]) -> None:
         action.start_action()
 
-        result = callback(self.site, scope)
+        for item in callback(self.site, scope):
+            if isinstance(item, str):
+                item = ("message", item)
+
+            if not isinstance(item, tuple):
+                raise TypeError("Invalid item type")
+
+            if len(item) != 2:
+                raise ValueError("Item length is incorrect")
+
+            if item[0] == "message":
+                action.message += item[1] + "\n"
+            elif item[0] == "after_state":
+                action.after_state = item[1]
+            elif item[0] == "before_state":
+                action.before_state = item[1]
+            else:
+                raise ValueError("Invalid item yielded")
+
+            action.save()
 
         action.result = True
-
-        if isinstance(result, dict):
-            action.before_state = result.get("before_state", "")
-            action.after_state = result.get("after_state", "")
-            action.message = result.get("message", "")
-        elif isinstance(result, tuple):
-            action.before_state, action.after_state, action.message, *_ = result + ("", "", "")
-        else:
-            raise TypeError("Action callback must return either a dictionary or a tuple")
-
         action.save()
 
 

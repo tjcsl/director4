@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -10,6 +10,7 @@ from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models  # pylint: disable=unused-import # noqa
 from django.utils import timezone
 
+from ...utils import split_domain
 from ...utils.site_names import is_site_name_allowed
 
 
@@ -100,6 +101,25 @@ class Site(models.Model):
             return self.sites_url
 
         return None
+
+    def serialize_for_appserver(self) -> Dict[str, Any]:
+        main_url = self.main_url
+        if main_url:
+            main_url = main_url.rstrip("/")
+
+        return {
+            "name": self.name,
+            "port": self.port,
+            "no_redirect_domains": list({split_domain(url) for url in self.list_urls()}),
+            "primary_url_base": main_url,
+        }
+
+    def serialize_for_balancer(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "sites_domain_enabled": self.sites_domain_enabled,
+            "custom_domains": list(self.domain_set.values_list("domain", flat=True)),
+        }
 
     def clean(self) -> None:
         if not is_site_name_allowed(self.name):
