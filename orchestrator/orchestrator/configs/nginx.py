@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 import jinja2
 
-from .. import secret
+from .. import settings
 
 TEMPLATE_DIRECTORY = os.path.join(os.path.dirname(__file__), "templates")
 
@@ -46,7 +46,7 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
         return "Invalid port"
 
     variables = {
-        "DEBUG": secret.DEBUG,
+        "DEBUG": settings.DEBUG,
         **new_data,
     }
 
