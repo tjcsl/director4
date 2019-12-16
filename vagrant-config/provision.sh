@@ -78,6 +78,7 @@ done
 apt-get -y install nginx-full
 cp vagrant-config/nginx.conf /etc/nginx/nginx.conf
 mkdir -p /etc/nginx/director.d/
+chown vagrant:vagrant /etc/nginx/director.d/
 systemctl restart nginx
 systemctl enable nginx
 
