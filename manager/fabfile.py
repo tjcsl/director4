@@ -32,8 +32,8 @@ def shell(c):
 
 
 @task
-def makemigrations(c):
-    c.run("pipenv run python ./manage.py makemigrations", env=env, pty=True)
+def makemigrations(c, app_label):
+    c.run("pipenv run python ./manage.py makemigrations -- {}".format(app_label), env=env, pty=True)
 
 
 @task
