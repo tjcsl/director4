@@ -30,22 +30,20 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
         return "Invalid name"
     if new_data["primary_url_base"] is not None and (
         not isinstance(new_data["primary_url_base"], str)
-        or re.search(r"https?://[-a-zA-Z0-9.]+(:\d+)?(/([-_a-zA-Z0-9.~]+/)*[-_a-zA-Z0-9.~]*)?$", new_data["primary_url_base"])
+        or re.search(
+            r"https?://[-a-zA-Z0-9.]+(:\d+)?(/([-_a-zA-Z0-9.~]+/)*[-_a-zA-Z0-9.~]*)?$",
+            new_data["primary_url_base"],
+        )
         is None
     ):
         return "Invalid primary URL"
     if not isinstance(new_data["no_redirect_domains"], list):
         return "Invalid 'no redirect' domains"
     for domain in new_data["no_redirect_domains"]:
-        if (
-            not isinstance(domain, str)
-            or (
-                re.search(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*(\.[a-z][a-z0-9]*(-[a-z0-9]+)*)+$", domain)
-                is None
-                and
-                re.search(r"^((\d+\.){3}\d+|([0-9a-fA-F]|:):[0-9a-fA-F:]*)$", domain)
-                is None
-            )
+        if not isinstance(domain, str) or (
+            re.search(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*(\.[a-z][a-z0-9]*(-[a-z0-9]+)*)+$", domain)
+            is None
+            and re.search(r"^((\d+\.){3}\d+|([0-9a-fA-F]|:):[0-9a-fA-F:]*)$", domain) is None
         ):
             return "Invalid 'no redirect' domain {!r}".format(domain)
     if not isinstance(new_data["port"], int) or new_data["port"] < 10000:
@@ -67,7 +65,13 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
         return "Error writing Nginx config: {}".format(ex)
 
     try:
-        res = subprocess.run(settings.NGINX_CONFIG_CHECK_COMMAND, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, check=True)
+        res = subprocess.run(
+            settings.NGINX_CONFIG_CHECK_COMMAND,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+            check=True,
+        )
     except (OSError, subprocess.CalledProcessError):
         try:
             os.remove(nginx_config_path)
@@ -77,7 +81,13 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
             return "Error checking Nginx config for errors (site config has been removed)"
 
     try:
-        res = subprocess.run(settings.NGINX_CONFIG_RELOAD_COMMAND, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, check=True)
+        res = subprocess.run(
+            settings.NGINX_CONFIG_RELOAD_COMMAND,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+            check=True,
+        )
     except (OSError, subprocess.CalledProcessError):
         return "Error reloading Nginx config"
 
