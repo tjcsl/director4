@@ -65,7 +65,7 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
         return "Error writing Nginx config: {}".format(ex)
 
     try:
-        res = subprocess.run(
+        subprocess.run(
             settings.NGINX_CONFIG_CHECK_COMMAND,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -81,7 +81,7 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
             return "Error checking Nginx config for errors (site config has been removed)"
 
     try:
-        res = subprocess.run(
+        subprocess.run(
             settings.NGINX_CONFIG_RELOAD_COMMAND,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
