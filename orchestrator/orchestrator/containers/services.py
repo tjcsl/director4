@@ -26,7 +26,7 @@ def create_service(client: DockerClient, service_name: str) -> Optional[Service]
     resource = Resources(cpu_limit=cpu_limit, mem_limit=memory_limit)
 
     # Mapping ports
-    endpoint_spec = EndpointSpec(mode="vip", ports={8080: 80})
+    endpoint_spec = EndpointSpec(mode="vip", ports={10001: 80})
 
     image_name = "site_test_1"
     service = client.services.create(
