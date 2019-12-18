@@ -7,13 +7,10 @@ cache:
   directories:
   - "$HOME/.cache/pip"
   - "$HOME/.cache/pipenv"
-  - "$HOME/.local/share/virtualenvs"
 env:
   global:
     - PIPENV_IGNORE_VIRTUALENVS=1
 install:
-- apt-get install python3-pip
-- python3 -m pip install -U pip setuptools pipenv
 - (cd manager && pipenv install --dev --deploy)
 - (cd orchestrator && pipenv install --dev --deploy)
 script:
