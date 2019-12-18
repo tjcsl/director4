@@ -104,6 +104,6 @@ usermod -a -G docker vagrant
 if [[ ! -e manager/director/settings/secret.py ]]; then
     cp manager/director/settings/secret.{sample,py}
 fi
-if [[ ! -e orchestrator/orchestrator/secret.py ]]; then
-    cp orchestrator/orchestrator/secret.{sample,py}
+if [[ ! -e orchestrator/orchestrator/settings/secret.py ]]; then
+    cp orchestrator/orchestrator/settings/secret.{sample,py}
 fi
