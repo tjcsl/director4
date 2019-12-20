@@ -9,7 +9,9 @@ from .models import Site
 
 
 class SiteCreateForm(forms.ModelForm):
-    users = forms.ModelMultipleChoiceField(required=False, queryset=get_user_model().objects.filter(is_service=False))
+    users = forms.ModelMultipleChoiceField(
+        required=False, queryset=get_user_model().objects.filter(is_service=False)
+    )
 
     class Meta:
         model = Site
@@ -24,8 +26,11 @@ class SiteCreateForm(forms.ModelForm):
         }
 
         help_texts = {
-            "name": "Can only contain lowercase letters, numbers, and dashes. Names cannot start with a number, and dashes must go between two non-dash characters. Maximum length of 32 characters.",
-            "type": "If you want to run a custom server, like Node.js or Django, you will need to set this to Dynamic.",
+            "name": "Can only contain lowercase letters, numbers, and dashes. Names cannot start "
+            "with a number, and dashes must go between two non-dash characters. Maximum length of "
+            "32 characters.",
+            "type": "If you want to run a custom server, like Node.js or Django, you will need to "
+            "set this to Dynamic.",
         }
 
 

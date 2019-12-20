@@ -22,10 +22,7 @@ def select_site_port(  # pylint: disable=unused-argument
     while True:
         yield "Checking if port {} is open".format(port)
         for i in pingable_appservers:
-            res = appserver_open_http_request(
-                i,
-                "/check-port/{}".format(port),
-            )
+            res = appserver_open_http_request(i, "/check-port/{}".format(port))
             if res.text != "":
                 break
         else:

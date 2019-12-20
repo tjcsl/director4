@@ -45,9 +45,7 @@ def create_site_task(operation_id: int):
     scope: Dict[str, Any] = {}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
-        wrapper.add_action("Selecting a port")(
-            actions.select_site_port
-        )
+        wrapper.add_action("Selecting a port")(actions.select_site_port)
 
         # wrapper.add_action("Creating Docker container")(
         #     actions.create_docker_container

@@ -3,7 +3,16 @@
 
 from django.contrib import admin
 
-from .models import DockerImage, DockerImageExtraPackage, Domain, DatabaseHost, Database, Site, Operation, Action
+from .models import (
+    Action,
+    Database,
+    DatabaseHost,
+    DockerImage,
+    DockerImageExtraPackage,
+    Domain,
+    Operation,
+    Site,
+)
 
 admin.site.register(DockerImage)
 admin.site.register(DockerImageExtraPackage)
