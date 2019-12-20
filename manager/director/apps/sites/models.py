@@ -66,7 +66,7 @@ class Site(models.Model):
 
     # The site database
     database = models.OneToOneField(
-        "Database", null=True, on_delete=models.SET_NULL, related_name="site"
+        "Database", null=True, blank=True, on_delete=models.SET_NULL, related_name="site"
     )
 
     @property
