@@ -6,14 +6,15 @@ from typing import Optional
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from ...utils.appserver import AppserverRequestError, appserver_open_http_request
 from . import operations
-from .forms import SiteRenameForm
-from .models import Site
+from .forms import SiteCreateForm, SiteRenameForm
+from .models import DockerImage, Site
 
 
 @login_required
@@ -54,6 +55,31 @@ def rename_view(request: HttpRequest, site_id: int) -> HttpResponse:
     context = {"site": site, "form": form}
 
     return render(request, "sites/rename.html", context)
+
+
+@login_required
+def create_view(request: HttpRequest) -> HttpResponse:
+    if request.method == "POST":
+        form = SiteCreateForm(request.POST)
+        if form.is_valid():
+            site = form.save(commit=False)
+
+            docker_image = DockerImage.objects.create(name="tmp_site_" + site.name, is_custom=True)
+            site.docker_image = docker_image
+            site.port = Site.objects.aggregate(Max("port"))["port__max"] + 1
+            site.save()
+            form.save_m2m()
+            docker_image.name = "site_{}".format(site.id)
+
+            operations.create_site(site)
+
+            return redirect("sites:info", site.id)
+    else:
+        form = SiteCreateForm()
+
+    context = {"form": form}
+
+    return render(request, "sites/create.html", context)
 
 
 @require_POST

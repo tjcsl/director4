@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block head %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#id_users").selectize();
+        });
+    </script>
+{% endblock %}
+
+{% block main %}
+    <form method="POST">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="control-group">
+            <label for="id_{{ field.name }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <p class="help-text">{{ field.help_text }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <input type="submit" value="Create site" class="btn btn-ion">
+    </form>
+{% endblock %}
