@@ -76,6 +76,10 @@ def demo_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site, id=site_id, users=request.user)
+    if request.user.is_superuser:
+        site = get_object_or_404(Site, id=site_id)
+    else:
+        site = get_object_or_404(Site, id=site_id, users=request.user)
+
     context = {"site": site}
     return render(request, "sites/info.html", context)
