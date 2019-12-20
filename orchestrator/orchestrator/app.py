@@ -3,6 +3,7 @@
 
 # import logging
 import json
+import socket
 
 from flask import Flask, request  # , jsonify, redirect, url_for
 
@@ -43,10 +44,10 @@ def update_nginx_page(site_id: int):
 
 
 @app.route("/check-port/<int:port>")
-def check_port_page():
+def check_port_page(port: int):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.bind(("", 8081))
+            sock.bind(("", port))
             sock.listen(0)
     except OSError:
         return "ERR"
