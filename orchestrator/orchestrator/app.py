@@ -42,6 +42,18 @@ def update_nginx_page(site_id: int):
             return result, 500
 
 
+@app.route("/check-port/<int:port>")
+def check_port_page():
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(("", 8081))
+            sock.listen(0)
+    except OSError:
+        return "ERR"
+    else:
+        return ""
+
+
 @app.route("/demo", methods=["GET", "POST"])
 def demo_page():
     return str(demo_main())
