@@ -10,25 +10,34 @@ from flask import Flask, request  # , jsonify, redirect, url_for
 from .configs.nginx import update_nginx_config
 from .containers.containers import demo_main
 
-# from flask_cors import CORS
-
 app = Flask(__name__)
-
-# CORS(app)
 
 
 @app.route("/")
 def index_page():
+    """Returns the index page."""
     return "Hello World!!"
 
 
 @app.route("/ping")
 def ping_page():
+    """Checks whether the orchestrator is functional.
+    
+    Returns a provided message or else "Pong".
+    """
+
     return "{}\n".format(request.args.get("message", "Pong"))
 
 
 @app.route("/sites/<int:site_id>/update-nginx")
 def update_nginx_page(site_id: int):
+    """Updates the Nginx config for a given site.
+
+    Based on the provided site_id and data, updates
+    the Nginx config. Returns "Success" if successful,
+    else an appropriate error.
+    """
+
     if "data" not in request.args:
         return "Error", 400
 
@@ -45,6 +54,12 @@ def update_nginx_page(site_id: int):
 
 @app.route("/check-port/<int:port>")
 def check_port_page(port: int):
+    """Verifies whether a port is open.
+
+    Attempts to bind to provided port. If a
+    port is in use, responds with "ERR",
+    else an empty response.
+    """
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind(("", port))
@@ -57,6 +72,11 @@ def check_port_page(port: int):
 
 @app.route("/demo", methods=["GET", "POST"])
 def demo_page():
+    """Runs demonstration of Director 4.0
+    capabilities.
+
+    Returns the demonstration response.
+    """
     return str(demo_main())
 
 
