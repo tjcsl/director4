@@ -232,10 +232,15 @@ DIRECTOR_APPSERVER_HOSTS: List[str] = []
 # Yes, the SSL settings must be the same for all appservers. This is by design.
 DIRECTOR_APPSERVER_SSL = None
 
-# These are the same as DIRECTOR_APPSERVER_HOSTS and DIRECTOR_APPSERVER_SSL above,
+# The default timeout to use when connecting to the appservers.
+DIRECTOR_APPSERVER_DEFAULT_TIMEOUT = 15
+
+# These are the same as DIRECTOR_APPSERVER_HOSTS, DIRECTOR_APPSERVER_SSL, and
+# DIRECTOR_BALANCER_DEFAULT_TIMEOUT above,
 # but for connecting to the balancers.
 DIRECTOR_BALANCER_HOSTS: List[str] = []
 DIRECTOR_BALANCER_SSL = None
+DIRECTOR_BALANCER_DEFAULT_TIMEOUT = 15
 
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import

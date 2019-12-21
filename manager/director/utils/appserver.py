@@ -154,9 +154,7 @@ def appserver_open_http_request(
     params: Union[Dict[str, str], Sequence[Tuple[str, str]], None] = None,
     data: Optional[bytes] = None,
     headers: Optional[Dict[str, str]] = None,
-    timeout: Union[
-        int, float
-    ] = socket._GLOBAL_DEFAULT_TIMEOUT,  # pylint:disable=protected-access # noqa # type: ignore
+    timeout: Union[int, float] = settings.DIRECTOR_APPSERVER_DEFAULT_TIMEOUT,
 ) -> AppserverHTTPResponse:
     """Opens an HTTP request to the given appserver and returns an
     AppserverHTTPResponse wrapping the response.
