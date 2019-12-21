@@ -149,7 +149,9 @@ def balancer_open_http_request(
     params: Union[Dict[str, str], Sequence[Tuple[str, str]], None] = None,
     data: Optional[bytes] = None,
     headers: Optional[Dict[str, str]] = None,
-    timeout: Union[int, float] = socket._GLOBAL_DEFAULT_TIMEOUT,  # pylint:disable=protected-access
+    timeout: Union[
+        int, float
+    ] = socket._GLOBAL_DEFAULT_TIMEOUT,  # pylint:disable=protected-access # noqa
 ) -> BalancerHTTPResponse:
     """Opens an HTTP request to the given balancer and returns an
     BalancerHTTPResponse wrapping the response.
