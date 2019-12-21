@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
+
 def convert_cpu_limit(cpus: float) -> int:
     """Convert a provided number of CPUs to the
         equivalent accepted by Docker.
