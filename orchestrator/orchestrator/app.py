@@ -22,7 +22,7 @@ def index_page():
 @app.route("/ping")
 def ping_page():
     """Checks whether the orchestrator is functional.
-    
+
     Returns a provided message or else "Pong".
     """
 
