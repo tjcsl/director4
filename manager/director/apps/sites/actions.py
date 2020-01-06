@@ -53,6 +53,25 @@ def update_appserver_nginx_config(  # pylint: disable=unused-argument
     yield "Updated all appservers"
 
 
+def create_docker_container(  # pylint: disable=unused-argument
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    yield "Attempting to locate a working appserver"
+    try:
+        appserver = next(iter_pingable_appservers())
+    except StopIteration as ex:
+        raise Exception("Could not connect to an appserver") from ex
+
+    yield "Connecting to appserver {} to create Docker container".format(appserver)
+    appserver_open_http_request(
+        appserver,
+        "/sites/{}/create-docker-container".format(site.id),
+        params={"data": json.dumps(site.serialize_for_appserver())},
+    )
+
+    yield "Created Docker container"
+
+
 def update_balancer_nginx_config(  # pylint: disable=unused-argument
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:

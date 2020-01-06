@@ -29,6 +29,29 @@ def ping_page():
     return "{}\n".format(request.args.get("message", "Pong"))
 
 
+@app.route("/sites/<int:site_id>/create-docker-container")
+def create_docker_container_page(site_id: int):
+    """Creates a Docker image/container for a given site.
+
+    Based on the provided site_id and data, creates the
+    image/container. Returns "Success" if successful,
+    else an appropriate error.
+    """
+
+    if "data" not in request.args:
+        return "Error", 400
+
+    try:
+        result = None
+    except BaseException:  # pylint: disable=broad-except
+        return "Error", 500
+    else:
+        if result is None:
+            return "Success"
+        else:
+            return result, 500
+
+
 @app.route("/sites/<int:site_id>/update-nginx")
 def update_nginx_page(site_id: int):
     """Updates the Nginx config for a given site.
