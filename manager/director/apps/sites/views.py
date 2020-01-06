@@ -4,17 +4,18 @@
 import json
 from typing import Optional
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from ...utils.appserver import AppserverRequestError, appserver_open_http_request
 from . import operations
 from .forms import SiteCreateForm, SiteRenameForm
-from .models import DockerImage, Site
+from .models import Action, DockerImage, Site
 
 
 @login_required
@@ -30,6 +31,25 @@ def index_view(request: HttpRequest) -> HttpResponse:
         "sites": sites,
     }
     return render(request, "sites/list.html", context)
+
+
+def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
+    remote_addr = (
+        request.META["HTTP_X_REAL_IP"]
+        if "HTTP_X_REAL_IP" in request.META
+        else request.META.get("REMOTE_ADDR", "")
+    )
+
+    if (
+        request.user.is_authenticated and request.user.is_superuser
+    ) or remote_addr in settings.ALLOWED_METRIC_SCRAPE_IPS:
+        metrics = {"director4_sites_failed_actions": Action.objects.filter(result=False).count()}
+
+        return render(
+            request, "prometheus-metrics.txt", {"metrics": metrics}, content_type="text/plain"
+        )
+    else:
+        raise Http404
 
 
 # Used for routes that do not have views written but need to be linked to

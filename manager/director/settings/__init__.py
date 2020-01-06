@@ -242,6 +242,10 @@ DIRECTOR_BALANCER_HOSTS: List[str] = []
 DIRECTOR_BALANCER_SSL = None
 DIRECTOR_BALANCER_DEFAULT_TIMEOUT = 15
 
+# These are the only IPs that will be allowed to scrape Prometheus metrics.
+# (Superusers are whitelisted as well.)
+ALLOWED_METRIC_SCRAPE_IPS: List[str] = []
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:
