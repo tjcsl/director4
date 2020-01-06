@@ -30,7 +30,7 @@ def ping_page():
 
 
 @app.route("/sites/<int:site_id>/create-docker-container")
-def create_docker_container_page(site_id: int):
+def create_docker_container_page(site_id: int):  # pylint: disable=unused-argument
     """Creates a Docker image/container for a given site.
 
     Based on the provided site_id and data, creates the
