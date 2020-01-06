@@ -43,13 +43,14 @@ def update_appserver_nginx_config(  # pylint: disable=unused-argument
     yield "Pingable appservers: {}".format(pingable_appservers)
 
     for i in pingable_appservers:
-        yield "Updating appserver {}".format(i)
+        yield "Updating appserver {} Nginx configs".format(i)
         appserver_open_http_request(
             i,
             "/sites/{}/update-nginx".format(site.id),
             params={"data": json.dumps(site.serialize_for_appserver())},
         )
-        yield "Updated appserver {}".format(i)
+
+    yield "Updated all appservers"
 
 
 def update_balancer_nginx_config(  # pylint: disable=unused-argument
