@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block head %}
+    <style>
+        .action-success {
+            color: green;
+        }
+        .action-failure {
+            color: red;
+        }
+        .action-unfinished {
+            color: gray;
+            font-style: italic;
+        }
+
+        table.actions code pre {
+            margin-bottom: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <h1>Failed Operations</h1>
+    {% for operation in failed_operations %}
+        <div>
+            <h2>{{ operation.site.name }} (id {{ operation.site.id }})</h2>
+
+            <h4>Actions</h4>
+            <table class="actions has-border">
+                <tr>
+                    <th>Name</th>
+                    <th>Started at</th>
+                    <th>Status</th>
+                    <th>Before state</th>
+                    <th>After state</th>
+                    <th>Equivalent command</th>
+                    <th>Output</th>
+                </tr>
+            {% for action in operation.action_set.all %}
+                <tr>
+                    <td>
+                        {{ action.name }}<br>
+                        <span class="small">({% for ch in action.slug %}{{ ch }}{% if ch == "_" %}<wbr>{% endif %}{% endfor %})</span>
+                    </td>
+                    <td>
+                        {% if action.started_time is not None %}
+                        <time datetime="{{ action.started_time|date:"c" }}">
+                            {{ action.started_time|date:"Y-m-d" }}<br>{{ action.started_time|date:"g:i:s A" }}
+                        </time>
+                        {% endif %}
+                    </td>
+                    <td class="{% if action.succeeded %}action-success{% elif action.failed %}action-failure{% else %}action-unfinished{% endif %}">
+                        {{ action.result_msg }}
+                    </td>
+                    <td>{{ action.before_state }}</td>
+                    <td>{{ action.after_state }}</td>
+                    <td><code><pre>{{ action.equivalent_command }}</pre></code></td>
+                    <td><code><pre>{{ action.message }}</pre></code></td>
+                </tr>
+            {% endfor %}
+            </table>
+        </div>
+    {% empty %}
+        <p>There are no failed operations.</p>
+    {% endfor %}
+{% endblock %}

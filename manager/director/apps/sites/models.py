@@ -362,3 +362,12 @@ class Action(models.Model):
     @property
     def failed(self) -> bool:
         return self.result is False
+
+    @property
+    def result_msg(self):
+        if self.result:
+            return "Success"
+        elif self.result is None:
+            return "Not finished"
+        else:
+            return "Failed"

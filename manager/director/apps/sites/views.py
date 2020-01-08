@@ -15,7 +15,7 @@ from django.views.decorators.http import require_POST
 from ...utils.appserver import AppserverRequestError, appserver_open_http_request
 from . import operations
 from .forms import SiteCreateForm, SiteRenameForm
-from .models import Action, DockerImage, Site
+from .models import Action, DockerImage, Operation, Site
 
 
 @login_required
@@ -50,6 +50,15 @@ def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
         )
     else:
         raise Http404
+
+
+def failed_operations_view(request: HttpRequest) -> HttpResponse:
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        raise Http404
+
+    context = {"failed_operations": Operation.objects.filter(action__result=False).distinct()}
+
+    return render(request, "sites/failed-operations.html", context)
 
 
 # Used for routes that do not have views written but need to be linked to

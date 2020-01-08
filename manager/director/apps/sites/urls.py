@@ -10,6 +10,7 @@ app_name = "sites"
 urlpatterns = [
     path("", views.index_view, name="index"),
     path("prometheus-metrics", views.prometheus_metrics_view, name="prometheus-metrics"),
+    path("operations/failed/", views.failed_operations_view, name="failed-operatiosn"),
     path("demo/", views.demo_view, name="demo"),
     path("create/", views.create_view, name="create"),
     path("create/webdocs/", views.dummy_view, name="create_webdocs"),
