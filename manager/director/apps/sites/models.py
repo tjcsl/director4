@@ -305,6 +305,9 @@ class Operation(models.Model):
             "regen_database_password",
         }
 
+    def list_actions_in_order(self) -> "models.QuerySet[Action]":
+        return self.action_set.order_by("id")
+
 
 class Action(models.Model):
     operation = models.ForeignKey(Operation, null=False, on_delete=models.PROTECT)

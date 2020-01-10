@@ -37,7 +37,7 @@
                     <th>Equivalent command</th>
                     <th>Output</th>
                 </tr>
-            {% for action in operation.action_set.all %}
+            {% for action in operation.list_actions_in_order %}
                 <tr>
                     <td>
                         {{ action.name }}<br>
