@@ -100,7 +100,7 @@ def create_view(request: HttpRequest) -> HttpResponse:
                 port = settings.DIRECTOR_MIN_PORT
             else:
                 port += 1
-            site.port = max_port + 1
+            site.port = port + 1
             site.save()
             form.save_m2m()
             docker_image.name = "site_{}".format(site.id)
