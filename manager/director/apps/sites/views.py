@@ -95,7 +95,12 @@ def create_view(request: HttpRequest) -> HttpResponse:
 
             docker_image = DockerImage.objects.create(name="tmp_site_" + site.name, is_custom=True)
             site.docker_image = docker_image
-            site.port = Site.objects.aggregate(Max("port"))["port__max"] + 1
+            port = Site.objects.aggregate(Max("port"))["port__max"]
+            if port is None:
+                port = settings.DIRECTOR_MIN_PORT
+            else:
+                port += 1
+            site.port = max_port + 1
             site.save()
             form.save_m2m()
             docker_image.name = "site_{}".format(site.id)
