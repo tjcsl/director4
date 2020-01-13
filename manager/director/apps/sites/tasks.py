@@ -18,7 +18,7 @@ def rename_site_task(operation_id: int, new_name: str):
     scope: Dict[str, Any] = {"new_name": new_name}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
-        wrapper.add_action("Pinging appservers")(actions.find_pingable_appservers)
+        wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
         @wrapper.add_action("Changing site name in database")
         def change_site_name(
@@ -31,13 +31,13 @@ def rename_site_task(operation_id: int, new_name: str):
 
             yield ("after_state", site.name)
 
-        wrapper.add_action("Updating appserver configuration")(
-            actions.update_appserver_nginx_config
+        wrapper.add_action(
+            "Updating appserver configuration", actions.update_appserver_nginx_config
         )
 
         if not settings.DEBUG:
-            wrapper.add_action("Updating balancer configuration")(
-                actions.update_balancer_nginx_config
+            wrapper.add_action(
+                "Updating balancer configuration", actions.update_balancer_nginx_config
             )
 
 
@@ -46,17 +46,17 @@ def create_site_task(operation_id: int):
     scope: Dict[str, Any] = {}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
-        wrapper.add_action("Pinging appservers")(actions.find_pingable_appservers)
+        wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
-        wrapper.add_action("Selecting a port")(actions.select_site_port)
+        wrapper.add_action("Selecting a port", actions.select_site_port)
 
-        wrapper.add_action("Creating Docker container")(actions.create_docker_container)
+        wrapper.add_action("Creating Docker container", actions.create_docker_container)
 
-        wrapper.add_action("Updating appserver configuration")(
-            actions.update_appserver_nginx_config
+        wrapper.add_action(
+            "Updating appserver configuration", actions.update_appserver_nginx_config
         )
 
         if not settings.DEBUG:
-            wrapper.add_action("Updating balancer configuration")(
-                actions.update_balancer_nginx_config
+            wrapper.add_action(
+                "Updating balancer configuration", actions.update_balancer_nginx_config
             )

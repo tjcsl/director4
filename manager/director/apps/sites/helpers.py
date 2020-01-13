@@ -2,7 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import contextlib
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, overload
 
 from .models import Action, Operation, Site
 
@@ -15,9 +15,31 @@ class OperationWrapper:
         self.site = operation.site
         self.actions: List[Tuple[Action, ActionCallback]] = []
 
-    def add_action(
+    @overload
+    def add_action(  # pylint: disable=no-self-use # noqa
         self, name: str, *, slug: Optional[str] = None, equivalent_command: str = ""
     ) -> Callable[[ActionCallback], ActionCallback]:
+        ...
+
+    @overload
+    def add_action(  # pylint: disable=no-self-use # noqa
+        self,
+        name: str,
+        callback: ActionCallback,
+        *,
+        slug: Optional[str] = None,
+        equivalent_command: str = ""
+    ) -> ActionCallback:
+        ...
+
+    def add_action(  # noqa
+        self,
+        name: str,
+        callback: Optional[ActionCallback] = None,
+        *,
+        slug: Optional[str] = None,
+        equivalent_command: str = ""
+    ):
         created = False
 
         def wrap(callback: ActionCallback) -> ActionCallback:
@@ -36,7 +58,10 @@ class OperationWrapper:
 
             return callback
 
-        return wrap
+        if callback is not None:
+            return wrap(callback)
+        else:
+            return wrap
 
     def execute_operation(self, scope: Optional[Dict[str, Any]] = None) -> bool:
         if scope is None:
