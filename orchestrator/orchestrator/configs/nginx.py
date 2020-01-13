@@ -50,7 +50,7 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
         return "Invalid port"
 
     variables = {
-        "DEBUG": settings.DEBUG,
+        "settings": settings,
         **new_data,
     }
 
