@@ -18,6 +18,7 @@ def rename_site_task(operation_id: int, new_name: str):
     scope: Dict[str, Any] = {"new_name": new_name}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
+        wrapper.add_action("Pinging appservers")(actions.find_pingable_appservers)
 
         @wrapper.add_action("Changing site name in database")
         def change_site_name(
@@ -45,6 +46,8 @@ def create_site_task(operation_id: int):
     scope: Dict[str, Any] = {}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
+        wrapper.add_action("Pinging appservers")(actions.find_pingable_appservers)
+
         wrapper.add_action("Selecting a port")(actions.select_site_port)
 
         wrapper.add_action("Creating Docker container")(actions.create_docker_container)
