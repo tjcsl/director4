@@ -74,11 +74,11 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
         )
     except (OSError, subprocess.CalledProcessError):
         try:
-            os.remove(nginx_config_path)
+            os.rename(nginx_config_path, nginx_config_path + ".bak")
         except OSError:
-            return "Error checking Nginx config for errors (also unable to remove site config)"
+            return "Error checking Nginx config for errors (also unable to move site config out of the way)"
         else:
-            return "Error checking Nginx config for errors (site config has been removed)"
+            return "Error checking Nginx config for errors (site config has been renamed with a .bak extension)"
 
     try:
         subprocess.run(
