@@ -31,17 +31,17 @@
             </p>
 
             <p>
-            <a href="{% url 'sites:config' site.id %}" class="btn btn-ion"><i class="fa fa-refresh"></i> Rewrite Configuration</a>
+            <a href="{% url 'sites:config' site.id %}" class="btn btn-ion"><i class="fas fa-sync-alt"></i> Rewrite Configuration</a>
             {% if site.category != "vm" %}
             <a href="{% url 'sites:permissions' site.id %}" class="btn btn-ion"><i class="fa fa-wrench"></i> Reset File Permissions</a>
             {% endif %}
             </p>
 
             <p>
-                <a href="{% url 'auth:index' %}" class="btn btn-ion"><i class="fa fa-undo"></i> Back</a>
-                <a href="{% url 'sites:edit' site.id %}" class="btn btn-ion"><i class="fa fa-pencil"></i> Configure Site</a>
+                <a href="{% url 'auth:index' %}" class="btn btn-ion"><i class="fa fa-undo-alt"></i> Back</a>
+                <a href="{% url 'sites:edit' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Configure Site</a>
                 {% if request.user.is_superuser or site.purpose == "project" %}
-                <a href="{% url 'sites:delete' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-o"></i> Delete Site</a>
+                <a href="{% url 'sites:delete' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-alt"></i> Delete Site</a>
                 {% endif %}
             </p>
         </div>
@@ -60,7 +60,7 @@
             </div>
             <a href="{% url 'sites:edit_database' site.id %}" class="btn btn-ion"><i class="fa fa-pencil"></i> Edit Database</a>
             <form style="display:inline-block" method="POST" action="{% url 'sites:regenerate_database_password' site.id %}">{% csrf_token %}<button id="generate-database-password" class="btn btn-ion"><i class="fa fa-key"></i> Regenerate Password</a></button></form>
-            <a href="{% url 'sites:delete_database' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-o"></i> Delete Database</a>
+            <a href="{% url 'sites:delete_database' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-alt"></i> Delete Database</a>
             {% else %}
             <p>This site has no databases associated with it.</p>
             <a href="{% url 'sites:create_database' site.id %}" class="btn btn-ion"><i class="fa fa-plus"></i> Add Database</a>
