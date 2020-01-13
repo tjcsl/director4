@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
 
   # Manager HTTP port
   config.vm.network "forwarded_port", guest: 8080, host: 8080, host_ip: "127.0.0.1"
-  # Balancer HTTP port (currently not set up)
+  # Balancer HTTP port
   config.vm.network "forwarded_port", guest: 80, host: 8081, host_ip: "127.0.0.1"
 
   # Define the VM and set up some things
