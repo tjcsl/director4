@@ -90,7 +90,7 @@ def edit_site_names_task(
                 except Domain.DoesNotExist:
                     Domain.objects.create(site=site, domain=domain_name, creating_user=request_user)
                 else:
-                    if domain.site.id != site.id:
+                    if domain_obj.site is not None and domain_obj.site.id != site.id:
                         yield "Domain {} belongs to another site; silently ignoring".format(
                             domain_name,
                         )
