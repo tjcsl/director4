@@ -16,6 +16,7 @@ def regen_nginx_config(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="regen_nginx_config")
     regen_nginx_config_task.delay(operation.id)
 
+
 def edit_site_names(
     site: Site,
     *,

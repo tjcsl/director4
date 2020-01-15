@@ -55,9 +55,7 @@ class SiteNamesForm(forms.Form):
 
     @classmethod
     def build_for_site(cls, site: Site) -> "SiteNamesForm":
-        return SiteNamesForm(
-            {"name": site.name, "sites_domain_enabled": site.sites_domain_enabled}
-        )
+        return SiteNamesForm({"name": site.name, "sites_domain_enabled": site.sites_domain_enabled})
 
 
 # These fields don't need to be applied specially, so we can use a Modelform
