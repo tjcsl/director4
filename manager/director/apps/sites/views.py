@@ -14,7 +14,7 @@ from django.views.decorators.http import require_POST
 
 from ...utils.appserver import AppserverRequestError, appserver_open_http_request
 from . import operations
-from .forms import SiteCreateForm, SiteRenameForm
+from .forms import SiteCreateForm, SiteMetaForm, SiteNamesForm
 from .models import Action, DockerImage, Operation, Site
 
 
@@ -70,20 +70,56 @@ def dummy_view(  # pylint: disable=unused-argument
 
 
 @login_required
-def rename_view(request: HttpRequest, site_id: int) -> HttpResponse:
+def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site, id=site_id, users=request.user)
+
+    context = {
+        "site": site,
+        "names_form": SiteNamesForm.build_for_site(site),
+        "meta_form": SiteMetaForm(instance=site),
+    }
+
+    return render(request, "sites/edit.html", context)
+
+
+@login_required
+def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site, id=site_id, users=request.user)
 
     if request.method == "POST":
-        form = SiteRenameForm(request.POST)
-        if form.is_valid():
-            operations.rename_site(site, form.cleaned_data["name"])
+        meta_form = SiteMetaForm(request.POST, instance=site)
+        if meta_form.is_valid():
+            meta_form.save()
             return redirect("sites:info", site.id)
     else:
-        form = SiteRenameForm({"name": site.name})
+        meta_form = SiteMetaForm(instance=site)
 
-    context = {"site": site, "form": form}
+    context = {"site": site, "meta_form": meta_form}
 
-    return render(request, "sites/rename.html", context)
+    return render(request, "sites/edit.html", context)
+
+
+@login_required
+def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site, id=site_id, users=request.user)
+
+    if request.method == "POST":
+        names_form = SiteNamesForm(request.POST)
+        if names_form.is_valid():
+            operations.edit_site_names(
+                site,
+                new_name=names_form.cleaned_data["name"],
+                sites_domain_enabled=names_form.cleaned_data["sites_domain_enabled"],
+                domains=[],
+                request_username=request.user.username,
+            )
+            return redirect("sites:info", site.id)
+    else:
+        names_form = SiteNamesForm.build_for_site(site)
+
+    context = {"site": site, "names_form": names_form}
+
+    return render(request, "sites/edit.html", context)
 
 
 @login_required

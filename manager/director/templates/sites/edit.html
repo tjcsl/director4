@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block main %}
+    {% if names_form %}
+        {% url 'sites:edit_names' site.id as names_form_url %}
+        {% include "table_form.html" with form=names_form form_submit_text="Save" form_action=names_form_url %}
+    {% endif %}
+
+    {% if names_form and meta_form %}
+        <hr>
+    {% endif %}
+
+    {% if meta_form %}
+        {% url 'sites:edit_meta' site.id as meta_form_url %}
+        {% include "table_form.html" with form=meta_form form_submit_text="Save" form_action=meta_form_url %}
+    {% endif %}
+{% endblock %}

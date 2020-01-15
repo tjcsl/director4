@@ -34,7 +34,7 @@ class SiteCreateForm(forms.ModelForm):
         }
 
 
-class SiteRenameForm(forms.Form):
+class SiteNamesForm(forms.Form):
     name = forms.CharField(
         label="Name",
         max_length=32,
@@ -48,3 +48,26 @@ class SiteRenameForm(forms.Form):
         ],
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
+
+    sites_domain_enabled = forms.BooleanField(
+        label="Enable sites.tjhsst.edu domain", label_suffix="?",
+    )
+
+    @classmethod
+    def build_for_site(cls, site: Site) -> "SiteNamesForm":
+        return SiteNamesForm(
+            {"name": site.name, "sites_domain_enabled": site.sites_domain_enabled}
+        )
+
+
+# These fields don't need to be applied specially, so we can use a Modelform
+class SiteMetaForm(forms.ModelForm):
+    class Meta:
+        model = Site
+
+        fields = ["description", "purpose"]
+
+        widgets = {
+            "description": forms.Textarea(attrs={"class": "form-control"}),
+            "purpose": forms.Select(attrs={"class": "form-control"}),
+        }

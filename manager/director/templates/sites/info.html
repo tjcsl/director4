@@ -9,7 +9,7 @@
 {% block main %}
     <div class="row">
         <div class="col-md-6">
-            <h3>{{ site.name }} <a class="small" href="{% url 'sites:rename' site.id %}">rename</a></h3>
+            <h3>{{ site.name }}</h3>
             <p>
                 <b>URL:</b> {% if site.main_url %}<a href="{{ site.main_url }}" target="_blank">{{ site.main_url }}</a>{% else %}None{% endif %}<br />
                 <b>Type:</b> {{ site.get_purpose_display }} - {{ site.get_type_display }}<br />

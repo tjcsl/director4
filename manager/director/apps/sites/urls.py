@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 
@@ -15,8 +15,6 @@ urlpatterns = [
     path("create/", views.create_view, name="create"),
     path("create/webdocs/", views.dummy_view, name="create_webdocs"),
     path("<int:site_id>/", views.info_view, name="info"),
-    path("<int:site_id>/rename/", views.rename_view, name="rename"),
-    path("<int:site_id>/edit/", views.dummy_view, name="edit"),
     path("<int:site_id>/delete/", views.dummy_view, name="delete"),
     path("<int:site_id>/terminal/", views.dummy_view, name="web_terminal"),
     path("<int:site_id>/files/", views.dummy_view, name="editor"),
@@ -30,3 +28,11 @@ urlpatterns = [
     path("<int:site_id>/process/edit/", views.dummy_view, name="edit_process"),
     path("<int:site_id>/process/delete/", views.dummy_view, name="delete_process"),
 ]
+
+edit_patterns = [
+    path("", views.edit_view, name="edit"),
+    path("names/", views.edit_names_view, name="edit_names"),
+    path("meta/", views.edit_meta_view, name="edit_meta"),
+]
+
+urlpatterns.append(path("<int:site_id>/edit/", include(edit_patterns)))
