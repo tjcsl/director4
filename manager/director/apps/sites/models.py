@@ -253,10 +253,10 @@ class Operation(models.Model):
         ("create_site", "Creating site"),
         # Rename the site. Changes the site name and the default domain name.
         ("rename_site", "Renaming site",),
+        # Change the site name and domain names
+        ("edit_site_names", "Changing site name/domains"),
         # Change the site type (example: static -> dynamic)
         ("change_site_type", "Changing site type",),
-        # Change in custom domains
-        ("change_site_domains", "Changing site domains"),
         # Something was changed that requires the Nginx config to be regenerated and saved, but no
         # other changes.
         ("regen_nginx_config", "Regenerating Nginx configuration",),
