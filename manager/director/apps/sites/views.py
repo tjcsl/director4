@@ -123,6 +123,16 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 
 @login_required
+def regen_nginx_config_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site, id=site_id, users=request.user)
+
+    if request.method == "POST":
+        operations.regen_nginx_config(site)
+
+    return redirect("sites:info", site.id)
+
+
+@login_required
 def create_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = SiteCreateForm(request.POST)

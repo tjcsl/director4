@@ -110,6 +110,23 @@ def edit_site_names_task(
 
 
 @shared_task
+def regen_nginx_config_task(operation_id: int):
+    scope: Dict[str, Any] = {}
+
+    with auto_run_operation_wrapper(operation_id, scope) as wrapper:
+        wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
+
+        wrapper.add_action(
+            "Updating appserver configuration", actions.update_appserver_nginx_config
+        )
+
+        if not settings.DEBUG:
+            wrapper.add_action(
+                "Updating balancer configuration", actions.update_balancer_nginx_config
+            )
+
+
+@shared_task
 def create_site_task(operation_id: int):
     scope: Dict[str, Any] = {}
 
