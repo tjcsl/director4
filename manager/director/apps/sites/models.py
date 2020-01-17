@@ -42,7 +42,7 @@ class Site(models.Model):
         ("other", "Other"),
     ]
 
-    objects = SiteQuerySet.as_manager()
+    objects: Any = SiteQuerySet.as_manager()
 
     # Website name
     name = models.CharField(
