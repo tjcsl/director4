@@ -62,7 +62,7 @@ class Site(models.Model):
     # The Docker image running on here
     docker_image = models.ForeignKey("DockerImage", null=False, on_delete=models.PROTECT)
     # Users who have access to this site
-    users = models.ManyToManyField(get_user_model())
+    users = models.ManyToManyField(get_user_model(), blank=True)
 
     # The path to the process (either absolute or relative to `/site` within the Docker container)
     # to launch (for dynamic sites)
