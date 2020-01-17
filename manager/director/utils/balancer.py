@@ -199,6 +199,8 @@ def balancer_open_http_request(
     request = urllib.request.Request(full_url, method=method, data=data, headers=headers)
     try:
         response = urllib.request.urlopen(request, timeout=timeout, context=balancer_ssl_context)
+    except urllib.error.HTTPError as ex:
+        raise BalancerProtocolError(ex.read().decode()) from ex
     except urllib.error.URLError as ex:
         if isinstance(ex.reason, ConnectionError):
             raise BalancerConnectionError(str(ex)) from ex
