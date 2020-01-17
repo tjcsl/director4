@@ -99,7 +99,7 @@ class Site(models.Model):
     @property
     def main_url(self) -> Optional[str]:
         # Use the first custom domain if one exists
-        domain = self.domain_set.values_list("domain").first()
+        domain = self.domain_set.values_list("domain", flat=True).first()
         if domain is not None:
             return "https://{}".format(domain)
 
