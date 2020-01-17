@@ -15,7 +15,7 @@
         {% with form=names_form form_submit_text="Save" form_action=names_form_url %}
             {% include "table_form_header.html" %}
 
-            {% include "table_form_row.html" with form_item="<h4>Domains</h4>" %}
+            {% include "table_form_row.html" with form_item="<h4>Custom domains</h4>" %}
             {{ domains_formset.management_form }}
             {% for formset_form in domains_formset %}
                 {% for formset_field in formset_form %}

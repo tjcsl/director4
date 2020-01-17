@@ -57,6 +57,7 @@ class SiteNamesForm(forms.Form):
 
 class DomainForm(forms.Form):
     domain = forms.CharField(
+        label="Custom domain",
         max_length=255,
         required=False,
         validators=[
