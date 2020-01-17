@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 
+{% block head %}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#id_users").selectize();
+        });
+    </script>
+{% endblock %}
+
 {% block main %}
     {% if names_form %}
         {% url 'sites:edit_names' site.id as names_form_url %}

@@ -77,7 +77,7 @@ class SiteMetaForm(forms.ModelForm):
     class Meta:
         model = Site
 
-        fields = ["description", "purpose"]
+        fields = ["description", "purpose", "users"]
 
         widgets = {
             "description": forms.Textarea(attrs={"class": "form-control"}),
