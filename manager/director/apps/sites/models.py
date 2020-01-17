@@ -20,7 +20,7 @@ from ...utils.site_names import is_site_name_allowed
 
 
 class SiteQuerySet(models.query.QuerySet):
-    def filter_for_user(self, user: "get_user_model()") -> "models.query.QuerySet[Site]":
+    def filter_for_user(self, user) -> "models.query.QuerySet[Site]":
         if user.is_superuser:
             return self.all()
         else:

@@ -21,7 +21,7 @@ class OperationWrapper:
     ) -> Callable[[ActionCallback], ActionCallback]:
         ...
 
-    @overload
+    @overload  # noqa
     def add_action(  # pylint: disable=no-self-use # noqa
         self,
         name: str,
