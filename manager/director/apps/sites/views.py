@@ -71,7 +71,7 @@ def dummy_view(  # pylint: disable=unused-argument
 
 @login_required
 def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site, id=site_id, users=request.user)
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
     context = {
         "site": site,
@@ -87,7 +87,7 @@ def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @login_required
 def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site, id=site_id, users=request.user)
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
     if request.method == "POST":
         meta_form = SiteMetaForm(request.POST, instance=site)
@@ -104,7 +104,7 @@ def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @login_required
 def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site, id=site_id, users=request.user)
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
     if request.method == "POST":
         names_form = SiteNamesForm(request.POST)
@@ -146,7 +146,7 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @login_required
 def regen_nginx_config_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site, id=site_id, users=request.user)
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
     if request.method == "POST":
         operations.regen_nginx_config(site)
@@ -204,10 +204,7 @@ def demo_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    if request.user.is_superuser:
-        site = get_object_or_404(Site, id=site_id)
-    else:
-        site = get_object_or_404(Site, id=site_id, users=request.user)
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
     context = {"site": site}
     return render(request, "sites/info.html", context)

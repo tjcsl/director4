@@ -19,6 +19,14 @@ from ...utils import split_domain
 from ...utils.site_names import is_site_name_allowed
 
 
+class SiteQuerySet(models.query.QuerySet):
+    def filter_for_user(self, user: "get_user_model()") -> "models.query.QuerySet[Site]":
+        if user.is_superuser:
+            return self.all()
+        else:
+            return self.filter(users=user)
+
+
 class Site(models.Model):
     SITE_TYPES = [
         ("static", "Static"),
@@ -33,6 +41,8 @@ class Site(models.Model):
         ("activity", "Activity"),
         ("other", "Other"),
     ]
+
+    objects = SiteQuerySet.as_manager()
 
     # Website name
     name = models.CharField(
