@@ -66,6 +66,7 @@ class DomainForm(forms.Form):
                 "of your site.",
             ),
         ],
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
 
