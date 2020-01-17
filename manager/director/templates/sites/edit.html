@@ -4,7 +4,19 @@
 {% block main %}
     {% if names_form %}
         {% url 'sites:edit_names' site.id as names_form_url %}
-        {% include "table_form.html" with form=names_form form_submit_text="Save" form_action=names_form_url %}
+        {% with form=names_form form_submit_text="Save" form_action=names_form_url %}
+            {% include "table_form_header.html" %}
+
+            {% include "table_form_row.html" with form_item="<h4>Domains</h4>" %}
+            {{ domains_formset.management_form }}
+            {% for formset_form in domains_formset %}
+                {% for formset_field in formset_form %}
+                    {% include "table_form_row.html" with form_field=formset_field only %}
+                {% endfor %}
+            {% endfor %}
+
+            {% include "table_form_footer.html" %}
+        {% endwith %}
     {% endif %}
 
     {% if names_form and meta_form %}

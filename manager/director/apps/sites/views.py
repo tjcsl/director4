@@ -14,8 +14,8 @@ from django.views.decorators.http import require_POST
 
 from ...utils.appserver import AppserverRequestError, appserver_open_http_request
 from . import operations
-from .forms import SiteCreateForm, SiteMetaForm, SiteNamesForm
-from .models import Action, DockerImage, Operation, Site
+from .forms import DomainFormSet, SiteCreateForm, SiteMetaForm, SiteNamesForm
+from .models import Action, DockerImage, Domain, Operation, Site
 
 
 @login_required
@@ -76,6 +76,9 @@ def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
     context = {
         "site": site,
         "names_form": SiteNamesForm.build_for_site(site),
+        "domains_formset": DomainFormSet(
+            initial=site.domain_set.values("domain"), prefix="domains"
+        ),
         "meta_form": SiteMetaForm(instance=site),
     }
 
@@ -105,19 +108,38 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
     if request.method == "POST":
         names_form = SiteNamesForm(request.POST)
-        if names_form.is_valid():
-            operations.edit_site_names(
-                site,
-                new_name=names_form.cleaned_data["name"],
-                sites_domain_enabled=names_form.cleaned_data["sites_domain_enabled"],
-                domains=[],
-                request_username=request.user.username,
-            )
-            return redirect("sites:info", site.id)
+        domains_formset = DomainFormSet(request.POST, prefix="domains")
+        if names_form.is_valid() and domains_formset.is_valid():
+            domains = [
+                form.cleaned_data["domain"]
+                for form in domains_formset.forms
+                if form.cleaned_data.get("domain")
+            ]
+            if Domain.objects.filter(domain__in=domains).exclude(site__id=site.id).exists():
+                messages.error(
+                    request,
+                    "The following domain(s) you requested are already in use: {}".format(
+                        ", ".join(
+                            Domain.objects.filter(domain__in=domains)
+                            .exclude(site__id=site.id)
+                            .values_list("domain", flat=True)
+                        )
+                    ),
+                )
+            else:
+                operations.edit_site_names(
+                    site,
+                    new_name=names_form.cleaned_data["name"],
+                    sites_domain_enabled=names_form.cleaned_data["sites_domain_enabled"],
+                    domains=domains,
+                    request_username=request.user.username,
+                )
+                return redirect("sites:info", site.id)
     else:
         names_form = SiteNamesForm.build_for_site(site)
+        domains_formset = DomainFormSet(initial=site.domain_set.values("domain"), prefix="domains")
 
-    context = {"site": site, "names_form": names_form}
+    context = {"site": site, "names_form": names_form, "domains_formset": domains_formset}
 
     return render(request, "sites/edit.html", context)
 

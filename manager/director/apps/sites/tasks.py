@@ -87,15 +87,16 @@ def edit_site_names_task(
             for domain_name in scope["domains"]:
                 try:
                     domain_obj = Domain.objects.get(domain=domain_name)
-                except Domain.DoesNotExist:
-                    Domain.objects.create(site=site, domain=domain_name, creating_user=request_user)
-                else:
                     if domain_obj.site is not None and domain_obj.site.id != site.id:
                         yield "Domain {} belongs to another site; silently ignoring".format(
                             domain_name,
                         )
                     else:
                         yield "Domain {} already belongs to site {}".format(domain_name, site.id)
+                except Domain.DoesNotExist:
+                    Domain.objects.create(site=site, domain=domain_name, creating_user=request_user)
+
+            site.domain_set.exclude(domain__in=scope["domains"]).delete()
 
             yield ("after_state", str(site.list_urls()))
 

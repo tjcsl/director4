@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: MIT
-# (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
-
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core import validators
@@ -56,6 +53,23 @@ class SiteNamesForm(forms.Form):
     @classmethod
     def build_for_site(cls, site: Site) -> "SiteNamesForm":
         return SiteNamesForm({"name": site.name, "sites_domain_enabled": site.sites_domain_enabled})
+
+
+class DomainForm(forms.Form):
+    domain = forms.CharField(
+        max_length=255,
+        required=False,
+        validators=[
+            validators.RegexValidator(
+                regex=r"^(?!(.*\.)?sites\.tjhsst\.edu$)[0-9a-zA-Z_\- .]+$",
+                message="You can only have one sites.tjhsst.edu domain, and it must match the name "
+                "of your site.",
+            ),
+        ],
+    )
+
+
+DomainFormSet = forms.formset_factory(DomainForm)  # type: ignore
 
 
 # These fields don't need to be applied specially, so we can use a Modelform
