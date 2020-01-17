@@ -1,7 +1,7 @@
 {% extends "error/error_base.html" %}
 
 {% block heading %}
-    Director is temporarily unavailable
+    {{ DJANGO_SETTINGS.DIRECTOR_APPLICATION_NAME|default:"Director" }} is temporarily unavailable
 {% endblock %}
 
 {% block description %}

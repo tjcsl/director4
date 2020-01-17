@@ -10,7 +10,7 @@
 {% block main %}
 <div class="login-box">
     <p>
-        <span class="bold">Log in with your Intranet account</span> to access the Director management interface.
+        <span class="bold">Log in with your Intranet account</span> to access the {{ DJANGO_SETTINGS.DIRECTOR_APPLICATION_NAME }} management interface.
     </p>
     <a href="{% url 'social:begin' 'ion' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-ion">Log in with Ion</a>
 </div>

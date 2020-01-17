@@ -248,6 +248,8 @@ ALLOWED_METRIC_SCRAPE_IPS: List[str] = []
 
 DIRECTOR_MIN_PORT = 10000
 
+DIRECTOR_APPLICATION_NAME = "Director"
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:
