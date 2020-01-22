@@ -29,6 +29,7 @@ def update_appserver_nginx_config(
         appserver,
         "/sites/{}/update-nginx".format(site.id),
         params={"data": json.dumps(site.serialize_for_appserver())},
+        timeout=60,
     )
 
     yield "Updated Nginx config"
