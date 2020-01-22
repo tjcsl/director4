@@ -11,3 +11,8 @@ NGINX_CONFIG_CHECK_COMMAND = ["sudo", "-u", "root", "nginx", "-t"]
 # Will be run by the orchestrator to reload the Nginx config. stdout/stderr are discarded
 # -- only the return code is checked.
 NGINX_CONFIG_RELOAD_COMMAND = ["docker", "service", "update", "--force", "director-nginx"]
+
+try:
+    from .secret import *  # noqa
+except ImportError:
+    pass
