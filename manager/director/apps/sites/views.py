@@ -7,7 +7,6 @@ from typing import Optional
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Max
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -163,12 +162,6 @@ def create_view(request: HttpRequest) -> HttpResponse:
 
             docker_image = DockerImage.objects.create(name="tmp_site_" + site.name, is_custom=True)
             site.docker_image = docker_image
-            port = Site.objects.aggregate(Max("port"))["port__max"]
-            if port is None:
-                port = settings.DIRECTOR_MIN_PORT
-            else:
-                port += 1
-            site.port = port + 1
             site.save()
             form.save_m2m()
             docker_image.name = "site_{}".format(site.id)

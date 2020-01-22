@@ -74,14 +74,6 @@ for vhost in 'manager'; do
 done
 
 
-## Setup Nginx
-apt-get -y install nginx-full
-cp vagrant-config/nginx.conf /etc/nginx/nginx.conf
-mkdir -p /etc/nginx/director.d/
-chown vagrant:vagrant /etc/nginx/director.d/
-systemctl restart nginx
-systemctl enable nginx
-
 
 ## Setup Docker
 wget -q -O - 'https://download.docker.com/linux/ubuntu/gpg' | sudo apt-key add -
@@ -95,9 +87,29 @@ if [[ "$(docker info)" != *'Swarm: active'* ]]; then
     docker swarm init
 fi
 
+if docker network ls | grep -vzq 'director-sites'; then
+    docker network create --scope=swarm --driver=overlay --opt encrypted=true --attachable director-sites
+fi
 
 # Add vagrant user to docker group
 usermod -a -G docker vagrant
+
+## Setup Nginx
+systemctl disable --now nginx  # Disable and stop old Nginx server
+
+cp vagrant-config/nginx.conf /etc/nginx/nginx.conf
+mkdir -p /etc/nginx/director.d/
+chown vagrant:vagrant /etc/nginx/director.d/
+
+docker service rm director-nginx || true
+
+docker service create --replicas=1 \
+    --publish published=80,target=80 \
+    --mount type=bind,source=/etc/nginx/nginx.conf,destination=/etc/nginx/nginx.conf \
+    --mount type=bind,source=/etc/nginx/director.d,destination=/etc/nginx/director.d \
+    --network director-sites \
+    --name director-nginx \
+    nginx:latest
 
 
 ## Setup secret.pys

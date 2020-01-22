@@ -48,7 +48,6 @@ class SiteConsumer(JsonWebsocketConsumer):
                     "site_info": {
                         "name": self.site.name,
                         "description": self.site.description,
-                        "port": self.site.port,
                         "type": self.site.type,
                     },
                 }

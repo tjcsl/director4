@@ -6,12 +6,7 @@ from typing import Any, Dict, List, Optional
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.core.validators import (
-    MaxValueValidator,
-    MinLengthValidator,
-    MinValueValidator,
-    RegexValidator,
-)
+from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models  # pylint: disable=unused-import # noqa
 from django.utils import timezone
 
@@ -65,10 +60,6 @@ class Site(models.Model):
     type = models.CharField(max_length=16, choices=SITE_TYPES)
     # What the site is created for
     purpose = models.CharField(max_length=16, choices=PURPOSES)
-    # The port that Docker forwards to on the host
-    port = models.IntegerField(
-        unique=True, validators=[MinValueValidator(10001), MaxValueValidator(65535)]
-    )
     # The Docker image running on here
     docker_image = models.ForeignKey("DockerImage", null=False, on_delete=models.PROTECT)
     # Users who have access to this site
@@ -126,7 +117,6 @@ class Site(models.Model):
 
         return {
             "name": self.name,
-            "port": self.port,
             "no_redirect_domains": list({split_domain(url) for url in self.list_urls()}),
             "primary_url_base": main_url,
         }

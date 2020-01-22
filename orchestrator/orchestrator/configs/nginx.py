@@ -18,9 +18,12 @@ nginx_template = jinja_env.get_template("nginx.conf")
 
 def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
     """Returns None on success or a message on failure."""
-    new_data = {
-        key: data[key] for key in ["name", "port", "no_redirect_domains", "primary_url_base"]
-    }
+    new_data = {}
+    for key in ["name", "no_redirect_domains", "primary_url_base"]:
+        if key not in data:
+            return "Missing key {!r}".format(key)
+
+        new_data[key] = data[key]
 
     # Some basic validation
     if (
@@ -46,17 +49,18 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
             and re.search(r"^((\d+\.){3}\d+|([0-9a-fA-F]|:):[0-9a-fA-F:]*)$", domain) is None
         ):
             return "Invalid 'no redirect' domain {!r}".format(domain)
-    if not isinstance(new_data["port"], int) or new_data["port"] < 10000:
-        return "Invalid port"
 
     variables = {
         "settings": settings,
+        "id": site_id,
         **new_data,
     }
 
     text = nginx_template.render(variables)
 
-    nginx_config_path = "/etc/nginx/director.d/site-{}.conf".format(site_id)
+    nginx_config_path = os.path.join(
+        settings.NGINX_CONFIG_DIRECTORY, "site-{}.conf".format(site_id)
+    )
 
     try:
         with open(nginx_config_path, "w") as f_obj:

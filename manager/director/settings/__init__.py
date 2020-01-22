@@ -246,8 +246,6 @@ DIRECTOR_BALANCER_DEFAULT_TIMEOUT = 15
 # (Superusers are whitelisted as well.)
 ALLOWED_METRIC_SCRAPE_IPS: List[str] = []
 
-DIRECTOR_MIN_PORT = 10000
-
 DIRECTOR_APPLICATION_NAME = "Director"
 
 try:
