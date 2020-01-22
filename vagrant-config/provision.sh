@@ -95,14 +95,17 @@ fi
 usermod -a -G docker vagrant
 
 ## Setup Nginx
-systemctl disable --now nginx  # Disable and stop old Nginx server
+# We need Nginx installed to check the config, but we don't want it running
+apt install -y nginx-full
+systemctl disable --now nginx
 
+# Copy config files
 cp vagrant-config/nginx.conf /etc/nginx/nginx.conf
 mkdir -p /etc/nginx/director.d/
 chown vagrant:vagrant /etc/nginx/director.d/
 
+# Setup Docker Swarm service
 docker service rm director-nginx || true
-
 docker service create --replicas=1 \
     --publish published=80,target=80 \
     --mount type=bind,source=/etc/nginx/nginx.conf,destination=/etc/nginx/nginx.conf \
