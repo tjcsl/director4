@@ -74,6 +74,7 @@
                         {% if request.user.is_staff %}
                             <a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-fw fa-star"></i> Django Admin</a>
                         {% endif %}
+                        <a class="dropdown-item" href="{% url 'sites:operations' %}"><i class="fas fa-fw fa-running"></i> Operations</a>
                     {% endif %}
                     <!--<li class="feedback"><a href=""><i class="fa fa-fw fa-smile-o"></i> Send Feedback</a></li>
                     <li><a href=""><i class="fa fa-fw fa-question-circle"></i> Documentation</a></li>
