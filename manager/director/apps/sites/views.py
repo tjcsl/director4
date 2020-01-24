@@ -51,13 +51,26 @@ def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
         raise Http404
 
 
-def failed_operations_view(request: HttpRequest) -> HttpResponse:
+def operations_view(request: HttpRequest) -> HttpResponse:
     if not request.user.is_authenticated or not request.user.is_superuser:
         raise Http404
 
-    context = {"failed_operations": Operation.objects.filter(action__result=False).distinct()}
+    if request.GET.get("failed"):
+        title = "Failed Operations"
+        failed_only = True
+        operations = Operation.objects.filter(action__result=False).distinct()
+    else:
+        title = "Operations"
+        failed_only = False
+        operations = Operation.objects.all()
 
-    return render(request, "sites/failed-operations.html", context)
+    context = {
+        "title": title,
+        "failed_only": failed_only,
+        "operations": operations,
+    }
+
+    return render(request, "sites/operations.html", context)
 
 
 # Used for routes that do not have views written but need to be linked to

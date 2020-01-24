@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 
+{% block titlesuffix %} - {{ title }}{% endblock %}
+
 {% block head %}
     <style>
         .action-success {
@@ -21,8 +23,16 @@
 {% endblock %}
 
 {% block main %}
-    <h1>Failed Operations</h1>
-    {% for operation in failed_operations %}
+    <h1>{{ title }}</h1>
+
+    <p>
+        <a href="{% url 'sites:operations' %}{% if not failed_only %}?failed=1{% endif %}" class="btn btn-ion">
+            <i class="{% if failed_only %}far{% else %}fas{% endif %} fa-star"></i>
+            {% if failed_only %}All operations{% else %}Failed operations only{% endif %}
+        </a>
+    <p>
+
+    {% for operation in operations %}
         <div>
             <h2>{{ operation.site.name }} (id {{ operation.site.id }})</h2>
 
