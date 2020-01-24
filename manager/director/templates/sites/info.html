@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 
+{% block titlesuffix %} - {{ site.name }}{% endblock %}
+
 {% block head %}
     <script src="{% static 'js/site.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/site-info.css' %}" />
