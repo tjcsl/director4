@@ -44,6 +44,8 @@ for name in 'manager'; do
     run_sql "CREATE USER $name PASSWORD 'pwd';" || echo "User '$name' already exists"
 done
 
+run_sql "ALTER USER postgres WITH PASSWORD 'pwd';"
+
 # Edit the config and restart
 for line in "host sameuser all 127.0.0.1/32 password" "host sameuser all ::1/128 password"; do
     if [[ $'\n'"$(</etc/postgresql/10/main/pg_hba.conf)"$'\n' != *$'\n'"$line"$'\n'* ]]; then
@@ -122,3 +124,26 @@ fi
 if [[ ! -e orchestrator/orchestrator/settings/secret.py ]]; then
     cp orchestrator/orchestrator/settings/secret.{sample,py}
 fi
+
+# Migrate database
+(cd manager; sudo -H -u vagrant pipenv run ./manage.py migrate)
+
+# Create/update localhost entry
+(cd manager; sudo -H -u vagrant pipenv run ./manage.py shell -c "
+from director.apps.sites.models import DatabaseHost
+
+data = {
+    'hostname': '127.0.0.1',
+    'port': 5432,
+    'dbms': 'postgres',
+    'admin_username': 'postgres',
+    'admin_password': 'pwd',
+}
+
+q = DatabaseHost.objects.filter(hostname=data['hostname'])
+if q.exists():
+    assert q.count() == 1, 'Please delete duplicate DatabaseHosts'
+    q.update(**data)
+else:
+    DatabaseHost.objects.create(**data)
+")
