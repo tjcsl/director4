@@ -58,16 +58,16 @@ def operations_view(request: HttpRequest) -> HttpResponse:
     if request.GET.get("failed"):
         title = "Failed Operations"
         failed_only = True
-        operations = Operation.objects.filter(action__result=False).distinct()
+        operation_objs = Operation.objects.filter(action__result=False).distinct()
     else:
         title = "Operations"
         failed_only = False
-        operations = Operation.objects.all()
+        operation_objs = Operation.objects.all()
 
     context = {
         "title": title,
         "failed_only": failed_only,
-        "operations": operations,
+        "operations": operation_objs,
     }
 
     return render(request, "sites/operations.html", context)
