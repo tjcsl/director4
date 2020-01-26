@@ -24,6 +24,8 @@ timedatectl set-timezone America/New_York
 ## Dependencies
 # Pip for obvious reasons, tmux and expect for the launch script
 apt-get -y install python3-pip tmux expect
+# Development files
+apt-get -y install python3-dev libssl-dev libcrypto++-dev
 sudo pip3 install pipenv fabric
 
 
