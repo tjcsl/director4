@@ -56,6 +56,10 @@ systemctl restart postgresql
 systemctl enable postgresql
 
 
+## Setup MySQL
+apt-get -y install mysql-server default-libmysqlclient-dev
+
+
 ## Setup Redis
 apt-get -y install redis
 sed -i 's/^#\(bind 127.0.0.1 ::1\)$/\1/' /etc/redis/redis.conf
