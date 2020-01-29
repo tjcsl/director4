@@ -25,9 +25,6 @@ urlpatterns = [
         name="regen_nginx_config",
     ),
     path("<int:site_id>/permission/", views.dummy_view, name="permissions"),
-    path("<int:site_id>/database/create/", views.dummy_view, name="create_database"),
-    path("<int:site_id>/database/edit/", views.dummy_view, name="edit_database"),
-    path("<int:site_id>/database/delete/", views.dummy_view, name="delete_database"),
     path("<int:site_id>/process/create/", views.dummy_view, name="create_process"),
     path("<int:site_id>/process/edit/", views.dummy_view, name="edit_process"),
     path("<int:site_id>/process/delete/", views.dummy_view, name="delete_process"),
@@ -39,4 +36,15 @@ edit_patterns = [
     path("meta/", views.edit_meta_view, name="edit_meta"),
 ]
 
-urlpatterns.append(path("<int:site_id>/edit/", include(edit_patterns)))
+database_patterns = [
+    path("create/", views.dummy_view, name="create_database"),
+    path("edit/", views.dummy_view, name="edit_database"),
+    path("delete/", views.dummy_view, name="delete_database"),
+]
+
+urlpatterns.extend(
+    [
+        path("<int:site_id>/edit/", include(edit_patterns)),
+        path("<int:site_id>/datbase/", include(database_patterns)),
+    ]
+)
