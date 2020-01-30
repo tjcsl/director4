@@ -134,7 +134,7 @@ def create_site_task(operation_id: int):
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
-        wrapper.add_action("Creating Docker container", actions.create_docker_container)
+        wrapper.add_action("Creating Docker service", actions.create_docker_service)
 
         wrapper.add_action(
             "Updating appserver configuration", actions.update_appserver_nginx_config
