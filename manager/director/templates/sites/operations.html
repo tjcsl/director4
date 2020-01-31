@@ -72,6 +72,6 @@
             </table>
         </div>
     {% empty %}
-        <p>There are no failed operations.</p>
+        <p>There are no {% if failed_only %}failed {% endif %}operations.</p>
     {% endfor %}
 {% endblock %}
