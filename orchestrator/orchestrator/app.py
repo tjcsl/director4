@@ -28,12 +28,12 @@ def ping_page():
     return "{}\n".format(request.args.get("message", "Pong"))
 
 
-@app.route("/sites/<int:site_id>/create-docker-container")
-def create_docker_container_page(site_id: int):  # pylint: disable=unused-argument
-    """Creates a Docker image/container for a given site.
+@app.route("/sites/<int:site_id>/create-docker-service")
+def create_docker_service_page(site_id: int):  # pylint: disable=unused-argument
+    """Creates a Docker service for a given site.
 
     Based on the provided site_id and data, creates the
-    image/container. Returns "Success" if successful,
+    Docker service. Returns "Success" if successful,
     else an appropriate error.
     """
 
