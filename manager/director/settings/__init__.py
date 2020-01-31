@@ -248,6 +248,9 @@ ALLOWED_METRIC_SCRAPE_IPS: List[str] = []
 
 DIRECTOR_APPLICATION_NAME = "Director"
 
+# All generated database passwords will be this long.
+DIRECTOR_DATABASE_PASSWORD_LENGTH = 50
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:
