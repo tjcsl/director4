@@ -215,6 +215,9 @@ class DatabaseHost(models.Model):
     admin_username = models.CharField(max_length=255, null=False, blank=False)
     admin_password = models.CharField(max_length=255, null=False, blank=False)
 
+    def __str__(self) -> str:
+        return "{}:{} ({})".format(self.hostname, self.port, self.get_dbms_display())
+
 
 class Database(models.Model):
     host = models.ForeignKey(DatabaseHost, on_delete=models.CASCADE)
