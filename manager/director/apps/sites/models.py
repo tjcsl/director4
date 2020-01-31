@@ -266,7 +266,7 @@ class Operation(models.Model):
         # Create a database for the site
         ("delete_site_database", "Deleting site database"),
         # Regenerate the database password.
-        ("regen_database_password", "Regenerating database password",),
+        ("regen_site_secrets", "Regenerating site secrets",),
         # Delete a site, its files, its database, its Docker image, etc.
         ("delete_site", "Deleting site",),
     ]
