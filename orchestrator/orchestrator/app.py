@@ -3,7 +3,6 @@
 
 # import logging
 import json
-import socket
 
 from flask import Flask, request  # , jsonify, redirect, url_for
 
@@ -73,24 +72,6 @@ def update_nginx_page(site_id: int):
             return "Success"
         else:
             return result, 500
-
-
-@app.route("/check-port/<int:port>")
-def check_port_page(port: int):
-    """Verifies whether a port is open.
-
-    Attempts to bind to provided port. If a
-    port is in use, responds with "ERR",
-    else an empty response.
-    """
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.bind(("", port))
-            sock.listen(0)
-    except OSError:
-        return "ERR"
-    else:
-        return ""
 
 
 @app.route("/demo", methods=["GET", "POST"])
