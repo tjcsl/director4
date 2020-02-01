@@ -52,7 +52,7 @@ def create_docker_service_page(site_id: int):  # pylint: disable=unused-argument
 
 
 @app.route("/sites/<int:site_id>/update-docker-service")
-def update_docker_service_page(site_id: int):
+def update_docker_service_page(site_id: int):  # pylint: disable=unused-argument
     """Updates the Docker service for a given site.
 
     Based on the provided site_id and data, updates
