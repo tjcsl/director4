@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 
 from docker.client import DockerClient
 from docker.models.services import Service
-from docker.types import EndpointSpec, Resources, RestartPolicy, RollbackConfig, ServiceMode, UpdateConfig
+from docker.types import EndpointSpec, Resources, RestartPolicy, ServiceMode, UpdateConfig
 
 from .conversions import convert_cpu_limit, convert_memory_limit
 
@@ -56,7 +56,9 @@ def get_director_service_name(site_id: int) -> str:
     return "site_{:04d}".format(site_id)
 
 
-def gen_director_service_params(client: DockerClient, site_id: int, site_data: Dict[str, Any]) -> Dict[str, Any]:
+def gen_director_service_params(  # pylint: disable=unused-argument
+    client: DockerClient, site_id: int, site_data: Dict[str, Any]
+) -> Dict[str, Any]:
     env = {
         "PORT": "80",
         "HOST": "0.0.0.0",
@@ -91,12 +93,7 @@ def gen_director_service_params(client: DockerClient, site_id: int, site_data: D
         "endpoint_spec": EndpointSpec(mode="vip", ports={}),
         "tty": False,
         "mode": ServiceMode(mode="replicated", replicas=1),
-        "restart_policy": RestartPolicy(
-            condition="any",
-            delay=5,
-            max_attempts=0,
-            window=0,
-        ),
+        "restart_policy": RestartPolicy(condition="any", delay=5, max_attempts=0, window=0),
         "update_config": UpdateConfig(
             parallelism=1,
             order="stop-first",
@@ -109,11 +106,15 @@ def gen_director_service_params(client: DockerClient, site_id: int, site_data: D
     }
 
 
-def create_director_service(client: DockerClient, site_id: int, site_data: Dict[str, Any]) -> Service:
+def create_director_service(
+    client: DockerClient, site_id: int, site_data: Dict[str, Any]
+) -> Service:
     return client.services.create(**gen_director_service_params(client, site_id, site_data))
 
 
-def update_director_service(client: DockerClient, site_id: int, site_data: Dict[str, Any]) -> Service:
+def update_director_service(
+    client: DockerClient, site_id: int, site_data: Dict[str, Any]
+) -> Service:
     service = get_service_by_name(client, get_director_service_name(site_id))
     if service is None:
         raise ValueError("Service does not exist")
