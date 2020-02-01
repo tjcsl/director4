@@ -11,7 +11,7 @@ def create_client() -> docker.client.DockerClient:
         The created DockerClient instance.
     """
 
-    return docker.from_env()
+    return docker.from_env(version="auto")
 
 
 def is_container_running(client: docker.client.DockerClient, ctr_name_or_id):
