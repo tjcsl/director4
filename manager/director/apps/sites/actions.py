@@ -28,7 +28,8 @@ def update_appserver_nginx_config(
     appserver_open_http_request(
         appserver,
         "/sites/{}/update-nginx".format(site.id),
-        params={"data": json.dumps(site.serialize_for_appserver())},
+        method="POST",
+        data={"data": json.dumps(site.serialize_for_appserver())},
         timeout=60,
     )
 
@@ -44,7 +45,8 @@ def create_docker_service(
     appserver_open_http_request(
         appserver,
         "/sites/{}/create-docker-service".format(site.id),
-        params={"data": json.dumps(site.serialize_for_appserver())},
+        method="POST",
+        data={"data": json.dumps(site.serialize_for_appserver())},
     )
 
     yield "Created Docker service"
@@ -59,7 +61,8 @@ def update_docker_service(
     appserver_open_http_request(
         appserver,
         "/sites/{}/update-docker-service".format(site.id),
-        params={"data": json.dumps(site.serialize_for_appserver())},
+        method="POST",
+        data={"data": json.dumps(site.serialize_for_appserver())},
     )
 
     yield "Updated Docker service"

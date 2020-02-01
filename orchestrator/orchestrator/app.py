@@ -30,7 +30,7 @@ def ping_page():
     return "{}\n".format(request.args.get("message", "Pong"))
 
 
-@app.route("/sites/<int:site_id>/create-docker-service")
+@app.route("/sites/<int:site_id>/create-docker-service", methods=["POST"])
 def create_docker_service_page(site_id: int):
     """Creates a Docker service for a given site.
 
@@ -39,11 +39,11 @@ def create_docker_service_page(site_id: int):
     else an appropriate error.
     """
 
-    if "data" not in request.args:
+    if "data" not in request.form:
         return "Error", 400
 
     try:
-        create_director_service(create_client(), site_id, json.loads(request.args["data"]))
+        create_director_service(create_client(), site_id, json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
         traceback.print_exc()
         return "Error", 500
@@ -51,7 +51,7 @@ def create_docker_service_page(site_id: int):
         return "Success"
 
 
-@app.route("/sites/<int:site_id>/update-docker-service")
+@app.route("/sites/<int:site_id>/update-docker-service", methods=["POST"])
 def update_docker_service_page(site_id: int):
     """Updates the Docker service for a given site.
 
@@ -61,11 +61,11 @@ def update_docker_service_page(site_id: int):
     error.
     """
 
-    if "data" not in request.args:
+    if "data" not in request.form:
         return "Error", 400
 
     try:
-        update_director_service(create_client(), site_id, json.loads(request.args["data"]))
+        update_director_service(create_client(), site_id, json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
         traceback.print_exc()
         return "Error", 500
@@ -73,7 +73,7 @@ def update_docker_service_page(site_id: int):
         return "Success"
 
 
-@app.route("/sites/<int:site_id>/update-nginx")
+@app.route("/sites/<int:site_id>/update-nginx", methods=["POST"])
 def update_nginx_page(site_id: int):
     """Updates the Nginx config for a given site.
 
@@ -82,11 +82,11 @@ def update_nginx_page(site_id: int):
     else an appropriate error.
     """
 
-    if "data" not in request.args:
+    if "data" not in request.form:
         return "Error", 400
 
     try:
-        result = update_nginx_config(site_id, json.loads(request.args["data"]))
+        result = update_nginx_config(site_id, json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
         return "Error", 500
     else:
