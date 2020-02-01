@@ -275,7 +275,7 @@ class Operation(models.Model):
     ]
 
     site = models.OneToOneField(Site, null=False, on_delete=models.PROTECT)
-    type = models.CharField(max_length=16, choices=OPERATION_TYPES)
+    type = models.CharField(max_length=24, choices=OPERATION_TYPES)
     created_time = models.DateTimeField(auto_now_add=True, null=False)
     started_time = models.DateTimeField(null=True)
 
