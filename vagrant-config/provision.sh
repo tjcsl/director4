@@ -38,15 +38,15 @@ apt-get -y install htop
 apt-get -y install postgresql postgresql-contrib libpq-dev
 
 # Create users and databases
-run_sql() {
+run_psql() {
     sudo -u postgres psql -U postgres -d postgres -c "$@"
 }
 for name in 'manager'; do
-    run_sql "CREATE DATABASE $name;" || echo "Database '$name' already exists"
-    run_sql "CREATE USER $name PASSWORD 'pwd';" || echo "User '$name' already exists"
+    run_psql "CREATE DATABASE $name;" || echo "Database '$name' already exists"
+    run_psql "CREATE USER $name PASSWORD 'pwd';" || echo "User '$name' already exists"
 done
 
-run_sql "ALTER USER postgres WITH PASSWORD 'pwd';"
+run_psql "ALTER USER postgres WITH PASSWORD 'pwd';"
 
 # Edit the config and restart
 for line in "host sameuser all 127.0.0.1/32 password" "host sameuser all ::1/128 password"; do
@@ -59,7 +59,17 @@ systemctl enable postgresql
 
 
 ## Setup MySQL
+# Install it
 apt-get -y install mysql-server default-libmysqlclient-dev
+
+# Create users
+run_mysql() {
+    echo "$*" | sudo mysql -u root
+}
+run_mysql "CREATE USER IF NOT EXISTS 'admin'@'%';"
+run_mysql "SET PASSWORD FOR admin@'%' = PASSWORD('pwd');"
+run_mysql "GRANT ALL PRIVILEGES ON *.* TO 'admin'@'%' WITH GRANT OPTION;"
+run_mysql "FLUSH PRIVILEGES;"
 
 
 ## Setup Redis
@@ -138,18 +148,28 @@ fi
 (cd manager; sudo -H -u vagrant pipenv run ./manage.py shell -c "
 from director.apps.sites.models import DatabaseHost
 
-data = {
-    'hostname': '127.0.0.1',
-    'port': 5432,
-    'dbms': 'postgres',
-    'admin_username': 'postgres',
-    'admin_password': 'pwd',
-}
+databases = [
+    {
+        'hostname': '127.0.0.1',
+        'port': 5432,
+        'dbms': 'postgres',
+        'admin_username': 'postgres',
+        'admin_password': 'pwd',
+    },
+    {
+        'hostname': '127.0.0.1',
+        'port': 3306,
+        'dbms': 'mysql',
+        'admin_username': 'admin',
+        'admin_password': 'pwd',
+    },
+]
 
-q = DatabaseHost.objects.filter(hostname=data['hostname'])
-if q.exists():
-    assert q.count() == 1, 'Please delete duplicate DatabaseHosts'
-    q.update(**data)
-else:
-    DatabaseHost.objects.create(**data)
+for data in databases:
+    q = DatabaseHost.objects.filter(hostname=data['hostname'], port=data['port'])
+    if q.exists():
+        assert q.count() == 1, 'Please delete duplicate DatabaseHosts'
+        q.update(**data)
+    else:
+        DatabaseHost.objects.create(**data)
 ")
