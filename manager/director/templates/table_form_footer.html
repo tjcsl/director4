@@ -1,3 +1,6 @@
     </div>
+    {% if form_back_url %}
+        <a class="btn btn-ion" href="{{ form_back_url }}"><i class="fas fa-undo-alt"></i> Back</a>
+    {% endif %}
     <input type="submit" value="{{ form_submit_text|default:'Submit' }}" class="btn btn-ion">
 </form>
