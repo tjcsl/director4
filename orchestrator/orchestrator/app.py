@@ -3,11 +3,14 @@
 
 # import logging
 import json
+import traceback
 
 from flask import Flask, request  # , jsonify, redirect, url_for
 
 from .configs.nginx import update_nginx_config
 from .containers.containers import demo_main
+from .containers.services import create_director_service, update_director_service
+from .containers.setup import create_client
 
 app = Flask(__name__)
 
@@ -29,7 +32,7 @@ def ping_page():
 
 
 @app.route("/sites/<int:site_id>/create-docker-service")
-def create_docker_service_page(site_id: int):  # pylint: disable=unused-argument
+def create_docker_service_page(site_id: int):
     """Creates a Docker service for a given site.
 
     Based on the provided site_id and data, creates the
@@ -41,18 +44,16 @@ def create_docker_service_page(site_id: int):  # pylint: disable=unused-argument
         return "Error", 400
 
     try:
-        result = None
+        create_director_service(create_client(), site_id, json.loads(request.args["data"]))
     except BaseException:  # pylint: disable=broad-except
+        traceback.print_exc()
         return "Error", 500
     else:
-        if result is None:
-            return "Success"
-        else:
-            return result, 500
+        return "Success"
 
 
 @app.route("/sites/<int:site_id>/update-docker-service")
-def update_docker_service_page(site_id: int):  # pylint: disable=unused-argument
+def update_docker_service_page(site_id: int):
     """Updates the Docker service for a given site.
 
     Based on the provided site_id and data, updates
@@ -65,14 +66,12 @@ def update_docker_service_page(site_id: int):  # pylint: disable=unused-argument
         return "Error", 400
 
     try:
-        result = None
+        update_director_service(create_client(), site_id, json.loads(request.args["data"]))
     except BaseException:  # pylint: disable=broad-except
+        traceback.print_exc()
         return "Error", 500
     else:
-        if result is None:
-            return "Success"
-        else:
-            return result, 500
+        return "Success"
 
 
 @app.route("/sites/<int:site_id>/update-nginx")
