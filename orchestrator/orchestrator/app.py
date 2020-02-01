@@ -97,15 +97,5 @@ def update_nginx_page(site_id: int):
             return result, 500
 
 
-@app.route("/demo", methods=["GET", "POST"])
-def demo_page():
-    """Runs demonstration of Director 4.0
-    capabilities.
-
-    Returns the demonstration response.
-    """
-    return str(demo_main())
-
-
 if __name__ == "__main__":
     app.run()
