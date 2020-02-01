@@ -8,7 +8,6 @@ import traceback
 from flask import Flask, request  # , jsonify, redirect, url_for
 
 from .configs.nginx import update_nginx_config
-from .containers.containers import demo_main
 from .containers.services import create_director_service, update_director_service
 from .containers.setup import create_client
 
