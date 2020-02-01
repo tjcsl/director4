@@ -23,6 +23,17 @@ CHANNEL_LAYERS = {
     }
 }
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "HOST": "127.0.0.1",
+        "PORT": "5432",
+        "NAME": "manager",
+        "USER": "manager",
+        "PASSWORD": "pwd",
+    },
+}
+
 DIRECTOR_APPSERVER_HOSTS = ["localhost:5000"]
 
 SITE_URL_FORMATS: Dict[Optional[str], str] = {
