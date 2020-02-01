@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 
 from ...utils.appserver import AppserverRequestError, appserver_open_http_request
 from . import operations
-from .forms import DomainFormSet, SiteCreateForm, SiteMetaForm, SiteNamesForm
+from .forms import DatabaseCreateForm, DomainFormSet, SiteCreateForm, SiteMetaForm, SiteNamesForm
 from .models import Action, DockerImage, Domain, Operation, Site
 
 
@@ -214,3 +214,45 @@ def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
     context = {"site": site}
     return render(request, "sites/info.html", context)
+
+
+@login_required
+def create_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    if site.database is not None:
+        return redirect("sites:info", site.id)
+
+    if request.method == "POST":
+        form = DatabaseCreateForm(request.POST)
+        if form.is_valid():
+            operations.create_database(site, form.cleaned_data["host"])
+            return redirect("sites:info", site.id)
+    else:
+        form = DatabaseCreateForm()
+
+    context = {"site": site, "form": form}
+
+    return render(request, "sites/databases/create.html", context)
+
+
+@login_required
+def delete_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    if request.method == "POST":
+        if request.POST.get("confirm") == site.name:
+            operations.delete_database(site)
+            return redirect("sites:info", site.id)
+
+    return render(request, "sites/databases/delete.html", {"site": site})
+
+
+@require_POST
+@login_required
+def regenerate_secrets_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    operations.regen_site_secrets(site)
+
+    return redirect("sites:info", site.id)

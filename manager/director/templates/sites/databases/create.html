@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Create database for {{ site.name }}{% endblock %}
+
+{% block main %}
+    {% url 'sites:create_database' site.id as form_url %}
+    {% url 'sites:info' site.id as form_back_url %}
+    {% include "table_form.html" with form=form form_submit_text="Save" form_action=form_url form_back_url=form_back_url %}
+{% endblock %}

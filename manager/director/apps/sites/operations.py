@@ -3,8 +3,8 @@
 
 from typing import List
 
-from .models import Operation, Site
-from .tasks import create_site_task, edit_site_names_task, regen_nginx_config_task, rename_site_task
+from .models import DatabaseHost, Operation, Site
+from .tasks import create_database_task, create_site_task, delete_database_task, edit_site_names_task, regen_nginx_config_task, regen_site_secrets_task, rename_site_task
 
 
 def rename_site(site: Site, new_name: str) -> None:
@@ -15,6 +15,21 @@ def rename_site(site: Site, new_name: str) -> None:
 def regen_nginx_config(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="regen_nginx_config")
     regen_nginx_config_task.delay(operation.id)
+
+
+def create_database(site: Site, database_host: DatabaseHost) -> None:
+    operation = Operation.objects.create(site=site, type="create_site_database")
+    create_database_task.delay(operation.id, database_host.id)
+
+
+def delete_database(site: Site) -> None:
+    operation = Operation.objects.create(site=site, type="delete_site_database")
+    delete_database_task.delay(operation.id)
+
+
+def regen_site_secrets(site: Site) -> None:
+    operation = Operation.objects.create(site=site, type="regen_site_secrets")
+    regen_site_secrets_task.delay(operation.id)
 
 
 def edit_site_names(

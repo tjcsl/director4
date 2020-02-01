@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core import validators
 
-from .models import Site
+from .models import DatabaseHost, Site
 
 
 class SiteCreateForm(forms.ModelForm):
@@ -85,3 +85,7 @@ class SiteMetaForm(forms.ModelForm):
             "description": forms.Textarea(attrs={"class": "form-control"}),
             "purpose": forms.Select(attrs={"class": "form-control"}),
         }
+
+
+class DatabaseCreateForm(forms.Form):
+    host = forms.ModelChoiceField(queryset=DatabaseHost.objects.all(), widget=forms.RadioSelect(), empty_label=None)

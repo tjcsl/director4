@@ -45,6 +45,10 @@
                 {% if request.user.is_superuser or site.purpose == "project" %}
                 <a href="{% url 'sites:delete' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-alt"></i> Delete Site</a>
                 {% endif %}
+                <br>
+                <form style="display:inline-block" method="POST" action="{% url 'sites:regenerate_secrets' site.id %}">{% csrf_token %}<button id="regenerate-secrets" class="btn btn-ion"><i class="fa fa-key"></i> Regenerate secrets</a></button></form>
+                <br>
+                <span style="font-size: 70%">(such as the database password)</span>
             </p>
         </div>
         <div class="col-md-6">
@@ -60,8 +64,7 @@
                 </div>
                 <span class="help-text"><small>&lt;type&gt;://&lt;username&gt;:&lt;password&gt;@&lt;server&gt;:&lt;port&gt;/&lt;database&gt;</small></span>
             </div>
-            <a href="{% url 'sites:edit_database' site.id %}" class="btn btn-ion"><i class="fa fa-pencil"></i> Edit Database</a>
-            <form style="display:inline-block" method="POST" action="{% url 'sites:regenerate_database_password' site.id %}">{% csrf_token %}<button id="generate-database-password" class="btn btn-ion"><i class="fa fa-key"></i> Regenerate Password</a></button></form>
+            <a href="{% url 'sites:database_shell' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Database shell</a>
             <a href="{% url 'sites:delete_database' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-alt"></i> Delete Database</a>
             {% else %}
             <p>This site has no databases associated with it.</p>

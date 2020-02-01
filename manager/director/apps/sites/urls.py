@@ -19,6 +19,7 @@ urlpatterns = [
     path("<int:site_id>/terminal/", views.dummy_view, name="web_terminal"),
     path("<int:site_id>/files/", views.dummy_view, name="editor"),
     path("<int:site_id>/install/", views.dummy_view, name="install_options"),
+    path("<int:site_id>/secrets/regenerate/", views.regenerate_secrets_view, name="regenerate_secrets"),
     path(
         "<int:site_id>/nginx/regenerate-config",
         views.regen_nginx_config_view,
@@ -37,14 +38,14 @@ edit_patterns = [
 ]
 
 database_patterns = [
-    path("create/", views.dummy_view, name="create_database"),
-    path("edit/", views.dummy_view, name="edit_database"),
-    path("delete/", views.dummy_view, name="delete_database"),
+    path("create/", views.create_database_view, name="create_database"),
+    path("shell/", views.dummy_view, name="database_shell"),
+    path("delete/", views.delete_database_view, name="delete_database"),
 ]
 
 urlpatterns.extend(
     [
         path("<int:site_id>/edit/", include(edit_patterns)),
-        path("<int:site_id>/datbase/", include(database_patterns)),
+        path("<int:site_id>/database/", include(database_patterns)),
     ]
 )
