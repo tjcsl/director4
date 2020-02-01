@@ -22,9 +22,8 @@ def create_service(client: DockerClient, service_name: str) -> Optional[Service]
     # cpu_limit: Limit to 0.1 of a CPU
     cpu_limit = convert_cpu_limit(0.1)
 
-    # memory_limit = convert_memory_limit("50M")
     # memory_limit: 50M
-    memory_limit = convert_memory_limit(str(50 * 1000 * 1000))
+    memory_limit = convert_memory_limit("50MB")
 
     resource = Resources(cpu_limit=cpu_limit, mem_limit=memory_limit)
 
