@@ -4,7 +4,15 @@
 from typing import List
 
 from .models import DatabaseHost, Operation, Site
-from .tasks import create_database_task, create_site_task, delete_database_task, edit_site_names_task, regen_nginx_config_task, regen_site_secrets_task, rename_site_task
+from .tasks import (
+    create_database_task,
+    create_site_task,
+    delete_database_task,
+    edit_site_names_task,
+    regen_nginx_config_task,
+    regen_site_secrets_task,
+    rename_site_task,
+)
 
 
 def rename_site(site: Site, new_name: str) -> None:

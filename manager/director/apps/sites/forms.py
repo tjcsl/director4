@@ -88,4 +88,6 @@ class SiteMetaForm(forms.ModelForm):
 
 
 class DatabaseCreateForm(forms.Form):
-    host = forms.ModelChoiceField(queryset=DatabaseHost.objects.all(), widget=forms.RadioSelect(), empty_label=None)
+    host = forms.ModelChoiceField(
+        queryset=DatabaseHost.objects.all(), widget=forms.RadioSelect(), empty_label=None
+    )

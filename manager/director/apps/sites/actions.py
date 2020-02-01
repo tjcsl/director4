@@ -52,7 +52,7 @@ def create_docker_service(
 
 def update_docker_service(
     site: Site, scope: Dict[str, Any]
-) -> Iterator[Union[Tuple[str, str]]]:
+) -> Iterator[Union[Tuple[str, str], str]]:
     appserver = scope["pingable_appservers"][0]
 
     yield "Connecting to appserver {} to update Docker service".format(appserver)

@@ -19,7 +19,11 @@ urlpatterns = [
     path("<int:site_id>/terminal/", views.dummy_view, name="web_terminal"),
     path("<int:site_id>/files/", views.dummy_view, name="editor"),
     path("<int:site_id>/install/", views.dummy_view, name="install_options"),
-    path("<int:site_id>/secrets/regenerate/", views.regenerate_secrets_view, name="regenerate_secrets"),
+    path(
+        "<int:site_id>/secrets/regenerate/",
+        views.regenerate_secrets_view,
+        name="regenerate_secrets",
+    ),
     path(
         "<int:site_id>/nginx/regenerate-config",
         views.regen_nginx_config_view,
