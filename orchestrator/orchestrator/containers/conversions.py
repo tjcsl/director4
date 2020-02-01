@@ -29,5 +29,28 @@ def convert_memory_limit(memory: str) -> int:
         The provided memory in bytes.
 
     """
-    # TODO: Add support for memory string with units
+
+    # MUST be sorted by longest suffix
+    suffixes = [
+        ("bytes", 1),
+        ("KiB", 1024),
+        ("MiB", 1024 ** 2),
+        ("GiB", 1024 ** 3),
+        ("KB", 1000),
+        ("MB", 1000 ** 2),
+        ("GB", 1000 ** 3),
+        ("B", 1),
+        ("K", 1024),
+        ("M", 1024 ** 2),
+        ("G", 1024 ** 3),
+        ("b", 1),
+        ("k", 1000),
+        ("m", 1000 ** 2),
+        ("g", 1000 ** 3),
+    ]
+
+    for suffix, factor in suffixes:
+        if memory.endswith(suffix):
+            return factor * int(memory[: -len(suffix)].strip())
+
     return int(memory)
