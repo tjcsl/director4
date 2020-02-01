@@ -17,6 +17,7 @@ export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update
 sudo apt-get -y dist-upgrade
 
+
 ## Set timezone
 timedatectl set-timezone America/New_York
 
@@ -92,7 +93,6 @@ for vhost in 'manager'; do
 done
 
 
-
 ## Setup Docker
 wget -q -O - 'https://download.docker.com/linux/ubuntu/gpg' | sudo apt-key add -
 sed -i "s,^\(deb.*https://download.docker.com/linux/ubuntu.*stable\)$,#\1," /etc/apt/sources.list
@@ -111,6 +111,7 @@ fi
 
 # Add vagrant user to docker group
 usermod -a -G docker vagrant
+
 
 ## Setup Nginx
 # We need Nginx installed to check the config, but we don't want it running
@@ -133,7 +134,8 @@ docker service create --replicas=1 \
     nginx:latest
 
 
-## Setup secret.pys
+## Application setup
+# Setup secret.pys
 if [[ ! -e manager/director/settings/secret.py ]]; then
     cp manager/director/settings/secret.{sample,py}
 fi
@@ -144,7 +146,7 @@ fi
 # Migrate database
 (cd manager; sudo -H -u vagrant pipenv run ./manage.py migrate)
 
-# Create/update localhost entry
+# Create/update localhost database entries
 (cd manager; sudo -H -u vagrant pipenv run ./manage.py shell -c "
 from director.apps.sites.models import DatabaseHost
 
