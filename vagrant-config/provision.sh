@@ -101,6 +101,14 @@ apt-get update
 apt-get install -y docker-ce
 systemctl start docker
 systemctl enable docker
+
+# Copy daemon.json and subuid/gid mappings and restart Docker
+cp vagrant-config/docker-daemon.json /etc/docker/daemon.json
+echo -e "vagrant:$(id -u vagrant):1\nvagrant:100000:65536" >/etc/subuid
+echo -e "vagrant:$(id -g vagrant):1\nvagrant:100000:65536" >/etc/subgid
+systemctl restart docker
+
+# Setup swarm and main network
 if [[ "$(docker info)" != *'Swarm: active'* ]]; then
     docker swarm init
 fi
@@ -120,6 +128,7 @@ systemctl disable --now nginx
 
 # Copy config files
 cp vagrant-config/nginx.conf /etc/nginx/nginx.conf
+chown vagrant:vagrant /etc/nginx/nginx.conf
 mkdir -p /etc/nginx/director.d/
 chown vagrant:vagrant /etc/nginx/director.d/
 
