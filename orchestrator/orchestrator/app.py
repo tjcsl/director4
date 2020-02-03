@@ -8,8 +8,8 @@ import traceback
 from flask import Flask, request  # , jsonify, redirect, url_for
 
 from .configs.nginx import update_nginx_config
-from .containers.services import update_director_service
-from .containers.setup import create_client
+from .docker.services import update_director_service
+from .docker.utils import create_client
 
 app = Flask(__name__)
 

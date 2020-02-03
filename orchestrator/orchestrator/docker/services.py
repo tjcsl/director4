@@ -10,38 +10,6 @@ from docker.types import EndpointSpec, Resources, RestartPolicy, ServiceMode, Up
 from .conversions import convert_cpu_limit, convert_memory_limit
 
 
-def is_service_existing(client: DockerClient, service_name: str) -> bool:
-    filtered_services = client.services.list(filters={"name": service_name})
-    print("Filtered Services:", filtered_services)
-    return len(filtered_services) > 0
-
-
-def create_service(client: DockerClient, service_name: str) -> Optional[Service]:
-    restart_policy = RestartPolicy(condition="on-failure")
-
-    # cpu_limit: Limit to 0.1 of a CPU
-    cpu_limit = convert_cpu_limit(0.1)
-
-    # memory_limit: 50M
-    memory_limit = convert_memory_limit("50MB")
-
-    resource = Resources(cpu_limit=cpu_limit, mem_limit=memory_limit)
-
-    # Mapping ports
-    endpoint_spec = EndpointSpec(mode="vip", ports={10001: 80})
-
-    image_name = "site_test_1"
-    service = client.services.create(
-        image=image_name,
-        name=service_name,
-        restart_policy=restart_policy,
-        resources=resource,
-        endpoint_spec=endpoint_spec,
-    )
-
-    return service
-
-
 def get_service_by_name(client: DockerClient, service_name: str) -> Optional[Service]:
     filtered_services = client.services.list(filters={"name": service_name})
     if not filtered_services:
