@@ -106,20 +106,15 @@ def gen_director_service_params(  # pylint: disable=unused-argument
     }
 
 
-def create_director_service(
-    client: DockerClient, site_id: int, site_data: Dict[str, Any]
-) -> Service:
-    return client.services.create(**gen_director_service_params(client, site_id, site_data))
-
-
 def update_director_service(
     client: DockerClient, site_id: int, site_data: Dict[str, Any]
 ) -> Service:
     service = get_service_by_name(client, get_director_service_name(site_id))
-    if service is None:
-        raise ValueError("Service does not exist")
 
-    service.update(**gen_director_service_params(client, site_id, site_data))
+    if service is None:
+        service = client.services.create(**gen_director_service_params(client, site_id, site_data))
+    else:
+        service.update(**gen_director_service_params(client, site_id, site_data))
 
     return service
 

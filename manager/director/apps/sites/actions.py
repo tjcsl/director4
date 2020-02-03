@@ -36,28 +36,12 @@ def update_appserver_nginx_config(
     yield "Updated Nginx config"
 
 
-def create_docker_service(
-    site: Site, scope: Dict[str, Any]
-) -> Iterator[Union[Tuple[str, str], str]]:
-    appserver = scope["pingable_appservers"][0]
-
-    yield "Connecting to appserver {} to create Docker service".format(appserver)
-    appserver_open_http_request(
-        appserver,
-        "/sites/{}/create-docker-service".format(site.id),
-        method="POST",
-        data={"data": json.dumps(site.serialize_for_appserver())},
-    )
-
-    yield "Created Docker service"
-
-
 def update_docker_service(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
     appserver = scope["pingable_appservers"][0]
 
-    yield "Connecting to appserver {} to update Docker service".format(appserver)
+    yield "Connecting to appserver {} to create/update Docker service".format(appserver)
     appserver_open_http_request(
         appserver,
         "/sites/{}/update-docker-service".format(site.id),
@@ -65,7 +49,7 @@ def update_docker_service(
         data={"data": json.dumps(site.serialize_for_appserver())},
     )
 
-    yield "Updated Docker service"
+    yield "Created/updated Docker service"
 
 
 def update_balancer_nginx_config(  # pylint: disable=unused-argument

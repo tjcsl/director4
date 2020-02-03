@@ -8,7 +8,7 @@ import traceback
 from flask import Flask, request  # , jsonify, redirect, url_for
 
 from .configs.nginx import update_nginx_config
-from .containers.services import create_director_service, update_director_service
+from .containers.services import update_director_service
 from .containers.setup import create_client
 
 app = Flask(__name__)
@@ -28,27 +28,6 @@ def ping_page():
     """
 
     return "{}\n".format(request.args.get("message", "Pong"))
-
-
-@app.route("/sites/<int:site_id>/create-docker-service", methods=["POST"])
-def create_docker_service_page(site_id: int):
-    """Creates a Docker service for a given site.
-
-    Based on the provided site_id and data, creates the
-    Docker service. Returns "Success" if successful,
-    else an appropriate error.
-    """
-
-    if "data" not in request.form:
-        return "Error", 400
-
-    try:
-        create_director_service(create_client(), site_id, json.loads(request.form["data"]))
-    except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
-        return "Error", 500
-    else:
-        return "Success"
 
 
 @app.route("/sites/<int:site_id>/update-docker-service", methods=["POST"])
