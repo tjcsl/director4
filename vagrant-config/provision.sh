@@ -93,6 +93,14 @@ for vhost in 'manager'; do
 done
 
 
+# RabbitMQ starts epmd processes that don't get killed properly. This fixes it.
+# Source: https://bugs.archlinux.org/task/55842
+mkdir -p /etc/systemd/system/rabbitmq-server.service.d
+echo $'[Unit]\nRequires=epmd.service\nAfter=epmd.service' >/etc/systemd/system/rabbitmq-server.service.d/override.conf
+
+systemctl daemon-reload
+
+
 ## Setup Docker
 wget -q -O - 'https://download.docker.com/linux/ubuntu/gpg' | sudo apt-key add -
 sed -i "s,^\(deb.*https://download.docker.com/linux/ubuntu.*stable\)$,#\1," /etc/apt/sources.list
