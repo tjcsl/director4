@@ -129,6 +129,10 @@ class Site(models.Model):
             "custom_domains": list(self.domain_set.values_list("domain", flat=True)),
         }
 
+    @property
+    def has_operation(self) -> bool:
+        return Operation.objects.filter(site__id=self.id).exists()
+
     def clean(self) -> None:
         if not is_site_name_allowed(self.name):
             raise ValidationError("This site name is not allowed.")

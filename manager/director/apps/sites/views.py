@@ -121,7 +121,9 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
     if request.method == "POST":
         names_form = SiteNamesForm(request.POST)
         domains_formset = DomainFormSet(request.POST, prefix="domains")
-        if names_form.is_valid() and domains_formset.is_valid():
+        if site.has_operation:
+            messages.error(request, "An operation is already being performed on this site")
+        elif names_form.is_valid() and domains_formset.is_valid():
             domains = [
                 form.cleaned_data["domain"]
                 for form in domains_formset.forms
@@ -159,6 +161,10 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 def regen_nginx_config_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    if site.has_operation:
+        messages.error(request, "An operation is already being performed on this site")
+        return redirect("sites:info", site.id)
 
     if request.method == "POST":
         operations.regen_nginx_config(site)
@@ -225,7 +231,9 @@ def create_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
     if request.method == "POST":
         form = DatabaseCreateForm(request.POST)
-        if form.is_valid():
+        if site.has_operation:
+            messages.error(request, "An operation is already being performed on this site")
+        elif form.is_valid():
             operations.create_database(site, form.cleaned_data["host"])
             return redirect("sites:info", site.id)
     else:
@@ -240,6 +248,10 @@ def create_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
 def delete_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
+    if site.has_operation:
+        messages.error(request, "An operation is already being performed on this site")
+        return redirect("sites:info", site.id)
+
     if request.method == "POST":
         if request.POST.get("confirm") == site.name:
             operations.delete_database(site)
@@ -252,6 +264,10 @@ def delete_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 def regenerate_secrets_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    if site.has_operation:
+        messages.error(request, "An operation is already being performed on this site")
+        return redirect("sites:info", site.id)
 
     operations.regen_site_secrets(site)
 
