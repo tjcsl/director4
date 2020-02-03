@@ -318,13 +318,13 @@ class Action(models.Model):
 
     # Example: "update_nginx_config"
     slug = models.CharField(
-        max_length=32,
+        max_length=40,
         null=False,
         blank=False,
         validators=[MinLengthValidator(4), RegexValidator(regex=r"^[a-z]+(_[a-z]+)+$")],
     )
     # May be displayed to the user for progress updates. Example: "Updating Nginx config"
-    name = models.CharField(max_length=32, null=False, blank=False)
+    name = models.CharField(max_length=80, null=False, blank=False)
     # Time this action was started. Only None if it hasn't been started yet.
     started_time = models.DateTimeField(null=True)
 
