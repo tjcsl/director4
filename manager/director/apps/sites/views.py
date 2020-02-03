@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-import json
 from typing import Optional
 
 from django.conf import settings
@@ -11,7 +10,6 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from ...utils.appserver import AppserverRequestError, appserver_open_http_request
 from . import operations
 from .forms import DatabaseCreateForm, DomainFormSet, SiteCreateForm, SiteMetaForm, SiteNamesForm
 from .models import Action, DockerImage, Domain, Operation, Site
