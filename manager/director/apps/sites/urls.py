@@ -11,7 +11,6 @@ urlpatterns = [
     path("", views.index_view, name="index"),
     path("prometheus-metrics", views.prometheus_metrics_view, name="prometheus-metrics"),
     path("operations/", views.operations_view, name="operations"),
-    path("demo/", views.demo_view, name="demo"),
     path("create/", views.create_view, name="create"),
     path("create/webdocs/", views.dummy_view, name="create_webdocs"),
     path("<int:site_id>/", views.info_view, name="info"),

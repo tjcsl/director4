@@ -196,24 +196,6 @@ def create_view(request: HttpRequest) -> HttpResponse:
     return render(request, "sites/create.html", context)
 
 
-@require_POST
-@login_required
-def demo_view(request: HttpRequest) -> HttpResponse:
-    try:
-        # Connect to a random appserver
-        resp = appserver_open_http_request(-1, "/demo", method="POST")
-    except AppserverRequestError as ex:
-        messages.error(request, "Error connecting to appserver: {}".format(ex))
-    except json.JSONDecodeError as ex:
-        messages.error(request, "Invalid response from appserver: {}".format(ex))
-    else:
-        messages.info(
-            request, "Response from appserver #{}: {}".format(resp.appserver_index + 1, resp.text)
-        )
-
-    return redirect("auth:index")
-
-
 @login_required
 def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
