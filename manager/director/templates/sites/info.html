@@ -18,13 +18,6 @@
                 <b>Type:</b> {{ site.get_purpose_display }} - {{ site.get_type_display }}<br />
                 <b>Description:</b> {{ site.description|default:"None" }}<br />
                 <b>Users:</b> {{ site.users.all|join:", "|default:"None" }}<br />
-                {% if site.type == "dynamic" %}
-                <b>Process:</b> <a href="{% url 'sites:edit_process' site.id %}">{% if site.process %}<span class="path">{{ site.process.path }}</span>{% else %}None (click to add){% endif %}</a><br />
-                {% if site.process %}<b>Process Status</b>: <span id="process-status" class="path">{{ status }}</span><br />
-                <a href="{% url 'sites:restart_process' site.id %}" class="btn btn-ion"><i class="fa fa-retweet"></i> Restart Process</a>
-                <a href="{% url 'sites:delete_process' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-o"></i> Delete Process</a>
-                {% endif %}
-                {% endif %}
             </p>
 
             <p>
@@ -34,6 +27,7 @@
             </p>
 
             <p>
+                <form style="display:inline-block" method="POST" action="{% url 'sites:restart_service' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-retweet"></i> Restart process</button></form>
                 <form style="display:inline-block" method="POST" action="{% url 'sites:regen_nginx_config' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-sync-alt"></i> Rewrite Configuration</button></form>
                 <form style="display:inline-block" method="POST" action="{% url 'sites:regenerate_secrets' site.id %}">
                     {% csrf_token %}
