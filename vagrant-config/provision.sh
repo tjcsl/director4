@@ -143,6 +143,17 @@ docker service create --replicas=1 \
     nginx:latest
 
 
+# Create /data directories
+for dir in /data; do
+    mkdir -p "$dir"
+    chown root:root "$dir"
+done
+
+for dir in /data/sites; do
+    mkdir -p "$dir"
+    chown vagrant:vagrant "$dir"
+done
+
 ## Application setup
 # Setup secret.pys
 if [[ ! -e manager/director/settings/secret.py ]]; then

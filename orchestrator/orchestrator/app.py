@@ -10,6 +10,7 @@ from flask import Flask, request  # , jsonify, redirect, url_for
 from .configs.nginx import update_nginx_config
 from .docker.services import update_director_service
 from .docker.utils import create_client
+from .files import ensure_site_directories_exist
 
 app = Flask(__name__)
 
@@ -44,6 +45,8 @@ def update_docker_service_page(site_id: int):
         return "Error", 400
 
     try:
+        ensure_site_directories_exist(site_id)
+
         update_director_service(create_client(), site_id, json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
         traceback.print_exc()
