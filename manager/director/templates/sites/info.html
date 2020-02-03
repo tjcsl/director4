@@ -34,9 +34,6 @@
 
             <p>
             <form style="display:inline-block" method="POST" action="{% url 'sites:regen_nginx_config' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-sync-alt"></i> Rewrite Configuration</button></form>
-            {% if site.category != "vm" %}
-            <a href="{% url 'sites:permissions' site.id %}" class="btn btn-ion"><i class="fa fa-wrench"></i> Reset File Permissions</a>
-            {% endif %}
             </p>
 
             <p>
