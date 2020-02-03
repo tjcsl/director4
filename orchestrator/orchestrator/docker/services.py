@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-import os
 from typing import Any, Dict, Optional
 
 from docker.client import DockerClient
@@ -41,8 +40,8 @@ def gen_director_service_params(  # pylint: disable=unused-argument
         "image": "alpine",
         "read_only": True,
         "command": ["sh", "-c", "sleep 999"],
-        "workdir": os.path.join(get_site_directory_path(site_id), "public"),
-        "mounts": [],
+        "workdir": "/site/public",
+        "mounts": ["{}:/site:rw".format(get_site_directory_path(site_id))],
         "init": True,
         "networks": ["director-sites"],
         "env": ["{}={}".format(name, val) for name, val in env.items()],
