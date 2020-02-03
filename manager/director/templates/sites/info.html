@@ -34,19 +34,19 @@
             </p>
 
             <p>
-            <form style="display:inline-block" method="POST" action="{% url 'sites:regen_nginx_config' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-sync-alt"></i> Rewrite Configuration</button></form>
+                <form style="display:inline-block" method="POST" action="{% url 'sites:regen_nginx_config' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-sync-alt"></i> Rewrite Configuration</button></form>
+                <form style="display:inline-block" method="POST" action="{% url 'sites:regenerate_secrets' site.id %}">
+                    {% csrf_token %}
+                    <button id="regenerate-secrets" class="btn btn-ion"><i class="fa fa-key"></i> Regenerate secrets</a></button>
+                    <span style="font-size: 70%">(such as the database password)</span>
+                </form>
             </p>
-
             <p>
                 <a href="{% url 'auth:index' %}" class="btn btn-ion"><i class="fa fa-undo-alt"></i> Back</a>
                 <a href="{% url 'sites:edit' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Configure Site</a>
                 {% if request.user.is_superuser or site.purpose == "project" %}
                 <a href="{% url 'sites:delete' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-alt"></i> Delete Site</a>
                 {% endif %}
-                <br>
-                <form style="display:inline-block" method="POST" action="{% url 'sites:regenerate_secrets' site.id %}">{% csrf_token %}<button id="regenerate-secrets" class="btn btn-ion"><i class="fa fa-key"></i> Regenerate secrets</a></button></form>
-                <br>
-                <span style="font-size: 70%">(such as the database password)</span>
             </p>
         </div>
         <div class="col-md-6">
