@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 
 from docker.client import DockerClient
 from docker.models.services import Service
-from docker.types import EndpointSpec, Resources, RestartPolicy, ServiceMode, UpdateConfig
+from docker.types import EndpointSpec, Mount, Resources, RestartPolicy, ServiceMode, UpdateConfig
 
 from ..files import get_site_directory_path
 from .conversions import convert_cpu_limit, convert_memory_limit
@@ -48,7 +48,14 @@ def gen_director_service_params(  # pylint: disable=unused-argument
             "fi; done",
         ],
         "workdir": "/site/public",
-        "mounts": ["{}:/site:rw".format(get_site_directory_path(site_id))],
+        "mounts": [
+            Mount(
+                type="bind",
+                source=get_site_directory_path(site_id),
+                target="/site",
+                read_only=False,
+            ),
+        ],
         "init": True,
         "networks": ["director-sites"],
         "env": ["{}={}".format(name, val) for name, val in env.items()],
