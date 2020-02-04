@@ -22,15 +22,15 @@ def ensure_site_directories_exist(site_id: int) -> None:
         os.path.join(site_dir, "public"),
     ]
 
-    for directory in directories:
-        subprocess.run(
-            [*settings.SITE_DIRECTORY_COMMAND_PREFIX, "mkdir", "-p", "--", directory],
-            stdin=subprocess.DEVNULL,
-            check=True,
-        )
-
-        subprocess.run(
-            [*settings.SITE_DIRECTORY_COMMAND_PREFIX, "chmod", "0755", "--", directory],
-            stdin=subprocess.DEVNULL,
-            check=True,
-        )
+    subprocess.run(
+        [
+            *settings.SITE_DIRECTORY_COMMAND_PREFIX,
+            "/bin/sh",
+            "-c",
+            'set -e; for fname in "$@"; do mkdir -p -- "$fname"; chmod 0755 -- "$fname"; done',
+            "/bin/sh",
+            *directories,
+        ],
+        stdin=subprocess.DEVNULL,
+        check=True,
+    )
