@@ -5,10 +5,10 @@ from typing import Any, Dict, Optional
 
 from docker.client import DockerClient
 from docker.models.services import Service
-from docker.types import EndpointSpec, Mount, Resources, RestartPolicy, ServiceMode, UpdateConfig
+from docker.types import EndpointSpec, Resources, RestartPolicy, ServiceMode, UpdateConfig
 
-from ..files import get_site_directory_path
 from .conversions import convert_cpu_limit, convert_memory_limit
+from .shared import gen_director_shared_params
 
 
 def get_service_by_name(client: DockerClient, service_name: str) -> Optional[Service]:
@@ -35,58 +35,52 @@ def gen_director_service_params(  # pylint: disable=unused-argument
     if site_data.get("database_url"):
         env["DATABASE_URL"] = site_data["database_url"]
 
-    return {
-        "name": get_director_service_name(site_id),
-        "image": "alpine",
-        "read_only": True,
-        "command": [
-            "sh",
-            "-c",
-            # We do this in the shell so that it can adapt to the path changing without updating the
-            # Docker service
-            'for path in /site{,/private,/public}/run.sh; do if [ -x "$path" ]; then exec "$path"; '
-            "fi; done",
-        ],
-        "workdir": "/site/public",
-        "mounts": [
-            Mount(
-                type="bind",
-                source=get_site_directory_path(site_id),
-                target="/site",
-                read_only=False,
+    params = gen_director_shared_params(client, site_id, site_data)
+
+    params.update(
+        {
+            "name": get_director_service_name(site_id),
+            "read_only": True,
+            "command": [
+                "sh",
+                "-c",
+                # We do this in the shell so that it can adapt to the path changing without updating
+                # the Docker service
+                'for path in /site{,/private,/public}/run.sh; do if [ -x "$path" ]; then '
+                'exec "$path"; fi; done',
+            ],
+            "workdir": "/site/public",
+            "networks": ["director-sites"],
+            "resources": Resources(
+                # 0.1 CPUs, 100M or so of memory
+                cpu_limit=convert_cpu_limit(0.1),
+                mem_limit=convert_memory_limit("100MB"),
             ),
-        ],
-        "init": True,
-        "networks": ["director-sites"],
-        "env": ["{}={}".format(name, val) for name, val in env.items()],
-        "resources": Resources(
-            # 0.1 CPUs, 100M or so of memory
-            cpu_limit=convert_cpu_limit(0.1),
-            mem_limit=convert_memory_limit("100MB"),
-        ),
-        "user": "root",
-        "log_driver": "json-file",
-        "log_driver_options": {
-            # Keep minimal logs
-            "max-size": "500k",
-            "max-file": "1",
-        },
-        "hosts": {},
-        "stop_grace_period": 3,
-        "endpoint_spec": EndpointSpec(mode="vip", ports={}),
-        "tty": False,
-        "mode": ServiceMode(mode="replicated", replicas=1),
-        "restart_policy": RestartPolicy(condition="any", delay=5, max_attempts=0, window=0),
-        "update_config": UpdateConfig(
-            parallelism=1,
-            order="stop-first",
-            failure_action="rollback",
-            max_failure_ratio=0,
-            # delay and monitor are in nanoseconds (1e9 seconds)
-            delay=int(5 * (10 ** 9)),
-            monitor=int(5 * (10 ** 9)),
-        ),
-    }
+            "env": ["{}={}".format(name, val) for name, val in env.items()],
+            "log_driver": "json-file",
+            "log_driver_options": {
+                # Keep minimal logs
+                "max-size": "500k",
+                "max-file": "1",
+            },
+            "hosts": {},
+            "stop_grace_period": 3,
+            "endpoint_spec": EndpointSpec(mode="vip", ports={}),
+            "mode": ServiceMode(mode="replicated", replicas=1),
+            "restart_policy": RestartPolicy(condition="any", delay=5, max_attempts=0, window=0),
+            "update_config": UpdateConfig(
+                parallelism=1,
+                order="stop-first",
+                failure_action="rollback",
+                max_failure_ratio=0,
+                # delay and monitor are in nanoseconds (1e9 seconds)
+                delay=int(5 * (10 ** 9)),
+                monitor=int(5 * (10 ** 9)),
+            ),
+        }
+    )
+
+    return params
 
 
 def update_director_service(
