@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-# import logging
 import json
 import traceback
 
-from flask import Flask, request  # , jsonify, redirect, url_for
+from flask import Flask, request
 
 from .configs.nginx import update_nginx_config
 from .docker.services import update_director_service
