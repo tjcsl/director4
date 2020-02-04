@@ -15,12 +15,6 @@ from .files import ensure_site_directories_exist
 app = Flask(__name__)
 
 
-@app.route("/")
-def index_page():
-    """Returns the index page."""
-    return "Hello World!!"
-
-
 @app.route("/ping")
 def ping_page():
     """Checks whether the orchestrator is functional.
