@@ -4,7 +4,7 @@
 
 def convert_cpu_limit(cpus: float) -> int:
     """Convert a provided number of CPUs to the
-        equivalent accepted by Docker.
+    equivalent accepted by Docker.
 
     Args:
         cpus: Represents the number of CPUs.
@@ -12,6 +12,7 @@ def convert_cpu_limit(cpus: float) -> int:
     Returns:
         The converted limit that can be accepted
         by Docker.
+
     """
     # Multiply by 10^9
     # 1 CPU is equivalent to one CPU core
@@ -20,10 +21,10 @@ def convert_cpu_limit(cpus: float) -> int:
 
 def convert_memory_limit(memory: str) -> int:
     """Converts a provided memory limit with units into
-        its equivalent in bytes.
+    its equivalent in bytes.
 
     Args:
-        memory: String representation of memory.
+        memory: String representation of memory limit.
 
     Returns:
         The provided memory in bytes.
