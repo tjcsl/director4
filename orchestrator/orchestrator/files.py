@@ -8,9 +8,7 @@ from . import settings
 
 
 def get_site_directory_path(site_id: int) -> str:
-    long_id = "{:04d}".format(site_id)
-
-    id_parts = (long_id[:-2], long_id[-2:])
+    id_parts = ("{:02d}".format(site_id // 100), "{:02d}".format(site_id % 100))
 
     return os.path.join(settings.SITES_DIRECTORY, *id_parts)
 
