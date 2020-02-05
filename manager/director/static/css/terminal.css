@@ -48,4 +48,5 @@ body {
 }
 .console-wrapper .console-container.disconnected {
     filter: grayscale(100%);
+    opacity: 0.8;
 }

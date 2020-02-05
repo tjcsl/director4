@@ -68,8 +68,12 @@ function setupTerminal(uri, wrapper, callbacks) {
     function onMessage(e) {
         if(!dataReceived) {
             container.css("display", "");
+            container.removeClass("disconnected");
             message_div.empty();
             container.empty();
+
+            term.setOption("disableStdin", false);
+            term.setOption("cursorBlink", true);
 
             term.open(container.get(0), true);
             fitAddon.fit();
@@ -99,19 +103,14 @@ function setupTerminal(uri, wrapper, callbacks) {
         connected = false;
         dataReceived = false;
 
-        var cache = container.html();
-        try {
-            term.destroy();
-        }
-        catch (e) {
-            // Fail silently
-        }
-        finally {
-            container.html(cache).addClass("disconnected");
-            wrapper.focus();
-            $("<div>").css({position: "absolute", color: "red", bottom: "10px", right: "10px", backgroundColor: "rgba(0, 0, 0, 0.8)"}).text("Disconnected").appendTo(message_div);
-            titleCallback("Terminal");
-        }
+        term.setOption("disableStdin", true);
+        term.setOption("cursorBlink", false);
+
+        wrapper.focus();
+        container.addClass("disconnected");
+        $("<div>").css({position: "absolute", color: "red", bottom: "10px", right: "10px", backgroundColor: "rgba(0, 0, 0, 0.8)"}).text("Disconnected").appendTo(message_div);
+
+        titleCallback("Terminal");
     }
 
     openWS();
