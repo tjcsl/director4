@@ -47,7 +47,7 @@
         if (command) {
             $("#command-info").show().find("b").text(command);
         }
-        registerTerminal(location.protocol.replace(/^http/, "ws") + location.host +  "{% url 'sites:terminal' site.id %}", $(".console-wrapper"), { uid: "{{ request.user.id }}", site: "{{ site.id }}", type: "terminal", custom: { command: command } }, {
+        setupTerminal(location.protocol.replace(/^http/, "ws") + location.host +  "{% url 'sites:terminal' site.id %}", $(".console-wrapper"), {
             onClose: function() {
                 if (command) {
                     $(".disconnect").html("<span style='color:green'><b>Command Finished</b>, press <kbd>ENTER</kbd> to proceed</span>");
@@ -62,11 +62,8 @@
 {% endblock %}
 
 {% block main %}
-<div id="command-info">Running command <b></b>...</div>
 <div class="console-wrapper" tabindex="0">
-    <div class="console"></div>
-    <div class="disconnect">
-        <b>Connection Lost</b>, press <kbd>ENTER</kbd> to reconnect
-    </div>
+    <div class="console-container"></div>
+    <div class="console-messages"></div>
 </div>
 {% endblock %}

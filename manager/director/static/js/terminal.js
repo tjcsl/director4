@@ -3,94 +3,116 @@ $(document).ready(function() {
         $(".console-wrapper").trigger("terminal:resize");
     });
 });
-var registerTerminal = function (uri, wrapper, auth, options) {
-    options = options || {};
-    var titleCallback = options.onTitle || function(title) {
+
+function setupTerminal(uri, wrapper, callbacks) {
+    callbacks = callbacks || callbacks;
+    var titleCallback = callbacks.onTitle || function(title) {
         document.title = title;
     };
-    var disconnectCallback = options.onClose || function() { };
-    var loadCallback = options.onStart || function() { };
 
-    var tconsole = wrapper.find(".console");
-    var disconnect = wrapper.find(".disconnect");
-    var started = false;
-    var ws = new WebSocket(uri);
-    ws.onopen = function() {
-        tconsole.empty().removeClass("disconnected");
-        disconnect.hide();
+    var ws = null;
+    var connected = false;
+    var dataReceived = false;
 
-        var term = new Terminal({ cursorBlink: true });
-        fitAddon = new FitAddon.FitAddon();
-        term.loadAddon(fitAddon);
-        fitAddon.fit();
+    var container = wrapper.find(".console-container");
+    var message_div = wrapper.find(".console-messages");
 
-        function updateSize(rows, cols) {
+    var term = new Terminal({ cursorBlink: true });
+    var fitAddon = new FitAddon.FitAddon();
+    term.loadAddon(fitAddon);
+    fitAddon.fit();
+
+    term.onData(function(data) {
+        if(ws != null && connected && dataReceived) {
+            ws.send(new Blob([data]));
+        }
+    });
+    term.onResize(function(size) {
+        updateSize(size.rows, size.cols);
+    });
+
+    wrapper.on("terminal:resize", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if(connected && dataReceived) {
+            fitAddon.fit();
+        }
+    });
+
+    function updateSize(rows, cols) {
+        if(ws != null && connected && dataReceived) {
             ws.send(JSON.stringify({"size": [rows, cols]}));
         }
+    }
 
-        term.onData(function(data) {
-            if (started) {
-                ws.send(new Blob([data]));
-            }
-        });
-        term.onResize(function(size) {
-            updateSize(size.rows, size.cols);
-        });
-        term.onTitleChange(function(title) {
-            titleCallback(title);
-        });
-        ws.send(JSON.stringify(auth));
-        ws.onmessage = function(e) {
-            if(!started) {
-                started = true;
-                term.open(tconsole[0], true);
-                
-                loadCallback(term);
+    function openWS() {
+        container.empty().css("display", "none");
+        message_div.text("Connecting...");
 
-                fitAddon.fit();
-                updateSize(term.rows, term.cols);
-            }
+        connected = false;
+        dataReceived = false;
 
-            if (e.data instanceof Blob) {
-                e.data.text().then((text) => {
-                    term.write(text);
-                });
-            }
-            else if (e.data instanceof ArrayBuffer) {
-                term.write(new Uint8Array(e.data));
-            }
-            else {
-                var data = JSON.parse(e.data);
-                if (data.error) {
-                    tconsole.append("<div style='color:red'>Error: " + $("<div />").text(data.error).html() + "</div>");
-                }
-            }
-        };
-        ws.onclose = function() {
-            var cache = tconsole.html();
-            try {
-                term.destroy();
-            }
-            catch (e) {
-                // Fail silently
-            }
-            finally {
-                wrapper.off("resize");
-                tconsole.html(cache).addClass("disconnected");
-                started = false;
-                wrapper.focus();
-                disconnect.show();
-                titleCallback("Terminal");
-                disconnectCallback();
-            }
-        };
-        wrapper.find(".terminal .xterm-viewport, .terminal .xterm-rows").css("line-height", "19px");
-        wrapper.on("terminal:resize", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (started) {
-                fitAddon.fit();
-            }
-        });
-    };
-};
+        ws = new WebSocket(uri);
+        ws.onopen = onOpen;
+        ws.onmessage = onMessage;
+        ws.onclose = onClose;
+    }
+
+    function onOpen() {
+        connected = true;
+
+        container.empty().css("display", "none");
+        message_div.text("Launching terminal...");
+    }
+
+    function onMessage(e) {
+        if(!dataReceived) {
+            container.css("display", "");
+            message_div.empty();
+            container.empty();
+
+            term.open(container.get(0), true);
+            fitAddon.fit();
+            updateSize(term.rows, term.cols);
+
+            dataReceived = true;
+        }
+
+        var data = e.data;
+
+        console.log(data);
+
+        if(data instanceof Blob) {
+            data.text().then((text) => {
+                term.write(text);
+            });
+        }
+        else if(data instanceof ArrayBuffer) {
+            term.write(new Uint8Array(data));
+        }
+        else {
+            var data = JSON.parse(data);
+        }
+    }
+
+    function onClose() {
+        connected = false;
+        dataReceived = false;
+
+        var cache = container.html();
+        try {
+            term.destroy();
+        }
+        catch (e) {
+            // Fail silently
+        }
+        finally {
+            container.html(cache).addClass("disconnected");
+            wrapper.focus();
+            $("<div>").css({position: "absolute", color: "red", bottom: "10px", right: "10px", backgroundColor: "rgba(0, 0, 0, 0.8)"}).text("Disconnected").appendTo(message_div);
+            titleCallback("Terminal");
+        }
+    }
+
+    openWS();
+}
