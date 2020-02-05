@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-import array
 import asyncio
 import fcntl
 import os
 import pty
+import struct
 import termios
 from typing import Any, Dict, Optional
 
@@ -45,8 +45,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
         self.process: Optional[asyncio.subprocess.Process] = None  # pylint: disable=no-member
 
-        self.stdin_fd: Optional[int] = None
-        self.stdout_fd: Optional[int] = None
+        self.fd: Optional[int] = None
 
     async def start_process(self) -> None:
         env = {}
@@ -69,22 +68,22 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         process_env = dict(os.environ)
         process_env.update(env)
 
-        self.stdin_fd, stdin_fd_slave = pty.openpty()
-        self.stdout_fd, stdout_fd_slave = pty.openpty()
+        self.fd, self.fd_slave = pty.openpty()
 
         self.process = await asyncio.create_subprocess_exec(
             *args,
-            stdin=stdin_fd_slave,
-            stdout=stdout_fd_slave,
-            stderr=stdout_fd_slave,
-            start_new_session=True,
+            stdin=self.fd_slave,
+            stdout=self.fd_slave,
+            stderr=self.fd_slave,
             env=process_env,
         )
 
-        self.resize(80, 24)
+        self.resize(24, 80)
+
+        self.heartbeat()
 
     def heartbeat(self) -> None:
-        with self.client.attach_socket(params={"stdin": 1, "stream": 1}, ws=False) as sock:
+        with self.container.attach_socket(params={"stdin": 1, "stream": 1}, ws=False) as sock:
             # We have to pry into the internals of docker-py a little. There is no known way around
             # this.
             # Sources:
@@ -94,23 +93,23 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
             sock._sock.send(b"\n")  # pylint: disable=protected-access
 
     async def read(self, bufsize: int) -> bytes:
-        assert self.stdout_fd is not None
+        assert self.fd is not None
 
         loop = asyncio.get_event_loop()
 
-        return await loop.run_in_executor(None, os.read, self.stdout_fd, bufsize)
+        return await loop.run_in_executor(None, os.read, self.fd, bufsize)
 
     def write(self, data: bytes) -> None:
-        assert self.stdin_fd is not None
+        assert self.fd is not None
 
-        os.write(self.stdin_fd, data)
+        os.write(self.fd, data)
 
-    def resize(self, width: int, height: int) -> None:
-        assert self.stdout_fd is not None
+    def resize(self, rows: int, cols: int) -> None:
+        assert self.fd is not None
 
-        buf = array.array("h", [width, height, 0, 0])
-        fcntl.ioctl(self.stdout_fd, termios.TIOCSWINSZ, buf)  # type: ignore
-        fcntl.ioctl(self.stdin_fd, termios.TIOCSWINSZ, buf)  # type: ignore
+        buf = struct.pack("HHHH", rows, cols, 0, 0)
+        fcntl.ioctl(self.fd, termios.TIOCSWINSZ, buf)  # type: ignore
+        fcntl.ioctl(self.fd_slave, termios.TIOCSWINSZ, buf)  # type: ignore
 
     async def wait(self) -> int:
         assert self.process is not None

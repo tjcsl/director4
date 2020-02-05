@@ -4,13 +4,12 @@ import json
 import re
 import ssl
 import sys
-from typing import Any, Awaitable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import websockets
 
 from .docker.utils import create_client
 from .terminal import TerminalContainer
-from .utils import add_const
 
 
 def create_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLContext]:
@@ -65,7 +64,10 @@ async def terminal_handler(  # pylint: disable=unused-argument
 
     async def terminal_loop() -> None:
         while True:
-            chunk = await terminal.read(4096)
+            try:
+                chunk = await terminal.read(4096)
+            except OSError:
+                chunk = b""
 
             if chunk == b"":
                 await terminal.wait()
