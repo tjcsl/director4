@@ -46,6 +46,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         self.process: Optional[asyncio.subprocess.Process] = None  # pylint: disable=no-member
 
         self.fd: Optional[int] = None
+        self.fd_slave: Optional[int] = None
 
     async def start_process(self) -> None:
         env = {}
@@ -71,11 +72,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         self.fd, self.fd_slave = pty.openpty()
 
         self.process = await asyncio.create_subprocess_exec(
-            *args,
-            stdin=self.fd_slave,
-            stdout=self.fd_slave,
-            stderr=self.fd_slave,
-            env=process_env,
+            *args, stdin=self.fd_slave, stdout=self.fd_slave, stderr=self.fd_slave, env=process_env,
         )
 
         self.resize(24, 80)

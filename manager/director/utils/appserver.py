@@ -117,7 +117,9 @@ class AppserverHTTPResponse:  # pylint: disable=too-many-instance-attributes
         return json.loads(self.text)
 
 
-def get_appserver_addr(appserver: Union[int, str], *, allow_random: bool = True, websocket: bool = False) -> str:
+def get_appserver_addr(
+    appserver: Union[int, str], *, allow_random: bool = True, websocket: bool = False
+) -> str:
     """Given the index or address for a given appserver, normalizes it to a
     "host:port" address combo.
 

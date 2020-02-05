@@ -5,15 +5,14 @@ import asyncio
 import json
 from typing import Any, Optional
 
-from django.conf import settings
-
+import websockets
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer, JsonWebsocketConsumer
 
+from django.conf import settings
+
 from ...utils.appserver import appserver_open_websocket, ping_appserver
 from .models import Site
-
-import websockets
 
 
 class SiteConsumer(JsonWebsocketConsumer):
@@ -68,7 +67,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         self.site: Optional[Site] = None
         self.connected = False
 
-        self.terminal_websock: Optional[websockets.client.Connect] = None
+        self.terminal_websock: Optional[websockets.client.WebSocketClientProtocol] = None
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -91,11 +90,16 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         loop.create_task(self.mainloop())
 
     @database_sync_to_async
-    def get_site_for_user(self, user: "get_user_model()", **kwargs: Any) -> Site:
+    def get_site_for_user(self, user, **kwargs: Any) -> Site:  # pylint: disable=no-self-use
         return Site.objects.filter_for_user(user).get(**kwargs)
 
     async def open_terminal_connection(self) -> None:
-        appserver_num = hash(str(self.site.id) + self.site.name) % settings.DIRECTOR_NUM_APPSERVERS
+        appserver_num = (
+            hash(
+                str(self.site.id) + self.site.name  # type: ignore
+            )
+            % settings.DIRECTOR_NUM_APPSERVERS
+        )
 
         orig_appserver_num = appserver_num
 
@@ -110,12 +114,11 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
 
         try:
             self.terminal_websock = await asyncio.wait_for(
-                appserver_open_websocket(
-                    appserver_num,
-                    "/ws/terminal",
-                ),
-                timeout=5,
+                appserver_open_websocket(appserver_num, "/ws/terminal",), timeout=5,
             )
+
+            assert self.terminal_websock is not None
+            assert self.site is not None
 
             await self.terminal_websock.send(
                 json.dumps(
@@ -130,6 +133,8 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     async def mainloop(self) -> None:
+        assert self.terminal_websock is not None
+
         while True:
             try:
                 msg = await self.terminal_websock.recv()
@@ -139,7 +144,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
 
             await self.send(bytes_data=msg)
 
-    async def disconnect(self, close_code: int) -> None:
+    async def disconnect(self, code: int) -> None:  # pylint: disable=unused-argument
         self.site = None
         self.connected = False
 
@@ -147,9 +152,12 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
             await self.terminal_websock.close()
             self.terminal_websock = None
 
-    async def receive(self, text_data: Optional[str] = None, bytes_data: Optional[bytes] = None) -> None:
+    async def receive(
+        self, text_data: Optional[str] = None, bytes_data: Optional[bytes] = None
+    ) -> None:
         if self.connected:
+            assert self.terminal_websock is not None
             if bytes_data is not None:
                 await self.terminal_websock.send(bytes_data)
-            else:
+            elif text_data is not None:
                 await self.terminal_websock.send(text_data)
