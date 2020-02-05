@@ -210,13 +210,16 @@ SITE_URL_FORMATS = {
 
 
 # A list of the hosts each of the appservers are running on (or can be reached
-# on via some kind of proxy). If a proxy is used, it should support both HTTP
-# requests and Websocket connections.
+# on via some kind of proxy).
 # These are host:port combos. They are NOT URLs. This list should also not be
 # taken from unsafe sources, as they may be interpolated into URLs without any
 # form of escaping or validation.
 # Example: ["localhost:5443", "director-app1.example.com:5443"]
 DIRECTOR_APPSERVER_HOSTS: List[str] = []
+
+# Same as DIRECTOR_APPSERVER_HOSTS, but for the websocket server. Can be
+# copied from DIRECTOR_APPSERVER_HOSTS.
+DIRECTOR_APPSERVER_WS_HOSTS: List[str] = []
 
 # Set this to None to disable SSL. Set it to a dictionary like this to enable SSL:
 # {

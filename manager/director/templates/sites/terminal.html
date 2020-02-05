@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block head %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'vendor/xterm-4.4.0/xterm.css' %}" type="text/css" />
+    <script type="text/javascript" src="{% static 'vendor/xterm-4.4.0/xterm.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vendor/xterm-4.4.0/xterm-addon-fit.js' %}"></script>
+
+    <link rel="stylesheet" href="{% static 'css/terminal.css' %}" type="text/css" />
+    <script type="text/javascript" src="{% static 'js/terminal.js' %}"></script>
+
+    <style>
+    body {
+        overflow-y: hidden;
+    }
+    #content {
+        padding: 0;
+        background-color: black;
+        padding-right: 0;
+    }
+    .console-wrapper {
+        width: 100%;
+        height: 100%;
+        height: calc(100vh - 40px);
+        padding-left: 5px;
+        padding-top: 5px;
+        overflow-y: hidden;
+    }
+    #command-info {
+        display: none;
+        background-color: white;
+        color: black;
+        padding: 5px;
+        text-align: center;
+    }
+    #command-info b {
+        font-family: monospace;
+    }
+    </style>
+
+    <script>
+    var command = "{% if command %}{{ command|escapejs }}{% endif %}";
+    var site_endpoint = "{% url 'sites:info' site.id %}";
+
+    $(document).ready(function() {
+        if (command) {
+            $("#command-info").show().find("b").text(command);
+        }
+        registerTerminal(location.protocol.replace(/^http/, "ws") + location.host +  "{% url 'sites:terminal' site.id %}", $(".console-wrapper"), { uid: "{{ request.user.id }}", site: "{{ site.id }}", type: "terminal", custom: { command: command } }, {
+            onClose: function() {
+                if (command) {
+                    $(".disconnect").html("<span style='color:green'><b>Command Finished</b>, press <kbd>ENTER</kbd> to proceed</span>");
+                }
+            },
+            onReconnect: (command ? function() {
+                window.location.href = site_endpoint;
+            } : false)
+        });
+    });
+    </script>
+{% endblock %}
+
+{% block main %}
+<div id="command-info">Running command <b></b>...</div>
+<div class="console-wrapper" tabindex="0">
+    <div class="console"></div>
+    <div class="disconnect">
+        <b>Connection Lost</b>, press <kbd>ENTER</kbd> to reconnect
+    </div>
+</div>
+{% endblock %}

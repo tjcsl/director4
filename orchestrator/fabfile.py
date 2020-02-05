@@ -16,3 +16,7 @@ def install(c):
 @task
 def runserver(c):
     c.run("pipenv run python -m orchestrator.app", env=env, pty=True)
+
+@task
+def wsserver(c):
+    c.run("pipenv run python -m orchestrator.ws", env=env, pty=True)

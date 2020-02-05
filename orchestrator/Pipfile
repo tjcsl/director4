@@ -15,6 +15,7 @@ mypy = "~=0.761"
 flask = "~=1.1.1"
 gunicorn = "~=20.0.4"
 docker = "~=4.1.0"
+websockets = "~=8.1"
 
 [pipenv]
 allow_prereleases = true

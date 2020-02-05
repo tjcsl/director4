@@ -22,6 +22,8 @@ SITES_DIRECTORY = "/data/sites"
 # The prefix to add to commands being run to operate on files in SITES_DIRECTORY
 SITE_DIRECTORY_COMMAND_PREFIX: List[str] = []
 
+SITE_TERMINAL_KEEPALIVE_TIMEOUT = 6 * 60 * 60
+
 try:
     from .secret import *  # noqa
 except ImportError:

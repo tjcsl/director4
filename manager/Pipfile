@@ -25,6 +25,7 @@ celery = "~=4.4.0"
 channels-redis = "~=2.4.1"
 importlib-metadata = {version = "~=1.5.0",markers = "python_version < '3.8'"}
 mysqlclient = "~=1.4.6"
+websockets = "~=8.1"
 
 [pipenv]
 allow_prereleases = true

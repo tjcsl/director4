@@ -80,6 +80,17 @@ def dummy_view(  # pylint: disable=unused-argument
 
 
 @login_required
+def terminal_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    context = {
+        "site": site,
+    }
+
+    return render(request, "sites/terminal.html", context)
+
+
+@login_required
 def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 

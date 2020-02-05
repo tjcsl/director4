@@ -36,6 +36,8 @@ DATABASES = {
 
 DIRECTOR_APPSERVER_HOSTS = ["localhost:5000"]
 
+DIRECTOR_APPSERVER_WS_HOSTS = ["localhost:5010"]
+
 SITE_URL_FORMATS: Dict[Optional[str], str] = {
     None: "http://127.0.0.1:8081/{}/",
 }

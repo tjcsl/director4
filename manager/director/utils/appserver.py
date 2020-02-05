@@ -12,6 +12,8 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, Iterator, Optional, Sequence, Tuple, Union
 
+import websockets
+
 from django.conf import settings
 
 
@@ -115,7 +117,7 @@ class AppserverHTTPResponse:  # pylint: disable=too-many-instance-attributes
         return json.loads(self.text)
 
 
-def get_appserver_addr(appserver: Union[int, str], *, allow_random: bool = True) -> str:
+def get_appserver_addr(appserver: Union[int, str], *, allow_random: bool = True, websocket: bool = False) -> str:
     """Given the index or address for a given appserver, normalizes it to a
     "host:port" address combo.
 
@@ -127,6 +129,7 @@ def get_appserver_addr(appserver: Union[int, str], *, allow_random: bool = True)
             chosen (if allow_random is ``True``).
         allow_random:
             Whether to allow selecting a random appserver.
+        websocket: Whether to select a websocket host.
 
     Returns:
         The "host:port" combo for the appserver to connect to
@@ -141,7 +144,10 @@ def get_appserver_addr(appserver: Union[int, str], *, allow_random: bool = True)
             else:
                 raise ValueError("appserver index cannot be negative if allow_random is False")
 
-        appserver = settings.DIRECTOR_APPSERVER_HOSTS[appserver]
+        if websocket:
+            appserver = settings.DIRECTOR_APPSERVER_WS_HOSTS[appserver]
+        else:
+            appserver = settings.DIRECTOR_APPSERVER_HOSTS[appserver]
 
     return appserver
 
@@ -273,3 +279,40 @@ def iter_pingable_appservers(*, timeout: Union[int, float] = 2) -> Iterator[int]
     for i in range(settings.DIRECTOR_NUM_APPSERVERS):
         if ping_appserver(i, timeout=timeout):
             yield i
+
+
+def appserver_open_websocket(
+    appserver: Union[int, str],
+    path: str,
+    *,
+    params: Union[Dict[str, str], Sequence[Tuple[str, str]], None] = None,
+    extra_headers: Optional[Dict[str, str]] = None,
+    ping_interval: Union[int, float] = 20,
+    ping_timeout: Union[int, float] = 20,
+    close_timeout: Union[int, float, None] = None,
+) -> websockets.client.Connect:
+    assert path[0] == "/"
+
+    appserver = get_appserver_addr(appserver, allow_random=True, websocket=True)
+
+    if extra_headers is None:
+        extra_headers = {}
+
+    if params is None:
+        params = {}
+
+    full_url = "{}://{}{}{}".format(
+        "wss" if settings.DIRECTOR_APPSERVER_SSL else "ws",
+        appserver,
+        path,
+        "?" + urllib.parse.urlencode(params) if params else "",
+    )
+
+    return websockets.connect(
+        full_url,
+        extra_headers=extra_headers,
+        ping_interval=ping_interval,
+        ping_timeout=ping_timeout,
+        close_timeout=close_timeout,
+        ssl=appserver_ssl_context,
+    )
