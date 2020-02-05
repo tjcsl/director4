@@ -125,7 +125,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
                     }
                 ),
             )
-        except (asyncio.TimeoutError, websockets.exceptions.ConnectionClosed):
+        except (OSError, asyncio.TimeoutError, websockets.exceptions.ConnectionClosed):
             self.connected = False
             await self.close()
 
