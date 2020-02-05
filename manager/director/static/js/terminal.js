@@ -10,6 +10,8 @@ function setupTerminal(uri, wrapper, callbacks) {
         document.title = title;
     };
 
+    var heartbeat_interval = 2 * 60 * 60 * 1000;
+
     var ws = null;
     var connected = false;
     var dataReceived = false;
@@ -96,8 +98,17 @@ function setupTerminal(uri, wrapper, callbacks) {
         }
         else {
             var data = JSON.parse(data);
+            if(data.heartbeat != null) {
+                // A reply to our heartbeat message; ignore
+            }
         }
     }
+
+    setInterval(function() {
+        if(ws != null && connected && dataReceived) {
+            ws.send(JSON.stringify({"heartbeat": 1}));
+        }
+    }, heartbeat_interval);
 
     function onClose() {
         connected = false;

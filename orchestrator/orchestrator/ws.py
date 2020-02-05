@@ -61,6 +61,10 @@ async def terminal_handler(  # pylint: disable=unused-argument
 
                 if "size" in msg:
                     terminal.resize(*msg["size"])
+                elif "heartbeat" in msg:
+                    terminal.heartbeat()
+                    # Send it back
+                    await websock.send(frame)
 
     async def terminal_loop() -> None:
         while True:
