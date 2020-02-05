@@ -142,7 +142,10 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
                 await self.close()
                 break
 
-            await self.send(bytes_data=msg)
+            if isinstance(msg, bytes):
+                await self.send(bytes_data=msg)
+            elif isinstance(msg, str):
+                await self.send(text_data=msg)
 
     async def disconnect(self, code: int) -> None:  # pylint: disable=unused-argument
         self.site = None
