@@ -158,8 +158,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
     async def receive(
         self, text_data: Optional[str] = None, bytes_data: Optional[bytes] = None
     ) -> None:
-        if self.connected:
-            assert self.terminal_websock is not None
+        if self.connected and self.terminal_websock is not None:
             if bytes_data is not None:
                 await self.terminal_websock.send(bytes_data)
             elif text_data is not None:
