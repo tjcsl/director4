@@ -73,7 +73,7 @@ def update_appserver_nginx_config(
             raise
         else:
             # Everything succeeded!
-            yield "Successfully reloaded cofngiration"
+            yield "Successfully reloaded confgiration"
 
 
 def update_docker_service(
