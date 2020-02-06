@@ -276,6 +276,8 @@ class Operation(models.Model):
         ("regen_site_secrets", "Regenerating site secrets",),
         # Delete a site, its files, its database, its Docker image, etc.
         ("delete_site", "Deleting site",),
+        # Restart a site's process
+        ("restart_site", "Restarting site"),
     ]
 
     site = models.OneToOneField(Site, null=False, on_delete=models.PROTECT)

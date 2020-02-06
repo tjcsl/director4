@@ -12,6 +12,7 @@ from .tasks import (
     regen_nginx_config_task,
     regen_site_secrets_task,
     rename_site_task,
+    restart_service_task,
 )
 
 
@@ -56,6 +57,11 @@ def edit_site_names(
         domains=domains,
         request_username=request_username,
     )
+
+
+def restart_service(site: Site) -> None:
+    operation = Operation.objects.create(site=site, type="restart_site")
+    restart_service_task.delay(operation.id)
 
 
 def create_site(site: Site) -> None:

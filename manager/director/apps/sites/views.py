@@ -263,3 +263,13 @@ def regenerate_secrets_view(request: HttpRequest, site_id: int) -> HttpResponse:
     operations.regen_site_secrets(site)
 
     return redirect("sites:info", site.id)
+
+
+@require_POST
+@login_required
+def restart_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    operations.restart_service(site)
+
+    return redirect("sites:info", site.id)

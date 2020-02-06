@@ -7,7 +7,7 @@ import traceback
 from flask import Flask, request
 
 from .configs.nginx import disable_nginx_config, update_nginx_config
-from .docker.services import reload_nginx_config, update_director_service
+from .docker.services import reload_nginx_config, restart_director_service, update_director_service
 from .docker.utils import create_client
 from .exceptions import OrchestratorActionError
 from .files import ensure_site_directories_exist
@@ -42,6 +42,22 @@ def update_docker_service_page(site_id: int):
         ensure_site_directories_exist(site_id)
 
         update_director_service(create_client(), site_id, json.loads(request.form["data"]))
+    except OrchestratorActionError as ex:
+        traceback.print_exc()
+        return str(ex), 500
+    except BaseException:  # pylint: disable=broad-except
+        traceback.print_exc()
+        return "Error", 500
+    else:
+        return "Success"
+
+
+@app.route("/sites/<int:site_id>/restart-docker-service", methods=["POST"])
+def restart_docker_service_page(site_id: int):
+    """Restarts the Docker service for a given site."""
+
+    try:
+        restart_director_service(create_client(), site_id)
     except OrchestratorActionError as ex:
         traceback.print_exc()
         return str(ex), 500

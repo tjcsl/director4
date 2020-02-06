@@ -228,6 +228,16 @@ def delete_database_task(operation_id: int):
 
 
 @shared_task
+def restart_service_task(operation_id: int):
+    scope: Dict[str, Any] = {}
+
+    with auto_run_operation_wrapper(operation_id, scope) as wrapper:
+        wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
+
+        wrapper.add_action("Restarting Docker service", actions.restart_docker_service)
+
+
+@shared_task
 def create_site_task(operation_id: int):
     scope: Dict[str, Any] = {}
 

@@ -92,6 +92,21 @@ def update_docker_service(
     yield "Created/updated Docker service"
 
 
+def restart_docker_service(
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    appserver = scope["pingable_appservers"][0]
+
+    yield "Connecting to appserver {} to restart Docker service".format(appserver)
+    appserver_open_http_request(
+        appserver,
+        "/sites/{}/restart-docker-service".format(site.id),
+        method="POST",
+    )
+
+    yield "Restarted Docker service"
+
+
 def update_balancer_nginx_config(  # pylint: disable=unused-argument
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:

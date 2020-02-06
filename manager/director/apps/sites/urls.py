@@ -27,7 +27,7 @@ urlpatterns = [
         views.regen_nginx_config_view,
         name="regen_nginx_config",
     ),
-    path("<int:site_id>/restart/", views.dummy_view, name="restart_service"),
+    path("<int:site_id>/restart/", views.restart_view, name="restart_service"),
 ]
 
 edit_patterns = [
