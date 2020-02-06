@@ -56,6 +56,8 @@ def update_appserver_nginx_config(
         yield "Reloading Nginx config on all appservers"
         try:
             for i in scope["pingable_appservers"]:
+                yield "Reloading Nginx config on appserver {}".format(i)
+
                 appserver_open_http_request(
                     i, "/sites/{}/reload-nginx".format(site.id), method="POST", timeout=120,
                 )
