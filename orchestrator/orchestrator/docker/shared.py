@@ -32,4 +32,8 @@ def gen_director_shared_params(  # pylint: disable=unused-argument
         "init": True,
         "user": "root",
         "tty": False,
+        # These options are inconsistently named between sites and containers, so we
+        # picked one name and rewrite it for the other.
+        "env": ["{}={}".format(name, val) for name, val in env.items()],
+        "extra_hosts": {},
     }

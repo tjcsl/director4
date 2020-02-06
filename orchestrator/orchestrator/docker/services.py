@@ -31,14 +31,15 @@ def get_director_service_name(site_id: int) -> str:
 def gen_director_service_params(  # pylint: disable=unused-argument
     client: DockerClient, site_id: int, site_data: Dict[str, Any]
 ) -> Dict[str, Any]:
-    env = {
+    extra_env = {
         "PORT": "80",
         "HOST": "0.0.0.0",
     }
-    if site_data.get("database_url"):
-        env["DATABASE_URL"] = site_data["database_url"]
 
     params = gen_director_shared_params(client, site_id, site_data)
+
+    env = params.pop("env", [])
+    env.extend("{}={}".format(name, val) for name, val in extra_env.items())
 
     params.update(
         {
@@ -59,14 +60,14 @@ def gen_director_service_params(  # pylint: disable=unused-argument
                 cpu_limit=convert_cpu_limit(0.1),
                 mem_limit=convert_memory_limit("100MB"),
             ),
-            "env": ["{}={}".format(name, val) for name, val in env.items()],
+            "env": env,
             "log_driver": "json-file",
             "log_driver_options": {
                 # Keep minimal logs
                 "max-size": "500k",
                 "max-file": "1",
             },
-            "hosts": {},
+            "hosts": params.pop("extra_hosts"),
             "stop_grace_period": 3,
             "endpoint_spec": EndpointSpec(mode="vip", ports={}),
             "mode": ServiceMode(mode="replicated", replicas=1),

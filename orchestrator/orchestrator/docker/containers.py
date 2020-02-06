@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 
 from docker.client import DockerClient
 from docker.models.containers import Container
+from docker.types import LogConfig
 
 from .conversions import convert_cpu_limit, convert_memory_limit
 from .shared import gen_director_shared_params
@@ -24,11 +25,12 @@ def get_container(client: DockerClient, **filters: Any) -> Optional[Container]:
 def gen_director_container_params(
     client: DockerClient, site_id: int, site_data: Dict[str, Any]
 ) -> Dict[str, Any]:
-    env = {}
-    if site_data.get("database_url"):
-        env["DATABASE_URL"] = site_data["database_url"]
+    extra_env = {}
 
     params = gen_director_shared_params(client, site_id, site_data)
+
+    env = params.pop("env", [])
+    env.extend("{}={}".format(name, val) for name, val in extra_env.items())
 
     params.update(
         {
@@ -36,8 +38,12 @@ def gen_director_container_params(
             "nano_cpus": convert_cpu_limit(0.1),
             "mem_limit": convert_memory_limit("100MB"),
             "privileged": False,
-            "environment": ["{}={}".format(name, val) for name, val in env.items()],
-            "extra_hosts": {},
+            "read_only": False,
+            "environment": env,
+            "log_config": LogConfig(
+                type=LogConfig.types.JSON,
+                config={"max-size": "1k", "max-file": "1"},
+            ),
         }
     )
 
