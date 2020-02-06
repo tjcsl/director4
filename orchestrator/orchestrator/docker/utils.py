@@ -12,3 +12,7 @@ def create_client() -> docker.client.DockerClient:
     """
 
     return docker.from_env(version="auto")
+
+
+def get_swarm_node_id(client: docker.client.DockerClient) -> str:
+    return client.info()["Swarm"]["NodeID"]

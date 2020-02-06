@@ -4,7 +4,11 @@
 import json
 from typing import Any, Dict, Iterator, Tuple, Union
 
-from ...utils.appserver import appserver_open_http_request, iter_pingable_appservers
+from ...utils.appserver import (
+    AppserverProtocolError,
+    appserver_open_http_request,
+    iter_pingable_appservers,
+)
 from ...utils.balancer import balancer_open_http_request, iter_pingable_balancers
 from .models import Site
 
@@ -24,16 +28,52 @@ def update_appserver_nginx_config(
 ) -> Iterator[Union[Tuple[str, str], str]]:
     appserver = scope["pingable_appservers"][0]
 
-    yield "Connecting to appserver {} to update Nginx config".format(appserver)
-    appserver_open_http_request(
-        appserver,
-        "/sites/{}/update-nginx".format(site.id),
-        method="POST",
-        data={"data": json.dumps(site.serialize_for_appserver())},
-        timeout=60,
-    )
+    try:
+        yield "Connecting to appserver {} to update Nginx config".format(appserver)
 
-    yield "Updated Nginx config"
+        appserver_open_http_request(
+            appserver,
+            "/sites/{}/update-nginx".format(site.id),
+            method="POST",
+            data={"data": json.dumps(site.serialize_for_appserver())},
+            timeout=60,
+        )
+    except AppserverProtocolError:
+        # If an error occurs, disable the Nginx config
+        yield "Error updating Nginx config"
+
+        yield "Disabling site Nginx config"
+        appserver_open_http_request(
+            appserver, "/sites/{}/disable-nginx".format(site.id), method="POST", timeout=120,
+        )
+
+        yield "Re-raising exception"
+        raise
+    else:
+        # Success; try to reload
+        yield "Successfully updated Nginx config"
+
+        yield "Reloading Nginx config on all appservers"
+        try:
+            for i in scope["pingable_appservers"]:
+                appserver_open_http_request(
+                    i, "/sites/{}/reload-nginx".format(site.id), method="POST", timeout=120,
+                )
+        except AppserverProtocolError:
+            # Error reloading; disable config
+            # We're probably fine not reloading Nginx
+            yield "Error reloading Nginx config"
+
+            yield "Disabling site Nginx config"
+            appserver_open_http_request(
+                appserver, "/sites/{}/disable-nginx".format(site.id), method="POST", timeout=120,
+            )
+
+            yield "Re-raising exception"
+            raise
+        else:
+            # Everything succeeded!
+            yield "Successfully reloaded cofngiration"
 
 
 def update_docker_service(

@@ -6,9 +6,10 @@ import traceback
 
 from flask import Flask, request
 
-from .configs.nginx import update_nginx_config
-from .docker.services import update_director_service
+from .configs.nginx import disable_nginx_config, update_nginx_config
+from .docker.services import reload_nginx_config, update_director_service
 from .docker.utils import create_client
+from .exceptions import OrchestratorActionError
 from .files import ensure_site_directories_exist
 
 app = Flask(__name__)
@@ -41,6 +42,9 @@ def update_docker_service_page(site_id: int):
         ensure_site_directories_exist(site_id)
 
         update_director_service(create_client(), site_id, json.loads(request.form["data"]))
+    except OrchestratorActionError as ex:
+        traceback.print_exc()
+        return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         traceback.print_exc()
         return "Error", 500
@@ -61,14 +65,45 @@ def update_nginx_page(site_id: int):
         return "Error", 400
 
     try:
-        result = update_nginx_config(site_id, json.loads(request.form["data"]))
+        update_nginx_config(site_id, json.loads(request.form["data"]))
+    except OrchestratorActionError as ex:
+        return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         return "Error", 500
     else:
-        if result is None:
-            return "Success"
-        else:
-            return result, 500
+        return "Success"
+
+
+@app.route("/sites/<int:site_id>/reload-nginx", methods=["POST"])
+def reload_nginx_page(site_id: int):
+    """Reload the Nginx config for a given site."""
+    try:
+        reload_nginx_config(create_client())
+    except OrchestratorActionError as ex:
+        traceback.print_exc()
+        return str(ex), 500
+    except BaseException:  # pylint: disable=broad-except
+        traceback.print_exc()
+        return "Error", 500
+    else:
+        return "Success"
+
+
+@app.route("/sites/<int:site_id>/disable-nginx", methods=["POST"])
+def disable_nginx_page(site_id: int):
+    """Disables the Nginx config for a given site.
+
+    Should be used if deployment fails.
+    """
+
+    try:
+        disable_nginx_config(site_id)
+    except OrchestratorActionError as ex:
+        return str(ex), 500
+    except BaseException:  # pylint: disable=broad-except
+        return "Error", 500
+    else:
+        return "Success"
 
 
 if __name__ == "__main__":

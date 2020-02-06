@@ -1,14 +1,17 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from docker.client import DockerClient
 from docker.models.services import Service
 from docker.types import EndpointSpec, Resources, RestartPolicy, ServiceMode, UpdateConfig
 
+from ..exceptions import OrchestratorActionError
 from .conversions import convert_cpu_limit, convert_memory_limit
 from .shared import gen_director_shared_params
+from .utils import get_swarm_node_id
+from .. import settings
 
 
 def get_service_by_name(client: DockerClient, service_name: str) -> Optional[Service]:
@@ -46,8 +49,8 @@ def gen_director_service_params(  # pylint: disable=unused-argument
                 "-c",
                 # We do this in the shell so that it can adapt to the path changing without updating
                 # the Docker service
-                'for path in /site/run.sh /site/private/run.sh /site/public/run.sh; do if [ -x "$path" ]; then '
-                'exec "$path"; fi; done',
+                'for path in /site/run.sh /site/private/run.sh /site/public/run.sh; do '
+                'if [ -x "$path" ]; then ''exec "$path"; fi; done',
             ],
             "workdir": "/site/public",
             "networks": ["director-sites"],
@@ -103,3 +106,38 @@ def restart_director_service(client: DockerClient, site_id: int) -> None:
 
     if not service.force_update():
         raise Exception("Error restarting service")
+
+
+def list_service_tasks_for_node(service: Service, node_id: str) -> List[Dict[str, Any]]:
+    return service.tasks(filters={"node": node_id})
+
+
+def reload_nginx_config(client: DockerClient) -> None:
+    service = get_service_by_name(client, settings.NGINX_SERVICE_NAME)
+
+    node_id = get_swarm_node_id(client)
+    tasks = list_service_tasks_for_node(service, node_id=node_id)
+
+    for task in tasks:
+        if task["DesiredState"] == "running" and task["Status"]["State"] == "running":
+            container_id = task["Status"]["ContainerStatus"]["ContainerID"]
+
+            container = client.containers.get(container_id)
+
+            exit_code, _ = container.exec_run(
+                ["nginx", "-s", "reload"],
+                stdout=False,
+                stderr=True,
+                stdin=False,
+                tty=False,
+                privileged=False,
+                user="root",
+                detach=False,
+                stream=False,
+                socket=False,
+                workdir="/",
+                demux=False,
+            )
+
+            if exit_code != 0:
+                raise OrchestratorActionError("Error reloading Nginx config")

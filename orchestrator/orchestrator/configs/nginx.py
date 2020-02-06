@@ -3,12 +3,13 @@
 
 import os
 import re
-import subprocess
-from typing import Any, Dict, Optional
+import shutil
+from typing import Any, Dict
 
 import jinja2
 
 from .. import settings
+from ..exceptions import OrchestratorActionError
 
 TEMPLATE_DIRECTORY = os.path.join(os.path.dirname(__file__), "templates")
 
@@ -16,12 +17,12 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIRECTORY
 nginx_template = jinja_env.get_template("nginx.conf")
 
 
-def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
+def update_nginx_config(site_id: int, data: Dict[str, Any]) -> None:
     """Returns None on success or a message on failure."""
     new_data = {}
     for key in ["name", "no_redirect_domains", "primary_url_base"]:
         if key not in data:
-            return "Missing key {!r}".format(key)
+            raise OrchestratorActionError("Missing key {!r}".format(key))
 
         new_data[key] = data[key]
 
@@ -30,7 +31,7 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
         not isinstance(new_data["name"], str)
         or re.search(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$", new_data["name"]) is None
     ):
-        return "Invalid name"
+        raise OrchestratorActionError("Invalid name")
     if new_data["primary_url_base"] is not None and (
         not isinstance(new_data["primary_url_base"], str)
         or re.search(
@@ -39,16 +40,16 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
         )
         is None
     ):
-        return "Invalid primary URL"
+        raise OrchestratorActionError("Invalid primary URL")
     if not isinstance(new_data["no_redirect_domains"], list):
-        return "Invalid 'no redirect' domains"
+        raise OrchestratorActionError("Invalid 'no redirect' domains")
     for domain in new_data["no_redirect_domains"]:
         if not isinstance(domain, str) or (
             re.search(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*(\.[a-z][a-z0-9]*(-[a-z0-9]+)*)+$", domain)
             is None
             and re.search(r"^((\d+\.){3}\d+|([0-9a-fA-F]|:):[0-9a-fA-F:]*)$", domain) is None
         ):
-            return "Invalid 'no redirect' domain {!r}".format(domain)
+            raise OrchestratorActionError("Invalid 'no redirect' domain {!r}".format(domain))
 
     variables = {
         "settings": settings,
@@ -62,43 +63,31 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> Optional[str]:
         settings.NGINX_CONFIG_DIRECTORY, "site-{}.conf".format(site_id)
     )
 
+    if os.path.exists(nginx_config_path):
+        try:
+            shutil.move(nginx_config_path, nginx_config_path + ".bak")
+        except OSError as ex:
+            raise OrchestratorActionError(
+                "Error backing up old Nginx config: {}".format(ex)
+            ) from ex
+
     try:
         with open(nginx_config_path, "w") as f_obj:
             f_obj.write(text)
     except OSError as ex:
-        return "Error writing Nginx config: {}".format(ex)
+        raise OrchestratorActionError("Error writing Nginx config: {}".format(ex)) from ex
 
-    try:
-        subprocess.run(
-            settings.NGINX_CONFIG_CHECK_COMMAND,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            stdin=subprocess.DEVNULL,
-            check=True,
-        )
-    except (OSError, subprocess.CalledProcessError):
+
+def disable_nginx_config(site_id: int) -> None:
+    """Returns None on success or a message on failure."""
+    nginx_config_path = os.path.join(
+        settings.NGINX_CONFIG_DIRECTORY, "site-{}.conf".format(site_id)
+    )
+
+    if os.path.exists(nginx_config_path):
         try:
-            os.rename(nginx_config_path, nginx_config_path + ".bak")
-        except OSError:
-            return (
-                "Error checking Nginx config for errors (also unable to move site config out of "
-                "the way)"
-            )
-        else:
-            return (
-                "Error checking Nginx config for errors (site config has been renamed with a .bak "
-                "extension)"
-            )
-
-    try:
-        subprocess.run(
-            settings.NGINX_CONFIG_RELOAD_COMMAND,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            stdin=subprocess.DEVNULL,
-            check=True,
-        )
-    except (OSError, subprocess.CalledProcessError):
-        return "Error reloading Nginx config"
-
-    return None
+            shutil.move(nginx_config_path, nginx_config_path + ".bad")
+        except OSError as ex:
+            raise OrchestratorActionError(
+                "Error moving old Nginx config out of the way: {}".format(ex)
+            ) from ex
