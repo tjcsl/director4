@@ -86,8 +86,9 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
 
         await self.open_terminal_connection()
 
-        loop = asyncio.get_event_loop()
-        loop.create_task(self.mainloop())
+        if self.connected:
+            loop = asyncio.get_event_loop()
+            loop.create_task(self.mainloop())
 
     @database_sync_to_async
     def get_site_for_user(self, user, **kwargs: Any) -> Site:  # pylint: disable=no-self-use
