@@ -46,7 +46,30 @@ body {
 .console-wrapper ::-webkit-scrollbar-thumb {
     background-color: rgba(255, 255, 255, 0.6);
 }
-.console-wrapper .console-container.disconnected {
+
+.console-wrapper .console-disconnect {
+    position: absolute;
+    color: red;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.8);
+
+    display: none;
+}
+
+.console-wrapper.disconnected .console-container {
     filter: grayscale(100%);
     opacity: 0.8;
+}
+
+.console-wrapper.disconnected .console-disconnect {
+    display: block;
+}
+
+.console-wrapper.disconnected .console-reconnect {
+    color: black;
+    background-color: red;
+    border-radius: 2px;
+    padding: 2px;
+    text-decoration: none;
 }

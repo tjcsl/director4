@@ -43,15 +43,12 @@
     $(document).ready(function() {
         setupTerminal(
             location.protocol.replace(/^http/, "ws") + location.host +  "{% url 'sites:terminal' site.id %}",
-            $(".console-wrapper"),
+            $("#console"),
         );
     });
     </script>
 {% endblock %}
 
 {% block main %}
-<div class="console-wrapper" tabindex="0">
-    <div class="console-container"></div>
-    <div class="console-messages"></div>
-</div>
+<div id="console" tabindex="0"></div>
 {% endblock %}

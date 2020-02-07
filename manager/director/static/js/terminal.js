@@ -5,19 +5,24 @@ $(document).ready(function() {
 });
 
 function setupTerminal(uri, wrapper, callbacks) {
-    callbacks = callbacks || callbacks;
+    callbacks = callbacks || {};
     var titleCallback = callbacks.onTitle || function(title) {
         document.title = title;
     };
 
-    var heartbeat_interval = 2 * 60 * 60 * 1000;
+    var heartbeat_interval = 45 * 1000;
 
     var ws = null;
     var connected = false;
     var dataReceived = false;
 
-    var container = wrapper.find(".console-container");
-    var message_div = wrapper.find(".console-messages");
+    wrapper.empty().addClass("console-wrapper");
+
+    var container = $("<div>").addClass("console-container").appendTo(wrapper);
+    $("<div>").addClass("console-disconnect").appendTo(wrapper).append(
+        "Disconnected ",
+        $("<a>").addClass("console-reconnect").attr("href", "#").text("Reconnect").click(openWS),
+    );
 
     var term = new Terminal({ cursorBlink: true });
     var fitAddon = new FitAddon.FitAddon();
@@ -48,8 +53,8 @@ function setupTerminal(uri, wrapper, callbacks) {
     }
 
     function openWS() {
-        container.empty().css("display", "none");
-        message_div.text("Connecting...");
+        container.empty().text("Connecting...");
+        wrapper.removeClass("disconnected");
 
         connected = false;
         dataReceived = false;
@@ -63,30 +68,30 @@ function setupTerminal(uri, wrapper, callbacks) {
     function onOpen() {
         connected = true;
 
-        container.empty().css("display", "none");
-        message_div.text("Launching terminal...");
+        container.empty().text("Launching terminal...");
+        wrapper.removeClass("disconnected");
     }
 
     function onMessage(e) {
         if(!dataReceived) {
-            container.css("display", "");
-            container.removeClass("disconnected");
-            message_div.empty();
             container.empty();
+            wrapper.removeClass("disconnected");
 
             term.setOption("disableStdin", false);
             term.setOption("cursorBlink", true);
 
             term.open(container.get(0), true);
             fitAddon.fit();
+
             updateSize(term.rows, term.cols);
+            setTimeout(function() {
+                updateSize(term.rows, term.cols);
+            }, 0);
 
             dataReceived = true;
         }
 
         var data = e.data;
-
-        console.log(data);
 
         if(data instanceof Blob) {
             data.text().then((text) => {
@@ -111,6 +116,10 @@ function setupTerminal(uri, wrapper, callbacks) {
     }, heartbeat_interval);
 
     function onClose() {
+        if(!dataReceived) {
+            container.empty();
+        }
+
         connected = false;
         dataReceived = false;
 
@@ -118,8 +127,7 @@ function setupTerminal(uri, wrapper, callbacks) {
         term.setOption("cursorBlink", false);
 
         wrapper.focus();
-        container.addClass("disconnected");
-        $("<div>").css({position: "absolute", color: "red", bottom: "10px", right: "10px", backgroundColor: "rgba(0, 0, 0, 0.8)"}).text("Disconnected").appendTo(message_div);
+        wrapper.addClass("disconnected");
 
         titleCallback("Terminal");
     }
