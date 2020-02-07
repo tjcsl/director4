@@ -25,7 +25,7 @@ def get_container(client: DockerClient, **filters: Any) -> Optional[Container]:
 def gen_director_container_params(
     client: DockerClient, site_id: int, site_data: Dict[str, Any]
 ) -> Dict[str, Any]:
-    extra_env = {}
+    extra_env: Dict[str, str] = {}
 
     params = gen_director_shared_params(client, site_id, site_data)
 
