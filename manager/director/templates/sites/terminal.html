@@ -40,23 +40,11 @@
     </style>
 
     <script>
-    var command = "{% if command %}{{ command|escapejs }}{% endif %}";
-    var site_endpoint = "{% url 'sites:info' site.id %}";
-
     $(document).ready(function() {
-        if (command) {
-            $("#command-info").show().find("b").text(command);
-        }
-        setupTerminal(location.protocol.replace(/^http/, "ws") + location.host +  "{% url 'sites:terminal' site.id %}", $(".console-wrapper"), {
-            onClose: function() {
-                if (command) {
-                    $(".disconnect").html("<span style='color:green'><b>Command Finished</b>, press <kbd>ENTER</kbd> to proceed</span>");
-                }
-            },
-            onReconnect: (command ? function() {
-                window.location.href = site_endpoint;
-            } : false)
-        });
+        setupTerminal(
+            location.protocol.replace(/^http/, "ws") + location.host +  "{% url 'sites:terminal' site.id %}",
+            $(".console-wrapper"),
+        );
     });
     </script>
 {% endblock %}
