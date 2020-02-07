@@ -2,11 +2,8 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import asyncio
-import fcntl
 import os
-import pty
-import struct
-import termios
+import socket
 from typing import Any, Dict, Optional
 
 from docker.client import DockerClient
@@ -43,37 +40,37 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
             client, self.container_name, run_params=run_params
         )
 
-        self.process: Optional[asyncio.subprocess.Process] = None  # pylint: disable=no-member
+        self.exec_id: Optional[str] = None
+
+        self.socket: Optional[socket.SocketIO] = None
 
         self.fd: Optional[int] = None
-        self.fd_slave: Optional[int] = None
 
     async def start_process(self) -> None:
         env = {}
         if self.site_data.get("database_url"):
             env["DATABASE_URL"] = self.site_data["database_url"]
 
-        args = [
-            "docker",
-            "exec",
-            "--interactive",
-            "--tty",
-            "--workdir=/site",
-        ]
+        args = ["sh"]
 
-        # We pass the actual value in the subprocess environment
-        args.extend("--env={}".format(key) for key in env)
+        self.exec_id = self.client.api.exec_create(
+            self.container.id,
+            args,
+            stdin=True,
+            stdout=True,
+            stderr=True,
+            tty=True,
+            privileged=False,
+            workdir="/",
+            environment=env,
+            user="root",
+        )["Id"]
 
-        args.extend([self.container.id, "sh"])
-
-        process_env = dict(os.environ)
-        process_env.update(env)
-
-        self.fd, self.fd_slave = pty.openpty()
-
-        self.process = await asyncio.create_subprocess_exec(
-            *args, stdin=self.fd_slave, stdout=self.fd_slave, stderr=self.fd_slave, env=process_env,
+        self.socket = self.client.api.exec_start(
+            self.exec_id, tty=True, detach=False, demux=False, socket=True,
         )
+
+        self.fd = self.socket.fileno()
 
         self.resize(24, 80)
 
@@ -90,11 +87,11 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
             sock._sock.send(b"\n")  # pylint: disable=protected-access
 
     async def read(self, bufsize: int) -> bytes:
-        assert self.fd is not None
+        assert self.socket is not None
 
         loop = asyncio.get_event_loop()
 
-        return await loop.run_in_executor(None, os.read, self.fd, bufsize)
+        return await loop.run_in_executor(None, self.socket.read, bufsize)
 
     def write(self, data: bytes) -> None:
         assert self.fd is not None
@@ -104,24 +101,9 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
     def resize(self, rows: int, cols: int) -> None:
         assert self.fd is not None
 
-        buf = struct.pack("HHHH", rows, cols, 0, 0)
-        fcntl.ioctl(self.fd, termios.TIOCSWINSZ, buf)  # type: ignore
-        fcntl.ioctl(self.fd_slave, termios.TIOCSWINSZ, buf)  # type: ignore
+        self.client.api.exec_resize(self.exec_id, height=rows, width=cols)
 
-    async def wait(self) -> int:
-        assert self.process is not None
-
-        if self.process.returncode is not None:
-            return self.process.returncode
-        else:
-            return await self.process.wait()
-
-    def terminate(self) -> None:
-        assert self.process is not None
-
-        self.process.terminate()
-
-    def kill(self) -> None:
-        assert self.process is not None
-
-        self.process.kill()
+    def close(self) -> None:
+        if self.fd is not None:
+            os.close(self.fd)
+            self.fd = None

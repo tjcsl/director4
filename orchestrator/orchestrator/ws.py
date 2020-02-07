@@ -44,14 +44,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
             try:
                 frame = await websock.recv()
             except websockets.exceptions.ConnectionClosed:
-                terminal.terminate()
-
-                try:
-                    await asyncio.wait_for(terminal.wait(), timeout=5)
-                except asyncio.TimeoutError:
-                    terminal.kill()
-                    terminal.wait()
-
+                terminal.close()
                 return
 
             if isinstance(frame, bytes):
@@ -74,7 +67,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
                 chunk = b""
 
             if chunk == b"":
-                await terminal.wait()
+                terminal.close()
                 await websock.close()
                 break
 
