@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import json
+import logging
 import re
 import ssl
 import sys
@@ -10,6 +11,8 @@ import websockets
 
 from .docker.utils import create_client
 from .terminal import TerminalContainer
+
+logger = logging.getLogger(__name__)
 
 
 def create_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLContext]:
@@ -30,21 +33,27 @@ def create_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLContext]:
 async def terminal_handler(  # pylint: disable=unused-argument
     websock: websockets.client.WebSocketClientProtocol, params: Dict[str, Any],
 ) -> None:
+    site_id = int(params["site_id"])
     try:
         site_data = json.loads(await websock.recv())
         await websock.send(json.dumps({"connected": True}))
     except websockets.exceptions.ConnectionClosed:
+        logger.info("Websocket connection for site %s terminal closed early", site_id)
         return
 
-    terminal = TerminalContainer(create_client(), int(params["site_id"]), site_data)
+    logger.info("Opening terminal for site %s", site_id)
 
+    terminal = TerminalContainer(create_client(), site_id, site_data)
     await terminal.start()
+
+    logger.info("Opened terminal for site %s", site_id)
 
     async def websock_loop() -> None:
         while True:
             try:
                 frame = await websock.recv()
             except websockets.exceptions.ConnectionClosed:
+                logger.info("Websocket connection for site %s terminal closed", site_id)
                 terminal.close()
                 return
 
@@ -61,6 +70,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
                     try:
                         await websock.send(frame)
                     except websockets.exceptions.ConnectionClosed:
+                        logger.info("Websocket connection for site %s terminal closed", site_id)
                         terminal.close()
                         return
 
@@ -72,6 +82,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
                 chunk = b""
 
             if chunk == b"":
+                logger.info("Terminal for site %s closed", site_id)
                 terminal.close()
                 await websock.close()
                 break
@@ -79,6 +90,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
             try:
                 await websock.send(chunk)
             except websockets.exceptions.ConnectionClosed:
+                logger.info("Websocket connection for site %s terminal closed", site_id)
                 terminal.close()
                 break
 
@@ -125,6 +137,12 @@ def main(argv: List[str]) -> None:
         sys.exit(1)
 
     ssl_context = create_ssl_context(options)
+
+    logger.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(asctime)s: %(levelname)s: %(message)s"))
+    logger.addHandler(handler)
 
     loop = asyncio.get_event_loop()
 
