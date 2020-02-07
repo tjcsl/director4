@@ -101,9 +101,7 @@ def restart_docker_service(
 
     yield "Connecting to appserver {} to restart Docker service".format(appserver)
     appserver_open_http_request(
-        appserver,
-        "/sites/{}/restart-docker-service".format(site.id),
-        method="POST",
+        appserver, "/sites/{}/restart-docker-service".format(site.id), method="POST",
     )
 
     yield "Restarted Docker service"
