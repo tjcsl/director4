@@ -51,8 +51,7 @@ def gen_director_service_params(  # pylint: disable=unused-argument
                 # We do this in the shell so that it can adapt to the path changing without updating
                 # the Docker service
                 "for path in /site/run.sh /site/private/run.sh /site/public/run.sh; do "
-                'if [ -x "$path" ]; then '
-                'exec "$path"; fi; done',
+                'if [ -x "$path" ]; then exec "$path"; fi; done; exec sleep 2147483647',
             ],
             "workdir": "/site/public",
             "networks": ["director-sites"],
