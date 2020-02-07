@@ -59,7 +59,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
             stderr=True,
             tty=True,
             privileged=False,
-            workdir="/",
+            workdir="/site",
             environment=env,
             user="root",
         )["Id"]
