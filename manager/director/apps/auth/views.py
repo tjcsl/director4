@@ -10,7 +10,7 @@ from ..sites import views as sites_views
 
 def index_view(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
-        return sites_views.index_view(request)
+        return sites_views.sites.index_view(request)
     else:
         return login_view(request)
 
