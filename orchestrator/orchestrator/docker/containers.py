@@ -41,8 +41,7 @@ def gen_director_container_params(
             "read_only": False,
             "environment": env,
             "log_config": LogConfig(
-                type=LogConfig.types.JSON,
-                config={"max-size": "1k", "max-file": "1"},
+                type=LogConfig.types.JSON, config={"max-size": "1k", "max-file": "1"},
             ),
         }
     )

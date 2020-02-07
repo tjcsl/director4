@@ -7,11 +7,11 @@ from docker.client import DockerClient
 from docker.models.services import Service
 from docker.types import EndpointSpec, Resources, RestartPolicy, ServiceMode, UpdateConfig
 
+from .. import settings
 from ..exceptions import OrchestratorActionError
 from .conversions import convert_cpu_limit, convert_memory_limit
 from .shared import gen_director_shared_params
 from .utils import get_swarm_node_id
-from .. import settings
 
 
 def get_service_by_name(client: DockerClient, service_name: str) -> Optional[Service]:
@@ -50,8 +50,9 @@ def gen_director_service_params(  # pylint: disable=unused-argument
                 "-c",
                 # We do this in the shell so that it can adapt to the path changing without updating
                 # the Docker service
-                'for path in /site/run.sh /site/private/run.sh /site/public/run.sh; do '
-                'if [ -x "$path" ]; then ''exec "$path"; fi; done',
+                "for path in /site/run.sh /site/private/run.sh /site/public/run.sh; do "
+                'if [ -x "$path" ]; then '
+                'exec "$path"; fi; done',
             ],
             "workdir": "/site/public",
             "networks": ["director-sites"],
