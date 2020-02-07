@@ -150,6 +150,9 @@ docker service create --replicas=1 \
     --name director-nginx \
     nginx:latest
 
+# Prune system
+docker system prune
+
 
 # Create /data directories
 for dir in /data; do
