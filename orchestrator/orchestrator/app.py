@@ -90,9 +90,9 @@ def update_nginx_page(site_id: int):
         return "Success"
 
 
-@app.route("/sites/<int:site_id>/reload-nginx", methods=["POST"])
-def reload_nginx_page(site_id: int):
-    """Reload the Nginx config for a given site."""
+@app.route("/sites/reload-nginx", methods=["POST"])
+def reload_nginx_page():
+    """Reload the Nginx service's configuration."""
     try:
         reload_nginx_config(create_client())
     except OrchestratorActionError as ex:
