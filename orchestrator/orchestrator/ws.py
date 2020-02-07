@@ -57,7 +57,11 @@ async def terminal_handler(  # pylint: disable=unused-argument
                 elif "heartbeat" in msg:
                     terminal.heartbeat()
                     # Send it back
-                    await websock.send(frame)
+                    try:
+                        await websock.send(frame)
+                    except websockets.exceptions.ConnectionClosed:
+                        terminal.close()
+                        return
 
     async def terminal_loop() -> None:
         while True:
@@ -71,7 +75,11 @@ async def terminal_handler(  # pylint: disable=unused-argument
                 await websock.close()
                 break
 
-            await websock.send(chunk)
+            try:
+                await websock.send(chunk)
+            except websockets.exceptions.ConnectionClosed:
+                terminal.close()
+                break
 
     await asyncio.gather(websock_loop(), terminal_loop())
 
