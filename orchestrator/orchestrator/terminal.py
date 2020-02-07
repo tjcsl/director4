@@ -101,7 +101,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         assert self.socket is not None
 
         # The default timeout is 60 seconds, which is way too low
-        self.socket._sock.settimeout(300)  # pylint: disable=protected-access
+        self.socket._sock.settimeout(None)  # pylint: disable=protected-access
 
         await self.resize(24, 80)
 
