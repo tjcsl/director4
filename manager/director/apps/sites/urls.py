@@ -16,7 +16,6 @@ urlpatterns = [
     path("<int:site_id>/", views.info_view, name="info"),
     path("<int:site_id>/delete/", views.dummy_view, name="delete"),
     path("<int:site_id>/terminal/", views.terminal_view, name="terminal"),
-    path("<int:site_id>/files/", views.dummy_view, name="editor"),
     path(
         "<int:site_id>/secrets/regenerate/",
         views.regenerate_secrets_view,
@@ -42,9 +41,15 @@ database_patterns = [
     path("delete/", views.delete_database_view, name="delete_database"),
 ]
 
+file_patterns = [
+    path("", views.dummy_view, name="editor"),
+    path("get/", views.get_file_view, name="get_file"),
+]
+
 urlpatterns.extend(
     [
         path("<int:site_id>/edit/", include(edit_patterns)),
         path("<int:site_id>/database/", include(database_patterns)),
+        path("<int:site_id>/files/", include(file_patterns)),
     ]
 )

@@ -283,6 +283,24 @@ def iter_pingable_appservers(*, timeout: Union[int, float] = 2) -> Iterator[int]
             yield i
 
 
+def iter_random_pingable_appservers(*, timeout: Union[int, float] = 2) -> Iterator[int]:
+    """Similar to ``iter_pingable_appservers()``, but yields in a random order.
+
+    Args:
+        timeout: The timeout to use when connecting to the appservers.
+
+    Returns:
+        A list of the indices of each appserver that was successfully pinged.
+
+    """
+    appservers = list(range(settings.DIRECTOR_NUM_APPSERVERS))
+    random.shuffle(appservers)
+
+    for i in appservers:
+        if ping_appserver(i, timeout=timeout):
+            yield i
+
+
 def appserver_open_websocket(
     appserver: Union[int, str],
     path: str,

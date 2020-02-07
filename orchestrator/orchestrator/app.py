@@ -10,7 +10,7 @@ from .configs.nginx import disable_nginx_config, update_nginx_config
 from .docker.services import reload_nginx_config, restart_director_service, update_director_service
 from .docker.utils import create_client
 from .exceptions import OrchestratorActionError
-from .files import ensure_site_directories_exist
+from .files import SiteFilesException, ensure_site_directories_exist, get_site_file
 
 app = Flask(__name__)
 
@@ -117,6 +117,24 @@ def disable_nginx_page(site_id: int):
     except OrchestratorActionError as ex:
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
+        return "Error", 500
+    else:
+        return "Success"
+
+
+@app.route("/sites/<int:site_id>/files/get", methods=["GET"])
+def get_file_page(site_id: int):
+    """Get a file from a site's directory"""
+
+    if "path" not in request.args:
+        return "path parameter not passed", 400
+
+    try:
+        return get_site_file(site_id, request.args["path"])
+    except SiteFilesException as ex:
+        return str(ex), 500
+    except BaseException:  # pylint: disable=broad-except
+        traceback.print_exc()
         return "Error", 500
     else:
         return "Success"
