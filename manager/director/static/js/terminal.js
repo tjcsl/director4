@@ -4,9 +4,9 @@ $(document).ready(function() {
     });
 });
 
-function setupTerminal(uri, wrapper, callbacks) {
-    callbacks = callbacks || {};
-    var titleCallback = callbacks.onTitle || function(title) {
+function setupTerminal(uri, wrapper, options) {
+    options = options || {};
+    var titleCallback = options.onTitle || function(title) {
         document.title = title;
     };
 
@@ -37,6 +37,7 @@ function setupTerminal(uri, wrapper, callbacks) {
     term.onResize(function(size) {
         updateSize(size.rows, size.cols);
     });
+    term.onTitleChange(titleCallback);
 
     wrapper.on("terminal:resize", function(e) {
         e.preventDefault();
@@ -83,6 +84,7 @@ function setupTerminal(uri, wrapper, callbacks) {
         term.setOption("cursorBlink", true);
 
         term.open(container.get(0), true);
+        term.focus();
         fitAddon.fit();
 
         updateSize(term.rows, term.cols);
