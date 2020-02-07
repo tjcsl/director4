@@ -10,7 +10,7 @@ function setupTerminal(uri, wrapper, callbacks) {
         document.title = title;
     };
 
-    var heartbeat_interval = 45 * 1000;
+    var heartbeat_interval = 90 * 1000;
 
     var ws = null;
     var connected = false;
