@@ -66,34 +66,41 @@ function setupTerminal(uri, wrapper, callbacks) {
     }
 
     function onOpen() {
+    }
+
+    function firstReceivedResponse() {
         connected = true;
 
         container.empty().text("Launching terminal...");
         wrapper.removeClass("disconnected");
     }
 
-    function onMessage(e) {
-        if(!dataReceived) {
-            container.empty();
-            wrapper.removeClass("disconnected");
+    function firstReceivedData() {
+        container.empty();
+        wrapper.removeClass("disconnected");
 
-            term.setOption("disableStdin", false);
-            term.setOption("cursorBlink", true);
+        term.setOption("disableStdin", false);
+        term.setOption("cursorBlink", true);
 
-            term.open(container.get(0), true);
-            fitAddon.fit();
+        term.open(container.get(0), true);
+        fitAddon.fit();
 
+        updateSize(term.rows, term.cols);
+        setTimeout(function() {
             updateSize(term.rows, term.cols);
-            setTimeout(function() {
-                updateSize(term.rows, term.cols);
-            }, 0);
+        }, 0);
 
-            dataReceived = true;
-        }
+        dataReceived = true;
+    }
 
+    function onMessage(e) {
         var data = e.data;
 
         if(data instanceof Blob) {
+            if(!dataReceived) {
+                firstReceivedData()
+            }
+
             data.text().then((text) => {
                 term.write(text);
             });
@@ -103,7 +110,10 @@ function setupTerminal(uri, wrapper, callbacks) {
         }
         else {
             var data = JSON.parse(data);
-            if(data.heartbeat != null) {
+            if(!connected && data.connected == true) {
+                firstReceivedResponse();
+            }
+            else if(data.heartbeat != null) {
                 // A reply to our heartbeat message; ignore
             }
         }

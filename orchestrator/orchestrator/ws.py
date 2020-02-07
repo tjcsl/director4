@@ -32,6 +32,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
 ) -> None:
     try:
         info_frame = json.loads(await websock.recv())
+        await websock.send(json.dumps({"connected": True}))
     except websockets.exceptions.ConnectionClosed:
         return
 
