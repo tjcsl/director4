@@ -105,7 +105,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         orig_appserver_num = appserver_num
 
         # If we can't ping this one, go to the next one
-        while not ping_appserver(appserver_num, timeout=1):
+        while not ping_appserver(appserver_num, timeout=0.5):
             appserver_num = (appserver_num + 1) % settings.DIRECTOR_NUM_APPSERVERS
 
             # We've come full circle; none are reachable
@@ -114,22 +114,22 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
                 return
 
         try:
+            assert self.site is not None
+
             self.terminal_websock = await asyncio.wait_for(
-                appserver_open_websocket(appserver_num, "/ws/terminal",), timeout=5,
+                appserver_open_websocket(
+                    appserver_num, "/ws/sites/{}/terminal".format(self.site.id)
+                ),
+                timeout=5,
             )
 
             assert self.terminal_websock is not None
             assert self.site is not None
 
             await self.terminal_websock.send(
-                json.dumps(
-                    {
-                        "site_id": self.site.id,
-                        "data": await database_sync_to_async(self.site.serialize_for_appserver)(),
-                    }
-                ),
+                json.dumps(await database_sync_to_async(self.site.serialize_for_appserver)())
             )
-        except (OSError, asyncio.TimeoutError, websockets.exceptions.ConnectionClosed):
+        except (OSError, asyncio.TimeoutError, websockets.exceptions.WebSocketException):
             self.connected = False
             await self.close()
 

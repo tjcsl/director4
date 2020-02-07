@@ -31,14 +31,14 @@ async def terminal_handler(  # pylint: disable=unused-argument
     websock: websockets.client.WebSocketClientProtocol, params: Dict[str, Any],
 ) -> None:
     try:
-        info_frame = json.loads(await websock.recv())
+        site_data = json.loads(await websock.recv())
         await websock.send(json.dumps({"connected": True}))
     except websockets.exceptions.ConnectionClosed:
         return
 
-    terminal = TerminalContainer(create_client(), info_frame["site_id"], info_frame["data"])
+    terminal = TerminalContainer(create_client(), int(params["site_id"]), site_data)
 
-    await terminal.start_process()
+    await terminal.start()
 
     async def websock_loop() -> None:
         while True:
@@ -54,7 +54,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
                 msg = json.loads(frame)
 
                 if "size" in msg:
-                    terminal.resize(*msg["size"])
+                    await terminal.resize(*msg["size"])
                 elif "heartbeat" in msg:
                     terminal.heartbeat()
                     # Send it back
@@ -82,12 +82,14 @@ async def terminal_handler(  # pylint: disable=unused-argument
                 terminal.close()
                 break
 
-    await asyncio.gather(websock_loop(), terminal_loop())
+    await asyncio.wait(
+        [websock_loop(), terminal_loop()], return_when=asyncio.ALL_COMPLETED,
+    )
 
 
 async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -> None:
     routes = [
-        (re.compile(r"^/ws/terminal/?$"), terminal_handler),
+        (re.compile(r"^/ws/sites/(?P<site_id>\d+)/terminal/?$"), terminal_handler),
     ]
 
     for route_re, handler in routes:
@@ -100,6 +102,7 @@ async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -
             params.update(match.groupdict())
 
             await handler(websock, params)
+            return
 
 
 def main(argv: List[str]) -> None:
