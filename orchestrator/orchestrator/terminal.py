@@ -44,8 +44,6 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
         self.socket: Optional[socket.SocketIO] = None
 
-        self.fd: Optional[int] = None
-
     async def start_process(self) -> None:
         env = {}
         if self.site_data.get("database_url"):
@@ -70,7 +68,8 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
             self.exec_id, tty=True, detach=False, demux=False, socket=True,
         )
 
-        self.fd = self.socket.fileno()
+        # The default timeout is 60 seconds, which is way too low
+        self.socket._sock.settimeout(300)  # pylint: disable=protected-access
 
         self.resize(24, 80)
 
@@ -94,16 +93,16 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         return await loop.run_in_executor(None, self.socket.read, bufsize)
 
     def write(self, data: bytes) -> None:
-        assert self.fd is not None
+        assert self.socket is not None
 
-        os.write(self.fd, data)
+        os.write(self.socket.fileno(), data)
 
     def resize(self, rows: int, cols: int) -> None:
-        assert self.fd is not None
+        assert self.exec_id is not None
 
         self.client.api.exec_resize(self.exec_id, height=rows, width=cols)
 
     def close(self) -> None:
-        if self.fd is not None:
-            os.close(self.fd)
-            self.fd = None
+        assert self.socket is not None
+
+        self.socket.close()
