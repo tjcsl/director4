@@ -37,22 +37,23 @@ def _run_helper_script_prog(
     # Python to read the program from /dev/fd/<fd>.
 
     with open(HELPER_SCRIPT_PATH) as f_obj:
-        os.set_inheritable(f_obj.fileno(), True)
+        text = f_obj.read()
 
-        real_args = [
-            *settings.SITE_DIRECTORY_COMMAND_PREFIX,
-            "unshare",
-            "--map-root-user",
-            "--",
-            "python3",
-            "/dev/fd/{}".format(f_obj.fileno()),
-            *args,
-        ]
+    real_args = [
+        *settings.SITE_DIRECTORY_COMMAND_PREFIX,
+        "unshare",
+        "--map-root-user",
+        "--",
+        "python3",
+        "-c",
+        'import os; exec(os.environ["ORCHESTRATOR_HELPER_PROG"])',
+        *args,
+    ]
 
-        kwargs["pass_fds"] = list(kwargs.get("pass_fds", []))
-        kwargs["pass_fds"].append(f_obj.fileno())
+    kwargs.setdefault("env", os.environ)
+    kwargs["env"]["ORCHESTRATOR_HELPER_PROG"] = text
 
-        return callback(real_args, kwargs)
+    return callback(real_args, kwargs)
 
 
 def run_helper_script_prog(args: List[str], **kwargs: Any) -> subprocess.Popen:
