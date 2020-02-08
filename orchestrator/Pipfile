@@ -7,15 +7,12 @@ verify_ssl = true
 flake8 = "~=3.7.9"
 pylint = "~=2.4.4"
 isort = "~=4.3.21"
-black = "~=19.10b0"
+black = "==19.10b0"
 autopep8 = "~=1.5.0"
 mypy = "~=0.761"
 
 [packages]
 flask = "~=1.1.1"
 gunicorn = "~=20.0.4"
-docker = "~=4.1.0"
+docker = "~=4.2.0"
 websockets = "~=8.1"
-
-[pipenv]
-allow_prereleases = true
