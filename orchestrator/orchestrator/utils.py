@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from typing import Awaitable, Tuple, TypeVar
+import asyncio
+import concurrent.futures
+import functools
+from typing import Any, Awaitable, Callable, Coroutine, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
 U = TypeVar("U")  # pylint: disable=invalid-name
@@ -16,3 +19,33 @@ async def add_const(awaitable: Awaitable[T], const: U) -> Tuple[T, U]:
     tell you where it came from.
     """
     return (await awaitable), const
+
+
+def run_in_executor(
+    executor: Optional[concurrent.futures.Executor],
+) -> Callable[
+    [Callable[..., T]], Callable[..., Coroutine[Any, Any, T]],
+]:
+    """A decorator for synchronous functions to make them into coroutines (async functions)
+    that automatically run in the specified executor.
+
+    Example:
+    @run_in_executor(None)
+    def test():
+        print("Test")
+    ...
+    await test()
+
+    """
+
+    def wrap(func: Callable[..., T]) -> Callable[..., Coroutine[Any, Any, T]]:
+        async def wrapper(*args: Any, **kwargs: Any) -> T:
+            def callback() -> T:
+                return func(*args, **kwargs)
+
+            return await asyncio.get_event_loop().run_in_executor(executor, callback)
+
+        functools.update_wrapper(wrapper, func)
+        return wrapper
+
+    return wrap
