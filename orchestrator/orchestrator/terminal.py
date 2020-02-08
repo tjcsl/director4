@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-import asyncio
-import functools
 import os
 import socket
 from typing import Any, Dict, Optional
@@ -12,6 +10,7 @@ from docker.models.containers import Container
 
 from . import settings
 from .docker import containers
+from .utils import run_in_executor
 
 
 class TerminalContainer:  # pylint: disable=too-many-instance-attributes
@@ -29,11 +28,23 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         self.socket: Optional[socket.SocketIO] = None
 
     async def start(self) -> None:
+        await self._start_attach()
+
+        # The default timeout is 60 seconds, which is way too low
+        assert self.socket is not None
+        self.socket._sock.settimeout(None)  # pylint: disable=protected-access
+
+        await self.resize(24, 80)
+
+        await self.heartbeat()
+
+    @run_in_executor(None)
+    def _start_attach(self) -> None:
+        """Internal function that runs in an executor and performs all the long-running synchronous
+        operations needed to create the container (if necessary) and attach to it."""
         run_params = containers.gen_director_container_params(
             self.client, self.site_id, self.site_data
         )
-
-        loop = asyncio.get_event_loop()
 
         run_params.update(
             {
@@ -49,14 +60,8 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
             }
         )
 
-        self.container = await loop.run_in_executor(
-            None,
-            functools.partial(
-                containers.get_or_create_container,
-                self.client,
-                self.container_name,
-                run_params=run_params,
-            ),
+        self.container = containers.get_or_create_container(
+            self.client, self.container_name, run_params=run_params,
         )
 
         assert self.container is not None
@@ -67,46 +72,24 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
         args = ["sh"]
 
-        self.exec_id = (
-            await loop.run_in_executor(
-                None,
-                functools.partial(
-                    self.client.api.exec_create,
-                    self.container.id,
-                    args,
-                    stdin=True,
-                    stdout=True,
-                    stderr=True,
-                    tty=True,
-                    privileged=False,
-                    workdir="/site",
-                    environment=env,
-                    user="root",
-                ),
-            )
+        self.exec_id = self.client.api.exec_create(
+            self.container.id,
+            args,
+            stdin=True,
+            stdout=True,
+            stderr=True,
+            tty=True,
+            privileged=False,
+            workdir="/site",
+            environment=env,
+            user="root",
         )["Id"]
 
-        self.socket = await loop.run_in_executor(
-            None,
-            functools.partial(
-                self.client.api.exec_start,
-                self.exec_id,
-                tty=True,
-                detach=False,
-                demux=False,
-                socket=True,
-            ),
+        self.socket = self.client.api.exec_start(
+            self.exec_id, tty=True, detach=False, demux=False, socket=True,
         )
 
-        assert self.socket is not None
-
-        # The default timeout is 60 seconds, which is way too low
-        self.socket._sock.settimeout(None)  # pylint: disable=protected-access
-
-        await self.resize(24, 80)
-
-        self.heartbeat()
-
+    @run_in_executor(None)
     def heartbeat(self) -> None:
         assert self.container is not None
 
@@ -119,26 +102,26 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
             sock._sock.send(b"\n")  # pylint: disable=protected-access
 
-    async def read(self, bufsize: int) -> bytes:
+    @run_in_executor(None)
+    def read(self, bufsize: int) -> bytes:
         assert self.socket is not None
 
-        loop = asyncio.get_event_loop()
+        return self.socket.read(bufsize)
 
-        return await loop.run_in_executor(None, self.socket.read, bufsize)
-
+    @run_in_executor(None)
     def write(self, data: bytes) -> None:
         assert self.socket is not None
 
+        # self.socket.write() doesn't work -- the SocketIO object is not marked as writable.
         os.write(self.socket.fileno(), data)
 
-    async def resize(self, rows: int, cols: int) -> None:
-        return await asyncio.get_event_loop().run_in_executor(None, self._resize, rows, cols)
-
-    def _resize(self, rows: int, cols: int) -> None:
+    @run_in_executor(None)
+    def resize(self, rows: int, cols: int) -> None:
         assert self.exec_id is not None
 
         self.client.api.exec_resize(self.exec_id, height=rows, width=cols)
 
+    @run_in_executor(None)
     def close(self) -> None:
         assert self.socket is not None
 

@@ -54,24 +54,24 @@ async def terminal_handler(  # pylint: disable=unused-argument
                 frame = await websock.recv()
             except websockets.exceptions.ConnectionClosed:
                 logger.info("Websocket connection for site %s terminal closed", site_id)
-                terminal.close()
+                await terminal.close()
                 return
 
             if isinstance(frame, bytes):
-                terminal.write(frame)
+                await terminal.write(frame)
             else:
                 msg = json.loads(frame)
 
                 if "size" in msg:
                     await terminal.resize(*msg["size"])
                 elif "heartbeat" in msg:
-                    terminal.heartbeat()
+                    await terminal.heartbeat()
                     # Send it back
                     try:
                         await websock.send(frame)
                     except websockets.exceptions.ConnectionClosed:
                         logger.info("Websocket connection for site %s terminal closed", site_id)
-                        terminal.close()
+                        await terminal.close()
                         return
 
     async def terminal_loop() -> None:
@@ -83,7 +83,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
 
             if chunk == b"":
                 logger.info("Terminal for site %s closed", site_id)
-                terminal.close()
+                await terminal.close()
                 await websock.close()
                 break
 
@@ -91,7 +91,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
                 await websock.send(chunk)
             except websockets.exceptions.ConnectionClosed:
                 logger.info("Websocket connection for site %s terminal closed", site_id)
-                terminal.close()
+                await terminal.close()
                 break
 
     await asyncio.wait(
