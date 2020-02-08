@@ -55,6 +55,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
                     "sh",
                     str(settings.SITE_TERMINAL_KEEPALIVE_TIMEOUT),
                 ],
+                "read_only": True,
                 "auto_remove": True,
                 "stdin_open": True,
             }
