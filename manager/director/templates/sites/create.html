@@ -19,6 +19,7 @@
         <div class="control-group">
             <label for="id_{{ field.name }}">{{ field.label }}</label>
             {{ field }}
+            {{ field.errors }}
             {% if field.help_text %}
             <p class="help-text">{{ field.help_text }}</p>
             {% endif %}
