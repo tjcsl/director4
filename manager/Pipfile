@@ -7,7 +7,7 @@ verify_ssl = true
 flake8 = "~=3.7.9"
 pylint = "~=2.4.4"
 isort = "~=4.3.21"
-black = "~=19.10b0"
+black = "==19.10b0"
 autopep8 = "~=1.5.0"
 pylint-django = "~=2.0.13"
 mypy = "~=0.761"
@@ -18,7 +18,7 @@ django = "~=2.2.10"
 social-auth-app-django = "~=3.1.0"
 psycopg2 = "~=2.8.4"
 ipython = "~=7.12.0"
-django-extensions = "~=2.2.6"
+django-extensions = "~=2.2.7"
 channels = "~=2.4.0"
 daphne = "~=2.4.1"
 celery = "~=4.4.0"
@@ -26,6 +26,3 @@ channels-redis = "~=2.4.1"
 importlib-metadata = {version = "~=1.5.0",markers = "python_version < '3.8'"}
 mysqlclient = "~=1.4.6"
 websockets = "~=8.1"
-
-[pipenv]
-allow_prereleases = true
