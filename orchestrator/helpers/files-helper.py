@@ -82,6 +82,18 @@ def construct_file_event_dict(fname: str) -> Dict[str, Optional[str]]:
     return event_info
 
 
+def setup_cmd(site_directory: str) -> None:
+    chroot_into(site_directory)
+
+    directories = [
+        "/private",
+        "/public",
+    ]
+
+    for directory in directories:
+        os.makedirs(directory, exist_ok=True)
+
+
 def ls_cmd(site_directory: str, relpath: str) -> None:
     if relpath.startswith("/"):
         print("Invalid path", file=sys.stderr)
@@ -251,6 +263,7 @@ def main(argv: List[str]) -> None:
         sys.exit(SPECIAL_EXIT_CODE)
 
     commands = {
+        "setup": (setup_cmd, [1]),
         "ls": (ls_cmd, [2]),
         "get": (get_cmd, [3]),
         "monitor": (monitor_cmd, [1]),

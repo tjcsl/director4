@@ -28,29 +28,6 @@ def get_site_directory_path(site_id: int) -> str:
     return os.path.join(settings.SITES_DIRECTORY, *id_parts)
 
 
-def ensure_site_directories_exist(site_id: int) -> None:
-    site_dir = get_site_directory_path(site_id)
-
-    directories = [
-        site_dir,
-        os.path.join(site_dir, "private"),
-        os.path.join(site_dir, "public"),
-    ]
-
-    subprocess.run(
-        [
-            *settings.SITE_DIRECTORY_COMMAND_PREFIX,
-            "/bin/sh",
-            "-c",
-            'set -e; for fname in "$@"; do mkdir -p -- "$fname"; chmod 0755 -- "$fname"; done',
-            "/bin/sh",
-            *directories,
-        ],
-        stdin=subprocess.DEVNULL,
-        check=True,
-    )
-
-
 def _run_helper_script_prog(
     callback: Callable[[List[str], Dict[str, Any]], T], args: List[str], kwargs: Dict[str, Any]
 ) -> T:
@@ -94,6 +71,31 @@ async def run_helper_script_prog_async(
         args,
         kwargs,
     )
+
+
+def ensure_site_directories_exist(site_id: int) -> None:
+    site_dir = get_site_directory_path(site_id)
+
+    subprocess.run(
+        [*settings.SITE_DIRECTORY_COMMAND_PREFIX, "mkdir", "-p", "--", site_dir],
+        stdin=subprocess.DEVNULL,
+        check=True,
+    )
+
+    proc = run_helper_script_prog(
+        ["setup", site_dir],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+
+    _, stderr = proc.communicate()
+
+    if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+        raise SiteFilesException(stderr.strip())
+    elif proc.returncode != 0:
+        raise SiteFilesException("Internal error")
 
 
 def list_site_files(site_id: int, relpath: str) -> List[Dict[str, str]]:
