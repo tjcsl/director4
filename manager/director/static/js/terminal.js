@@ -27,6 +27,10 @@ function setupTerminal(uri, wrapper, options) {
     var term = new Terminal({ cursorBlink: true });
     var fitAddon = new FitAddon.FitAddon();
     term.loadAddon(fitAddon);
+    term.open(container.get(0), true);
+    if(options.autoFocus) {
+        term.focus();
+    }
     fitAddon.fit();
 
     term.onData(function(data) {
@@ -54,7 +58,11 @@ function setupTerminal(uri, wrapper, options) {
     }
 
     function openWS() {
-        container.empty().text("Connecting...");
+        term.reset();
+        term.setOption("disableStdin", true);
+        term.setOption("cursorBlink", false);
+        term.write("Connecting...");
+
         wrapper.removeClass("disconnected");
 
         connected = false;
@@ -72,21 +80,22 @@ function setupTerminal(uri, wrapper, options) {
     function firstReceivedResponse() {
         connected = true;
 
-        container.empty().text("Launching terminal...");
+        term.reset();
+        term.write("Launching terminal...");
+
         wrapper.removeClass("disconnected");
     }
 
     function firstReceivedData() {
-        container.empty();
         wrapper.removeClass("disconnected");
 
         term.setOption("disableStdin", false);
         term.setOption("cursorBlink", true);
 
-        term.open(container.get(0), true);
-        term.focus();
+        if(options.autoFocus) {
+            term.focus();
+        }
         term.reset();
-        fitAddon.fit();
 
         updateSize(term.rows, term.cols);
         setTimeout(function() {
@@ -129,15 +138,16 @@ function setupTerminal(uri, wrapper, options) {
     }, heartbeat_interval);
 
     function onClose() {
-        if(!dataReceived) {
-            container.empty();
+        if(dataReceived) {
+            term.setOption("disableStdin", true);
+            term.setOption("cursorBlink", false);
+        }
+        else {
+            term.reset();
         }
 
         connected = false;
         dataReceived = false;
-
-        term.setOption("disableStdin", true);
-        term.setOption("cursorBlink", false);
 
         wrapper.focus();
         wrapper.addClass("disconnected");
