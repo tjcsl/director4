@@ -11,7 +11,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer, JsonWebsocketCons
 
 from django.conf import settings
 
-from ...utils.appserver import appserver_open_websocket, ping_appserver
+from ...utils.appserver import appserver_open_websocket
 from .models import Site
 
 
@@ -95,36 +95,34 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         return Site.objects.filter_for_user(user).get(**kwargs)
 
     async def open_terminal_connection(self) -> None:
-        appserver_num = (
-            hash(
-                str(self.site.id) + self.site.name  # type: ignore
-            )
-            % settings.DIRECTOR_NUM_APPSERVERS
-        )
+        assert self.site is not None
+
+        appserver_num = hash(str(self.site.id) + self.site.name) % settings.DIRECTOR_NUM_APPSERVERS
 
         orig_appserver_num = appserver_num
 
-        # If we can't ping this one, go to the next one
-        while not ping_appserver(appserver_num, timeout=0.5):
-            appserver_num = (appserver_num + 1) % settings.DIRECTOR_NUM_APPSERVERS
+        while True:
+            try:
+                self.terminal_websock = await asyncio.wait_for(
+                    appserver_open_websocket(
+                        appserver_num, "/ws/sites/{}/terminal".format(self.site.id)
+                    ),
+                    timeout=1,
+                )
 
-            # We've come full circle; none are reachable
-            if appserver_num == orig_appserver_num:
-                await self.close()
-                return
+                # We successfully connected; keep going
+                break
+            except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
+                # Connection failure; try the next appserver
+                appserver_num = (appserver_num + 1) % settings.DIRECTOR_NUM_APPSERVERS
+
+                if appserver_num == orig_appserver_num:
+                    # We've come full circle; none are reachable
+                    await self.close()
+                    return
 
         try:
-            assert self.site is not None
-
-            self.terminal_websock = await asyncio.wait_for(
-                appserver_open_websocket(
-                    appserver_num, "/ws/sites/{}/terminal".format(self.site.id)
-                ),
-                timeout=5,
-            )
-
             assert self.terminal_websock is not None
-            assert self.site is not None
 
             await self.terminal_websock.send(
                 json.dumps(await database_sync_to_async(self.site.serialize_for_appserver)())
