@@ -85,6 +85,7 @@ function setupTerminal(uri, wrapper, options) {
 
         term.open(container.get(0), true);
         term.focus();
+        term.reset();
         fitAddon.fit();
 
         updateSize(term.rows, term.cols);
