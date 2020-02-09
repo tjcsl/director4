@@ -20,7 +20,7 @@ def ping_page() -> str:
     Returns a provided message or else "Pong".
     """
 
-    return "{}\n".format(request.args.get("message", "Pong"))
+    return request.args.get("message", "Pong")
 
 
 if __name__ == "__main__":

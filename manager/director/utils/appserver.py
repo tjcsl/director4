@@ -260,7 +260,7 @@ def ping_appserver(appserver: Union[int, str], *, timeout: Union[int, float] = 2
     except AppserverRequestError:
         return False
     else:
-        return response.content == message.encode() + b"\n"
+        return response.content == message.encode()
 
 
 def iter_pingable_appservers(*, timeout: Union[int, float] = 2) -> Iterator[int]:
