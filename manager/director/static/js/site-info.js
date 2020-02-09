@@ -15,7 +15,7 @@ jQuery.fn.selectText = function() {
     }
 };
 
-$(document).ready(function() {
+$(function() {
     $("#database-url").click(function() {
         $("#database-pass").removeClass("hide");
     }).dblclick(function() {
