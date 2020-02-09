@@ -171,9 +171,7 @@ async def status_handler(
             if log_generator_fut is None:
                 log_generator_fut = cast(
                     "asyncio.Future[bytes]",
-                    asyncio.get_event_loop().run_in_executor(
-                        None, next, log_generator
-                    )
+                    asyncio.get_event_loop().run_in_executor(None, next, log_generator),
                 )
 
             timeout = max(
