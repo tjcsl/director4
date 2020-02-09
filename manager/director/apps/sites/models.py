@@ -142,6 +142,8 @@ class Site(models.Model):
         return "site-{}".format(self.id)
 
     def clean(self) -> None:
+        super().clean()
+
         if not is_site_name_allowed(self.name):
             raise ValidationError("This site name is not allowed.")
 
