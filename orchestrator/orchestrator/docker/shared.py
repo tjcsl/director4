@@ -6,6 +6,7 @@ from typing import Any, Dict
 from docker.client import DockerClient
 from docker.types import Mount
 
+from .. import settings
 from ..files import get_site_directory_path
 
 
@@ -15,7 +16,7 @@ def gen_director_shared_params(  # pylint: disable=unused-argument
     """Given the information on a site, returns the parameters that are common to both
     the main Swarm service and any additional containers launched related to the site."""
 
-    env = {}
+    env = {"TZ": settings.TIMEZONE}
     if site_data.get("database_url"):
         env["DATABASE_URL"] = site_data["database_url"]
 
