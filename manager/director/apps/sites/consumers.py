@@ -80,6 +80,18 @@ class SiteConsumer(JsonWebsocketConsumer):
                 "users": list(self.site.users.values_list("username", flat=True)),
             }
 
+            if self.site.has_database:
+                site_info["database"] = {
+                    "username": self.site.database.username,
+                    "password": self.site.database.password,
+                    "db_host": self.site.database.db_host,
+                    "db_port": self.site.database.db_port,
+                    "db_type": self.site.database.db_type,
+                    "db_url": self.site.database.db_url,
+                }
+            else:
+                site_info["database"] = None
+
             # This should be a format that Javascript can parse natively
             datetime_format = "%Y-%m-%d %H:%M:%S %Z"
 

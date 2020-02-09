@@ -134,6 +134,10 @@ class Site(models.Model):
         return Operation.objects.filter(site__id=self.id).exists()
 
     @property
+    def has_database(self) -> bool:
+        return Database.objects.filter(site__id=self.id).exists()
+
+    @property
     def channels_group_name(self) -> str:
         return "site-{}".format(self.id)
 

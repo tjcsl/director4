@@ -48,7 +48,18 @@ $(function() {
 
                 var key = elem.data("key");
 
-                var value = data.site_info[key];
+                var value = data.site_info;
+
+                key.split(".").forEach(function(part) {
+                    if(value != undefined) {
+                        value = value[part];
+                    }
+                });
+
+                if(value == undefined) {
+                    return;
+                }
+
                 if(value instanceof Array) {
                     if(value.length) {
                         value = value.join(", ");
@@ -76,6 +87,19 @@ $(function() {
                         elem.empty().text(value);
                 }
             });
+
+            // Special cases
+            if(data.site_info.database != null) {
+                console.log("Exists")
+                $("#database-url").attr("title", data.site_info.database.db_url);
+                $("#database-info").css("display", "block");
+                $("#no-database-info").css("display", "none");
+            }
+            else {
+                console.log("Does not exist")
+                $("#database-info").css("display", "none");
+                $("#no-database-info").css("display", "block");
+            }
         }
     });
 
