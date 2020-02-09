@@ -3,6 +3,7 @@
 
 from typing import List
 
+from .helpers import send_operation_updated_message
 from .models import DatabaseHost, Operation, Site
 from .tasks import (
     create_database_task,
@@ -20,25 +21,35 @@ def rename_site(site: Site, new_name: str) -> None:
     operation = Operation.objects.create(site=site, type="rename_site")
     rename_site_task.delay(operation.id, new_name)
 
+    send_operation_updated_message(site)
+
 
 def regen_nginx_config(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="regen_nginx_config")
     regen_nginx_config_task.delay(operation.id)
+
+    send_operation_updated_message(site)
 
 
 def create_database(site: Site, database_host: DatabaseHost) -> None:
     operation = Operation.objects.create(site=site, type="create_site_database")
     create_database_task.delay(operation.id, database_host.id)
 
+    send_operation_updated_message(site)
+
 
 def delete_database(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="delete_site_database")
     delete_database_task.delay(operation.id)
 
+    send_operation_updated_message(site)
+
 
 def regen_site_secrets(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="regen_site_secrets")
     regen_site_secrets_task.delay(operation.id)
+
+    send_operation_updated_message(site)
 
 
 def edit_site_names(
@@ -58,12 +69,18 @@ def edit_site_names(
         request_username=request_username,
     )
 
+    send_operation_updated_message(site)
+
 
 def restart_service(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="restart_site")
     restart_service_task.delay(operation.id)
 
+    send_operation_updated_message(site)
+
 
 def create_site(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="create_site")
     create_site_task.delay(operation.id)
+
+    send_operation_updated_message(site)

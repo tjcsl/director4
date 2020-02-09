@@ -133,6 +133,10 @@ class Site(models.Model):
     def has_operation(self) -> bool:
         return Operation.objects.filter(site__id=self.id).exists()
 
+    @property
+    def channels_group_name(self) -> str:
+        return "site-{}".format(self.id)
+
     def clean(self) -> None:
         if not is_site_name_allowed(self.name):
             raise ValidationError("This site name is not allowed.")

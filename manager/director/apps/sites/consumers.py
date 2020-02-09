@@ -3,11 +3,13 @@
 
 import asyncio
 import json
-from typing import Any, Optional, cast
+from typing import Any, Dict, Optional, cast
 
 import websockets
+from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer, JsonWebsocketConsumer
+from channels.layers import get_channel_layer
 
 from django.conf import settings
 
@@ -33,12 +35,21 @@ class SiteConsumer(JsonWebsocketConsumer):
             self.close()
             return
 
+        async_to_sync(self.channel_layer.group_add)(
+            self.site.channels_group_name, self.channel_name,
+        )
+
         self.connected = True
         self.accept()
 
         self.send_site_info()
 
     def disconnect(self, code: int) -> None:
+        if self.site is not None:
+            async_to_sync(self.channel_layer.group_discard)(
+                self.site.channels_group_name, self.channel_name,
+            )
+
         self.site = None
         self.connected = False
 
@@ -46,19 +57,56 @@ class SiteConsumer(JsonWebsocketConsumer):
         if self.connected:
             pass
 
+    def operation_updated(self, event: Dict[str, Any]) -> None:
+        self.send_site_info()
+
     def send_site_info(self) -> None:
         if self.connected:
             assert self.site is not None
 
-            self.send_json(
-                {
-                    "site_info": {
-                        "name": self.site.name,
-                        "description": self.site.description,
-                        "type": self.site.type,
-                    },
+            site_info = {
+                "name": self.site.name,
+                "description": self.site.description,
+                "type": self.site.type,
+            }
+
+            # This should be a format that Javascript can parse natively
+            datetime_format = "%Y-%m-%d %H:%M:%S %Z"
+
+            if self.site.has_operation:
+                site_info["operation"] = {
+                    "type": self.site.operation.type,
+                    "created_time": (
+                        self.site.operation.created_time.strftime(datetime_format)
+                        if self.site.operation.created_time is not None
+                        else None
+                    ),
+                    "started_time": (
+                        self.site.operation.started_time.strftime(datetime_format)
+                        if self.site.operation.started_time is not None
+                        else None
+                    ),
+                    "actions": [
+                        {
+                            "slug": action.slug,
+                            "name": action.name,
+                            "started_time": (
+                                action.started_time.strftime(datetime_format)
+                                if action.started_time is not None
+                                else None
+                            ),
+                            "result": action.result,
+                            # The following fields are intentionally omitted:
+                            # before_state, after_state, equivalent_command, message
+                            # Do not add them in.
+                        }
+                        for action in self.site.operation.list_actions_in_order()
+                    ],
                 }
-            )
+            else:
+                site_info["operation"] = None
+
+            self.send_json({"site_info": site_info})
 
 
 class SiteTerminalConsumer(AsyncWebsocketConsumer):

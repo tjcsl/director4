@@ -4,6 +4,9 @@
 import contextlib
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, overload
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 from .models import Action, Operation, Site
 
 ActionCallback = Callable[[Site, Dict[str, Any]], Iterator[Union[Tuple[str, str], str]]]
@@ -63,7 +66,11 @@ class OperationWrapper:
         else:
             return wrap
 
-    def execute_operation(self, scope: Optional[Dict[str, Any]] = None) -> bool:
+    def execute_operation(
+        self,
+        scope: Optional[Dict[str, Any]] = None,
+        action_callback: Optional[Callable[[Action], None]] = None,
+    ) -> bool:
         if scope is None:
             scope = {}
 
@@ -77,6 +84,9 @@ class OperationWrapper:
                 action.result = False
                 action.save()
                 return False
+            else:
+                if action_callback is not None:
+                    action_callback(action)
 
         return True
 
@@ -126,8 +136,21 @@ def auto_run_operation_wrapper(
 
     yield wrapper
 
-    result = wrapper.execute_operation(scope)
+    send_operation_updated_message(operation.site)
+
+    def action_completed(action: Action) -> None:  # pylint: disable=unused-argument
+        send_operation_updated_message(operation.site)
+
+    result = wrapper.execute_operation(scope, action_completed)
 
     if result:
         operation.action_set.all().delete()
         operation.delete()
+
+    send_operation_updated_message(operation.site)
+
+
+def send_operation_updated_message(site: Site) -> None:
+    async_to_sync(get_channel_layer().group_send)(
+        site.channels_group_name, {"type": "operation.updated"},
+    )
