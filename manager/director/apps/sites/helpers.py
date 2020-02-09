@@ -31,7 +31,7 @@ class OperationWrapper:
         callback: ActionCallback,
         *,
         slug: Optional[str] = None,
-        equivalent_command: str = ""
+        equivalent_command: str = "",
     ) -> ActionCallback:
         ...
 
@@ -41,7 +41,7 @@ class OperationWrapper:
         callback: Optional[ActionCallback] = None,
         *,
         slug: Optional[str] = None,
-        equivalent_command: str = ""
+        equivalent_command: str = "",
     ) -> Union[ActionCallback, Callable[[ActionCallback], ActionCallback]]:
         created = False
 
@@ -69,7 +69,8 @@ class OperationWrapper:
     def execute_operation(
         self,
         scope: Optional[Dict[str, Any]] = None,
-        action_callback: Optional[Callable[[Action], None]] = None,
+        *,
+        new_action_callback: Optional[Callable[[Action], None]] = None,
     ) -> bool:
         if scope is None:
             scope = {}
@@ -78,20 +79,27 @@ class OperationWrapper:
 
         for action, callback in self.actions:
             try:
-                self.run_action(action, callback, scope)
+                self.run_action(action, callback, scope, new_action_callback=new_action_callback)
             except BaseException as ex:  # pylint: disable=broad-except
                 action.message += "{}: {}\nScope: {}".format(ex.__class__.__name__, ex, scope)
                 action.result = False
                 action.save()
                 return False
-            else:
-                if action_callback is not None:
-                    action_callback(action)
 
         return True
 
-    def run_action(self, action: Action, callback: ActionCallback, scope: Dict[str, Any]) -> None:
+    def run_action(
+        self,
+        action: Action,
+        callback: ActionCallback,
+        scope: Dict[str, Any],
+        *,
+        new_action_callback: Optional[Callable[[Action], None]] = None,
+    ) -> None:
         action.start_action()
+
+        if new_action_callback is not None:
+            new_action_callback(action)
 
         for item in callback(self.site, scope):
             if isinstance(item, str):
@@ -138,10 +146,10 @@ def auto_run_operation_wrapper(
 
     send_operation_updated_message(operation.site)
 
-    def action_completed(action: Action) -> None:  # pylint: disable=unused-argument
+    def action_started(action: Action) -> None:  # pylint: disable=unused-argument
         send_operation_updated_message(operation.site)
 
-    result = wrapper.execute_operation(scope, action_completed)
+    result = wrapper.execute_operation(scope, new_action_callback=action_started)
 
     if result:
         operation.action_set.all().delete()
