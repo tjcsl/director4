@@ -5,10 +5,13 @@ import logging
 import re
 import ssl
 import sys
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any, Dict, Generator, List, Optional, Union, cast
 
 import websockets
+from docker.models.services import Service
 
+from .docker.services import get_director_service_name, get_service_by_name
 from .docker.utils import create_client
 from .terminal import TerminalContainer
 
@@ -99,9 +102,116 @@ async def terminal_handler(  # pylint: disable=unused-argument
     )
 
 
+async def status_handler(
+    websock: websockets.client.WebSocketClientProtocol, params: Dict[str, Any],
+) -> None:
+    client = create_client()
+
+    site_id = int(params["site_id"])
+
+    service = cast(Service, get_service_by_name(client, get_director_service_name(site_id)))
+    assert service is not None
+
+    # Interval between pings
+    ping_interval = 30
+
+    # When this interval expires without logs being sent, the log_generator will be recreated
+    # and the status will be re-sent
+    log_timeout = 60
+
+    def create_log_generator(since_time: Union[int, float]) -> Generator[bytes, None, None]:
+        return cast(
+            Generator[bytes, None, None],
+            service.logs(
+                # Keep connection open to read logs
+                follow=True,
+                # Both stdout and stderr
+                stdout=True,
+                stderr=True,
+                # No additional details
+                details=False,
+                timestamps=False,
+                # And don't look at past logs.
+                # You might think tail=0 would work from reading the documentation,
+                # but in practice it has weird bugs.
+                since=since_time,
+                tail="all",
+            ),
+        )
+
+    log_generator = create_log_generator(time.time())
+    log_generator_creation_time = time.time()
+
+    async def send_status() -> None:
+        service.reload()
+
+        data = {"running": False, "starting": False}
+
+        tasks = service.tasks()
+
+        if any(task["Status"]["State"] == "running" for task in tasks):
+            data["running"] = True
+
+        if any(
+            # Not running, but supposed to be
+            task["DesiredState"] in {"running", "ready"} and task["Status"]["State"] != "running"
+            for task in tasks
+        ):
+            data["starting"] = True
+
+        await websock.send(json.dumps(data))
+
+    await send_status()
+
+    log_generator_fut: Optional["asyncio.Future[bytes]"] = None
+
+    last_ping_time = time.time()
+    try:
+        while True:
+            if log_generator_fut is None:
+                log_generator_fut = cast(
+                    "asyncio.Future[bytes]",
+                    asyncio.get_event_loop().run_in_executor(
+                        None, next, log_generator
+                    )
+                )
+
+            timeout = max(
+                0,
+                min(
+                    log_timeout - (time.time() - log_generator_creation_time),
+                    ping_interval - (time.time() - last_ping_time),
+                ),
+            )
+
+            done, _ = await asyncio.wait([log_generator_fut], timeout=timeout)
+            if log_generator_fut in done:
+                line = await log_generator_fut
+                if line.startswith(b"DIRECTOR: "):
+                    await send_status()
+
+                log_generator_fut = None
+            else:
+                await websock.ping()
+                last_ping_time = time.time()
+
+            if (time.time() - log_generator_creation_time) > log_timeout:
+                if log_generator_fut is not None:
+                    log_generator_fut.cancel()
+                    log_generator_fut = None
+
+                log_generator = create_log_generator(time.time())
+                log_generator_creation_time = time.time()
+                await send_status()
+    except websockets.exceptions.ConnectionClosed:
+        if log_generator_fut is not None:
+            log_generator_fut.cancel()
+
+
 async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -> None:
     routes = [
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/terminal/?$"), terminal_handler),
+        (re.compile(r"^/ws/sites/(?P<site_id>\d+)/status/?$"), status_handler),
     ]
 
     for route_re, handler in routes:
