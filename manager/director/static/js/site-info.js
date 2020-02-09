@@ -23,4 +23,63 @@ $(function() {
     }).on("blur", function() {
         $("#database-pass").addClass("hide");
     });
+
+    var ws = new ReconnectingWebSocket(
+        location.toString().replace(/^http(s?):/, "ws$1:"),
+        null,
+        {
+            debug: DEBUG,
+            automaticOpen: true,
+            reconnectInterval: 1000,
+            maxReconnectInterval: 5000,
+            reconnectDecay: 1.5,
+            maxReconnectAttempts: null,
+            timeoutInterval: 2000,
+        }
+    );
+
+    ws.addEventListener("message", function(event) {
+        var data = JSON.parse(event.data);
+
+        if(data.site_info != null) {
+            var info_elems = $(".site-info");
+            info_elems.each(function() {
+                var elem = $(this);
+
+                var key = elem.data("key");
+
+                var value = data.site_info[key];
+                if(value instanceof Array) {
+                    if(value.length) {
+                        value = value.join(", ");
+                    }
+                    else {
+                        value = null;
+                    }
+                }
+
+                switch(elem.data("type")) {
+                    case "link_blank":
+                        elem.empty();
+
+                        if(value == null) {
+                            elem.text("None");
+                        }
+                        else {
+                            $("<a>").attr({href: value, target: "_blank"}).text(value).appendTo(elem);
+                        }
+                        break;
+                    default:
+                        if(value == null) {
+                            value = "None";
+                        }
+                        elem.empty().text(value);
+                }
+            });
+        }
+    });
+
+    if(DEBUG) {
+        window.ws = ws;
+    }
 });

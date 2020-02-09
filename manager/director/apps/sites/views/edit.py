@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .. import operations
 from ..forms import DomainFormSet, SiteMetaForm, SiteNamesForm
+from ..helpers import send_site_updated_message
 from ..models import Domain, Site
 
 
@@ -35,6 +36,7 @@ def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
         meta_form = SiteMetaForm(request.POST, instance=site)
         if meta_form.is_valid():
             meta_form.save()
+            send_site_updated_message(site)
             return redirect("sites:info", site.id)
     else:
         meta_form = SiteMetaForm(instance=site)

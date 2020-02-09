@@ -154,3 +154,9 @@ def send_operation_updated_message(site: Site) -> None:
     async_to_sync(get_channel_layer().group_send)(
         site.channels_group_name, {"type": "operation.updated"},
     )
+
+
+def send_site_updated_message(site: Site) -> None:
+    async_to_sync(get_channel_layer().group_send)(
+        site.channels_group_name, {"type": "site.updated"},
+    )

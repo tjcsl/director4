@@ -57,6 +57,9 @@ class SiteConsumer(JsonWebsocketConsumer):
         if self.connected:
             pass
 
+    def site_updated(self, event: Dict[str, Any]) -> None:
+        self.send_site_info()
+
     def operation_updated(self, event: Dict[str, Any]) -> None:
         self.send_site_info()
 
@@ -64,10 +67,17 @@ class SiteConsumer(JsonWebsocketConsumer):
         if self.connected:
             assert self.site is not None
 
+            self.site.refresh_from_db()
+
             site_info = {
                 "name": self.site.name,
+                "main_url": self.site.main_url,
                 "description": self.site.description,
+                "purpose": self.site.purpose,
+                "purpose_display": self.site.get_purpose_display(),
                 "type": self.site.type,
+                "type_display": self.site.get_type_display(),
+                "users": list(self.site.users.values_list("username", flat=True)),
             }
 
             # This should be a format that Javascript can parse natively
