@@ -41,18 +41,33 @@ def gen_director_service_params(  # pylint: disable=unused-argument
     env = params.pop("env", [])
     env.extend("{}={}".format(name, val) for name, val in extra_env.items())
 
+    # We do the run.sh path detection in the shell so that it can adapt to the path changing without
+    # updating the Docker service
+    # The killing of the child process is based off of
+    # https://unix.stackexchange.com/a/146770/306760
+    shell_command = """date +'DIRECTOR: Starting server at %Y-%m-%d %H:%M:%S %Z'
+for path in /site/run.sh /site/private/run.sh /site/public/run.sh; do
+    if [ -x "$path" ]; then
+        term() {
+            date +'DIRECTOR: Stopping server at %Y-%m-%d %H:%M:%S %Z'
+            kill "$child"
+        }
+        trap term SIGTERM
+
+        "$path" &
+        child="$!"
+
+        while ! wait; do true; done
+        exec date +'DIRECTOR: Stopped server at %Y-%m-%d %H:%M:%S %Z'
+    fi
+done
+exec sleep 2147483647"""
+
     params.update(
         {
             "name": get_director_service_name(site_id),
             "read_only": True,
-            "command": [
-                "sh",
-                "-c",
-                # We do this in the shell so that it can adapt to the path changing without updating
-                # the Docker service
-                "for path in /site/run.sh /site/private/run.sh /site/public/run.sh; do "
-                'if [ -x "$path" ]; then exec "$path"; fi; done; exec sleep 2147483647',
-            ],
+            "command": ["sh", "-c", shell_command],
             "workdir": "/site/public",
             "networks": ["director-sites"],
             "resources": Resources(
