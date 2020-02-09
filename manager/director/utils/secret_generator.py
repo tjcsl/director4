@@ -7,6 +7,6 @@ import string
 from django.conf import settings
 
 
-def gen_database_password():
+def gen_database_password() -> str:
     chars = string.ascii_letters + string.digits
     return "".join(secrets.choice(chars) for _ in range(settings.DIRECTOR_DATABASE_PASSWORD_LENGTH))

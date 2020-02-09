@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from typing import cast
+
 from django.contrib.auth import logout
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
@@ -10,7 +12,7 @@ from ..sites import views as sites_views
 
 def index_view(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
-        return sites_views.sites.index_view(request)
+        return cast(HttpResponse, sites_views.sites.index_view(request))
     else:
         return login_view(request)
 

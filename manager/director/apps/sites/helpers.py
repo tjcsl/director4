@@ -39,7 +39,7 @@ class OperationWrapper:
         *,
         slug: Optional[str] = None,
         equivalent_command: str = ""
-    ):
+    ) -> Union[ActionCallback, Callable[[ActionCallback], ActionCallback]]:
         created = False
 
         def wrap(callback: ActionCallback) -> ActionCallback:

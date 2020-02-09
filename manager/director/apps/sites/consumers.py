@@ -3,7 +3,7 @@
 
 import asyncio
 import json
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import websockets
 from channels.db import database_sync_to_async
@@ -92,7 +92,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_site_for_user(self, user, **kwargs: Any) -> Site:  # pylint: disable=no-self-use
-        return Site.objects.filter_for_user(user).get(**kwargs)
+        return cast(Site, Site.objects.filter_for_user(user).get(**kwargs))
 
     async def open_terminal_connection(self) -> None:
         assert self.site is not None

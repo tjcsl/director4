@@ -1,15 +1,18 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, cast
 
 from social_core.backends.oauth import BaseOAuth2
 from social_core.pipeline.user import get_username as social_get_username
+from social_core.strategy import BaseStrategy
 
 
-def get_username(strategy, details, *args, user=None, **kwargs):
+def get_username(
+    strategy: BaseStrategy, details: Dict[str, Any], *args: Any, user=None, **kwargs: Any
+) -> Optional[Dict[str, str]]:
     result = social_get_username(strategy, details, user=user, *args, **kwargs)
-    return result
+    return cast(Optional[Dict[str, str]], result)
 
 
 class IonOauth2(BaseOAuth2):  # pylint: disable=abstract-method
@@ -36,4 +39,4 @@ class IonOauth2(BaseOAuth2):  # pylint: disable=abstract-method
         return data
 
     def get_user_id(self, details: Dict[str, Any], response: Any) -> int:
-        return details["id"]
+        return cast(int, details["id"])

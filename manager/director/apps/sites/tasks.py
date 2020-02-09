@@ -17,7 +17,7 @@ from .models import Database, DatabaseHost, Domain, Site
 
 
 @shared_task
-def rename_site_task(operation_id: int, new_name: str):
+def rename_site_task(operation_id: int, new_name: str) -> None:
     scope: Dict[str, Any] = {"new_name": new_name}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
@@ -52,7 +52,7 @@ def edit_site_names_task(
     sites_domain_enabled: bool,
     domains: List[str],
     request_username: str,
-):
+) -> None:
     scope: Dict[str, Any] = {
         "new_name": new_name,
         "sites_domain_enabled": sites_domain_enabled,
@@ -113,7 +113,7 @@ def edit_site_names_task(
 
 
 @shared_task
-def regen_nginx_config_task(operation_id: int):
+def regen_nginx_config_task(operation_id: int) -> None:
     scope: Dict[str, Any] = {}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
@@ -130,7 +130,7 @@ def regen_nginx_config_task(operation_id: int):
 
 
 @shared_task
-def create_database_task(operation_id: int, database_host_id: int):
+def create_database_task(operation_id: int, database_host_id: int) -> None:
     scope: Dict[str, Any] = {"database_host": DatabaseHost.objects.get(id=database_host_id)}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
@@ -164,7 +164,7 @@ def create_database_task(operation_id: int, database_host_id: int):
 
 
 @shared_task
-def regen_site_secrets_task(operation_id: int):
+def regen_site_secrets_task(operation_id: int) -> None:
     scope: Dict[str, Any] = {}
 
     site = Site.objects.get(operation__id=operation_id)
@@ -193,7 +193,7 @@ def regen_site_secrets_task(operation_id: int):
 
 
 @shared_task
-def delete_database_task(operation_id: int):
+def delete_database_task(operation_id: int) -> None:
     site = Site.objects.get(operation__id=operation_id)
     if site.database is None:
         site.operation.delete()
@@ -228,7 +228,7 @@ def delete_database_task(operation_id: int):
 
 
 @shared_task
-def restart_service_task(operation_id: int):
+def restart_service_task(operation_id: int) -> None:
     scope: Dict[str, Any] = {}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
@@ -238,7 +238,7 @@ def restart_service_task(operation_id: int):
 
 
 @shared_task
-def create_site_task(operation_id: int):
+def create_site_task(operation_id: int) -> None:
     scope: Dict[str, Any] = {}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:

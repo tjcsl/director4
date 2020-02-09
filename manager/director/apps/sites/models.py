@@ -137,7 +137,7 @@ class Site(models.Model):
         if not is_site_name_allowed(self.name):
             raise ValidationError("This site name is not allowed.")
 
-    def save(self, *args, **kwargs):  # pylint: disable=arguments-differ
+    def save(self, *args: Any, **kwargs: Any) -> None:  # pylint: disable=arguments-differ
         self.clean()
         super().save(*args, **kwargs)
 
@@ -377,7 +377,7 @@ class Action(models.Model):
         return self.result is False
 
     @property
-    def result_msg(self):
+    def result_msg(self) -> str:
         if self.result:
             return "Success"
         elif self.result is None:
