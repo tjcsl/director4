@@ -103,10 +103,10 @@ def update_director_service(
 def restart_director_service(client: DockerClient, site_id: int) -> None:
     service = get_service_by_name(client, get_director_service_name(site_id))
     if service is None:
-        raise ValueError("Service does not exist")
+        raise OrchestratorActionError("Service does not exist")
 
     if not service.force_update():
-        raise Exception("Error restarting service")
+        raise OrchestratorActionError("Error restarting service")
 
 
 def list_service_tasks_for_node(service: Service, node_id: str) -> List[Dict[str, Any]]:
