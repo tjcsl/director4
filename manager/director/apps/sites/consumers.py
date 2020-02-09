@@ -28,7 +28,7 @@ class SiteConsumer(JsonWebsocketConsumer):
 
         site_id = int(self.scope["url_route"]["kwargs"]["site_id"])
         try:
-            self.site = Site.objects.get(users=self.scope["user"], id=site_id)
+            self.site = Site.objects.filter_for_user(self.scope["user"]).get(id=site_id)
         except Site.DoesNotExist:
             self.close()
             return
