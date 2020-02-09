@@ -9,12 +9,11 @@ import websockets
 from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer, JsonWebsocketConsumer
-from channels.layers import get_channel_layer
 
 from django.conf import settings
 
 from ...utils.appserver import appserver_open_websocket
-from .models import Site
+from .models import Database, Site
 
 
 class SiteConsumer(JsonWebsocketConsumer):
@@ -35,6 +34,7 @@ class SiteConsumer(JsonWebsocketConsumer):
             self.close()
             return
 
+        assert self.site is not None
         async_to_sync(self.channel_layer.group_add)(
             self.site.channels_group_name, self.channel_name,
         )
@@ -57,10 +57,10 @@ class SiteConsumer(JsonWebsocketConsumer):
         if self.connected:
             pass
 
-    def site_updated(self, event: Dict[str, Any]) -> None:
+    def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
         self.send_site_info()
 
-    def operation_updated(self, event: Dict[str, Any]) -> None:
+    def operation_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
         self.send_site_info()
 
     def send_site_info(self) -> None:
@@ -73,7 +73,7 @@ class SiteConsumer(JsonWebsocketConsumer):
                 self.send_json({"site_info": None})
                 return
 
-            site_info = {
+            site_info: Dict[str, Any] = {
                 "name": self.site.name,
                 "main_url": self.site.main_url,
                 "description": self.site.description,
@@ -85,13 +85,15 @@ class SiteConsumer(JsonWebsocketConsumer):
             }
 
             if self.site.has_database:
+                database = Database.objects.get(site=self.site)
+
                 site_info["database"] = {
-                    "username": self.site.database.username,
-                    "password": self.site.database.password,
-                    "db_host": self.site.database.db_host,
-                    "db_port": self.site.database.db_port,
-                    "db_type": self.site.database.db_type,
-                    "db_url": self.site.database.db_url,
+                    "username": database.username,
+                    "password": database.password,
+                    "db_host": database.db_host,
+                    "db_port": database.db_port,
+                    "db_type": database.db_type,
+                    "db_url": database.db_url,
                 }
             else:
                 site_info["database"] = None
