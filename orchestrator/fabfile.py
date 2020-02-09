@@ -11,12 +11,15 @@ my_hosts = ["localhost"]
 
 @task
 def install(c):
+    """Install development dependencies."""
     c.run("pipenv install --dev --deploy", env=env, pty=True)
 
 @task
 def runserver(c):
+    """Run development principal orchestrator server."""
     c.run("pipenv run python -m orchestrator.app", env=env, pty=True)
 
 @task
 def wsserver(c):
+    """Run development WebSocket orchestrator server."""
     c.run("pipenv run python -m orchestrator.ws", env=env, pty=True)
