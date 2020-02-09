@@ -120,13 +120,11 @@ $(function() {
 
             // Special cases
             if(data.site_info.database != null) {
-                console.log("Exists")
                 $("#database-url").attr("title", data.site_info.database.db_url);
                 $("#database-info").css("display", "block");
                 $("#no-database-info").css("display", "none");
             }
             else {
-                console.log("Does not exist")
                 $("#database-info").css("display", "none");
                 $("#no-database-info").css("display", "block");
             }
