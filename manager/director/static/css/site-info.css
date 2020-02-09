@@ -32,3 +32,24 @@
     cursor: pointer;
     content: "Click to show password";
 }
+
+#operation-info {
+    width: 50%;
+    padding: 0px 10px;
+}
+
+#operation-info .action.succeeded {
+    font-size: 70%;
+}
+#operation-info .action.failed {
+    font-size: 70%;
+    color: red;
+}
+#operation-info .action.started {
+    font-weight: bold;
+    font-size: 80%;
+}
+#operation-info .action.pending {
+    font-style: italic;
+    font-size: 70%;
+}

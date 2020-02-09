@@ -132,7 +132,47 @@ $(function() {
                 $("#database-info").css("display", "none");
                 $("#no-database-info").css("display", "block");
             }
+
+            var operation_div = $("#operation-info");
+            if(data.site_info.operation != null) {
+                operation_div.empty();
+
+                $("<h6>").text("Ongoing operation").appendTo(operation_div);
+
+                if(data.site_info.operation.started_time != null) {
+                    var actions_container = $("<ul>").addClass("actions").appendTo(operation_div);
+
+                    data.site_info.operation.actions.forEach(function(action) {
+                        console.log(action);
+                        var action_elem = $("<li>").addClass("action").text(action.name).appendTo(actions_container);
+                        if(action.result == true) {
+                            action_elem.addClass("succeeded")
+                        }
+                        else if(action.result == false) {
+                            action_elem.addClass("failed")
+                        }
+                        else if(action.started_time != null) {
+                            action_elem.addClass("started")
+                        }
+                        else {
+                            action_elem.addClass("pending")
+                        }
+                    });
+                }
+                else {
+                    $("<p>").css({fontStyle: "italic", fontSize: "80%", marginLeft: "2em"}).text("Pending").appendTo(operation_div);
+                }
+            }
+            else {
+                operation_div.empty();
+            }
         }
+    });
+
+    $(window).on("beforeunload", function() {
+        // We don't want to update the page live if we're navigating away
+        // This does weird stuff with the operation info div especially
+        ws.close();
     });
 
     if(DEBUG) {
