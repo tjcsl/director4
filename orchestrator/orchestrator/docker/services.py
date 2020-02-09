@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from docker.client import DockerClient
 from docker.models.services import Service
@@ -110,7 +110,7 @@ def restart_director_service(client: DockerClient, site_id: int) -> None:
 
 
 def list_service_tasks_for_node(service: Service, node_id: str) -> List[Dict[str, Any]]:
-    return service.tasks(filters={"node": node_id})
+    return cast(List[Dict[str, Any]], service.tasks(filters={"node": node_id}))
 
 
 def reload_nginx_config(client: DockerClient) -> None:

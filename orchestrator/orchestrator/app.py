@@ -3,6 +3,7 @@
 
 import json
 import traceback
+from typing import Tuple, Union
 
 from flask import Flask, request
 
@@ -16,7 +17,7 @@ app = Flask(__name__)
 
 
 @app.route("/ping")
-def ping_page():
+def ping_page() -> str:
     """Checks whether the orchestrator is functional.
 
     Returns a provided message or else "Pong".
@@ -26,7 +27,7 @@ def ping_page():
 
 
 @app.route("/sites/<int:site_id>/update-docker-service", methods=["POST"])
-def update_docker_service_page(site_id: int):
+def update_docker_service_page(site_id: int) -> Union[str, Tuple[str, int]]:
     """Updates the Docker service for a given site.
 
     Based on the provided site_id and data, updates
@@ -53,7 +54,7 @@ def update_docker_service_page(site_id: int):
 
 
 @app.route("/sites/<int:site_id>/restart-docker-service", methods=["POST"])
-def restart_docker_service_page(site_id: int):
+def restart_docker_service_page(site_id: int) -> Union[str, Tuple[str, int]]:
     """Restarts the Docker service for a given site."""
 
     try:
@@ -69,7 +70,7 @@ def restart_docker_service_page(site_id: int):
 
 
 @app.route("/sites/<int:site_id>/update-nginx", methods=["POST"])
-def update_nginx_page(site_id: int):
+def update_nginx_page(site_id: int) -> Union[str, Tuple[str, int]]:
     """Updates the Nginx config for a given site.
 
     Based on the provided site_id and data, updates
@@ -91,7 +92,7 @@ def update_nginx_page(site_id: int):
 
 
 @app.route("/sites/reload-nginx", methods=["POST"])
-def reload_nginx_page():
+def reload_nginx_page() -> Union[str, Tuple[str, int]]:
     """Reload the Nginx service's configuration."""
     try:
         reload_nginx_config(create_client())
@@ -106,7 +107,7 @@ def reload_nginx_page():
 
 
 @app.route("/sites/<int:site_id>/disable-nginx", methods=["POST"])
-def disable_nginx_page(site_id: int):
+def disable_nginx_page(site_id: int) -> Union[str, Tuple[str, int]]:
     """Disables the Nginx config for a given site.
 
     Should be used if deployment fails.
@@ -123,7 +124,7 @@ def disable_nginx_page(site_id: int):
 
 
 @app.route("/sites/<int:site_id>/files/get", methods=["GET"])
-def get_file_page(site_id: int):
+def get_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
     """Get a file from a site's directory"""
 
     if "path" not in request.args:

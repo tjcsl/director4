@@ -5,7 +5,18 @@ import asyncio
 import json
 import os
 import subprocess
-from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, TypeVar, Union
+from typing import (  # pylint: disable=unused-import
+    Any,
+    AnyStr,
+    AsyncGenerator,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from . import settings
 
@@ -56,7 +67,7 @@ def _run_helper_script_prog(
     return callback(real_args, kwargs)
 
 
-def run_helper_script_prog(args: List[str], **kwargs: Any) -> subprocess.Popen:
+def run_helper_script_prog(args: List[str], **kwargs: Any) -> "subprocess.Popen[AnyStr]":
     return _run_helper_script_prog(
         lambda real_args, kwargs: subprocess.Popen(real_args, **kwargs), args, kwargs,
     )
@@ -113,14 +124,14 @@ def list_site_files(site_id: int, relpath: str) -> List[Dict[str, str]]:
     stdout, stderr = proc.communicate()
 
     if proc.returncode == 0:
-        return json.loads(stdout.strip())
+        return cast(List[Dict[str, str]], json.loads(stdout.strip()))
     elif proc.returncode == HELPER_SPECIAL_EXIT_CODE:
         raise SiteFilesException(stderr.strip())
     else:
         raise SiteFilesException("Internal error")
 
 
-def get_site_file(site_id: int, relpath: str) -> List[str]:
+def get_site_file(site_id: int, relpath: str) -> str:
     site_dir = get_site_directory_path(site_id)
 
     proc = run_helper_script_prog(

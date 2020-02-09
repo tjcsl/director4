@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from typing import cast
+
 import docker
 
 
@@ -15,4 +17,4 @@ def create_client() -> docker.client.DockerClient:
 
 
 def get_swarm_node_id(client: docker.client.DockerClient) -> str:
-    return client.info()["Swarm"]["NodeID"]
+    return cast(str, client.info()["Swarm"]["NodeID"])

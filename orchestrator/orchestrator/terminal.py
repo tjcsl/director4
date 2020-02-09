@@ -3,7 +3,7 @@
 
 import os
 import socket
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from docker.client import DockerClient
 from docker.models.containers import Container
@@ -107,7 +107,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
     def read(self, bufsize: int) -> bytes:
         assert self.socket is not None
 
-        return self.socket.read(bufsize)
+        return cast(bytes, self.socket.read(bufsize))
 
     @run_in_executor(None)
     def write(self, data: bytes) -> None:
