@@ -41,7 +41,37 @@ $(function() {
     ws.addEventListener("message", function(event) {
         var data = JSON.parse(event.data);
 
-        if(data.site_info != null) {
+        if(data.site_info != undefined) {
+            if(data.site_info == null) {
+                var modal_div = $("<div>").addClass("modal").attr("role", "dialog");
+
+                var modal_dialog = $("<div>").addClass("modal-dialog").appendTo(modal_div);
+                var modal_content = $("<div>").addClass("modal-content").appendTo(modal_dialog);
+
+                var modal_header = $("<div>").addClass("modal-header").appendTo(modal_content);
+
+                $("<h5>").addClass("modal-title").text("Site deleted").appendTo(modal_header);
+                $("<button>").attr(
+                    {"type": "button", "class": "close", "data-dismiss": "modal"}
+                ).append(
+                    $("<i>").addClass("fa fa-times")
+                ).appendTo(modal_header);
+
+                $("<div>").addClass("modal-body").append(
+                    "This site has been deleted. Please return to the ",
+                    $("<a>").attr({href: "/"}).text("home page"),
+                    "."
+                ).appendTo(modal_content);
+
+                modal_div.modal({
+                    backdrop: true,
+                    keyboard: false,
+                    show: true,
+                });
+
+                return;
+            }
+
             var info_elems = $(".site-info");
             info_elems.each(function() {
                 var elem = $(this);

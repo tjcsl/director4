@@ -67,7 +67,11 @@ class SiteConsumer(JsonWebsocketConsumer):
         if self.connected:
             assert self.site is not None
 
-            self.site.refresh_from_db()
+            try:
+                self.site.refresh_from_db()
+            except Site.DoesNotExist:
+                self.send_json({"site_info": None})
+                return
 
             site_info = {
                 "name": self.site.name,
