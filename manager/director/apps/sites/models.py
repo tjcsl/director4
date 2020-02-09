@@ -264,18 +264,18 @@ class Operation(models.Model):
         # Change the site name and domain names
         ("edit_site_names", "Changing site name/domains"),
         # Change the site type (example: static -> dynamic)
-        ("change_site_type", "Changing site type",),
+        ("change_site_type", "Changing site type"),
         # Something was changed that requires the Nginx config to be regenerated and saved, but no
         # other changes.
-        ("regen_nginx_config", "Regenerating Nginx configuration",),
+        ("regen_nginx_config", "Regenerating Nginx configuration"),
         # Create a database for the site
         ("create_site_database", "Creating site database"),
         # Create a database for the site
         ("delete_site_database", "Deleting site database"),
         # Regenerate the database password.
-        ("regen_site_secrets", "Regenerating site secrets",),
+        ("regen_site_secrets", "Regenerating site secrets"),
         # Delete a site, its files, its database, its Docker image, etc.
-        ("delete_site", "Deleting site",),
+        ("delete_site", "Deleting site"),
         # Restart a site's process
         ("restart_site", "Restarting site"),
     ]
