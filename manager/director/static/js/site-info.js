@@ -41,8 +41,8 @@ $(function() {
     ws.addEventListener("message", function(event) {
         var data = JSON.parse(event.data);
 
-        if(data.site_info != undefined) {
-            if(data.site_info == null) {
+        if(data.site_info !== undefined) {
+            if(data.site_info === null) {
                 var modal_div = $("<div>").addClass("modal").attr("role", "dialog");
 
                 var modal_dialog = $("<div>").addClass("modal-dialog").appendTo(modal_div);
@@ -81,12 +81,16 @@ $(function() {
                 var value = data.site_info;
 
                 key.split(".").forEach(function(part) {
-                    if(value != undefined) {
+                    if(value === null || value === undefined) {
+                        // Trying to take an attribute of null; abort when we exit this loop
+                        value = undefined;
+                    }
+                    else {
                         value = value[part];
                     }
                 });
 
-                if(value == undefined) {
+                if(value === undefined) {
                     return;
                 }
 
