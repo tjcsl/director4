@@ -4,18 +4,16 @@
 
 def convert_cpu_limit(cpus: float) -> int:
     """Convert a provided number of CPUs to the
-    equivalent accepted by Docker.
+    equivalent number of nano CPUs accepted by Docker.
 
     Args:
-        cpus: Represents the number of CPUs.
+        cpus: Represents the full number of CPUs.
 
     Returns:
-        The converted limit that can be accepted
-        by Docker.
+        The equivalent number of nano CPUs. This is
+        the number accepted by Docker.
 
     """
-    # Multiply by 10^9
-    # 1 CPU is equivalent to one CPU core
     return int(cpus * 1e9)
 
 
