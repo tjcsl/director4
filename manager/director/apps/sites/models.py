@@ -232,19 +232,15 @@ class DockerImage(models.Model):
     def __str__(self) -> str:
         res = self.name
 
-        if self.is_custom or self.parent is not None:
-            res += "("
+        labels = []
 
-            if self.is_custom:
-                res += "custom"
+        if self.is_custom:
+            labels.append("custom")
+        if self.parent is not None:
+            labels.append("from " + self.parent.name)
 
-            if self.parent is not None:
-                if self.is_custom:
-                    res += ", "
-
-                res += "from " + self.parent.name
-
-            res += ")"
+        if labels:
+            res += " ({})".format(", ".join(labels))
 
         return res
 
