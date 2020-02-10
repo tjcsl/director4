@@ -187,10 +187,10 @@ class Domain(models.Model):
         ("active", "Active"),
         # Disabled (respected in generation of configuration, but currently no provisions for
         # setting domains to inactive)
-        ("inactive", "Inactive",),
+        ("inactive", "Inactive"),
         # Reserved domains we don't want people to use for legal/policy reasons (these should always
         # have site=None)
-        ("blocked", "Blocked",),
+        ("blocked", "Blocked"),
     ]
 
     # Should ONLY be None for blocked domains
