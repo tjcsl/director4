@@ -25,7 +25,6 @@ class SiteQuerySet(models.query.QuerySet):
 class Site(models.Model):
     SITE_TYPES = [
         ("static", "Static"),
-        ("php", "PHP"),
         ("dynamic", "Dynamic"),
     ]
 
