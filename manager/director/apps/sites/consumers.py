@@ -194,6 +194,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
 
                 if appserver_num == orig_appserver_num:
                     # We've come full circle; none are reachable
+                    self.connected = False
                     await self.close()
                     return
 
@@ -234,7 +235,10 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         self, text_data: Optional[str] = None, bytes_data: Optional[bytes] = None
     ) -> None:
         if self.connected and self.terminal_websock is not None:
-            if bytes_data is not None:
-                await self.terminal_websock.send(bytes_data)
-            elif text_data is not None:
-                await self.terminal_websock.send(text_data)
+            try:
+                if bytes_data is not None:
+                    await self.terminal_websock.send(bytes_data)
+                elif text_data is not None:
+                    await self.terminal_websock.send(text_data)
+            except websockets.exceptions.ConnectionClosed:
+                await self.close()
