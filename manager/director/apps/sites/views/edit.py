@@ -72,6 +72,12 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
                         )
                     ),
                 )
+            elif (
+                Site.objects.filter(name=names_form.cleaned_data["name"])
+                .exclude(id=site.id)
+                .exists()
+            ):
+                messages.error(request, "There is another site with the name you have requested")
             else:
                 operations.edit_site_names(
                     site,
