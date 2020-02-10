@@ -38,10 +38,16 @@ $(function() {
         }
     );
 
+    var delayedOperationId = null;
     ws.addEventListener("message", function(event) {
         var data = JSON.parse(event.data);
 
         if(data.site_info !== undefined) {
+            if(delayedOperationId != null) {
+                clearTimeout(delayedOperationId);
+                delayedOperationId = null;
+            }
+
             if(data.site_info === null) {
                 var modal_div = $("<div>").addClass("modal").attr("role", "dialog");
 
@@ -164,7 +170,18 @@ $(function() {
                 }
             }
             else {
-                operation_div.empty();
+                if(operation_div.children().length) {
+                    operation_div.find(".actions, p").empty();
+                    $("<p>").css({fontStyle: "italic", fontSize: "80%", marginLeft: "2em"}).text("Completed").appendTo(operation_div);
+
+                    delayedOperationId = setTimeout(function() {
+                        operation_div.empty();
+                        delayedOperationId = null;
+                    }, 1000);
+                }
+                else {
+                    operation_div.empty();
+                }
             }
         }
     });
