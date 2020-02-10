@@ -126,7 +126,9 @@ class Site(models.Model):
         return {
             "name": self.name,
             "sites_domain_enabled": self.sites_domain_enabled,
-            "custom_domains": list(self.domain_set.values_list("domain", flat=True)),
+            "custom_domains": list(
+                self.domain_set.filter(status="active").values_list("domain", flat=True)
+            ),
         }
 
     @property
