@@ -139,6 +139,9 @@ $(function() {
                 $("#no-database-info").css("display", "block");
             }
 
+            $(".nav-site-name").text(data.site_info.name);
+            $("title").text(DIRECTOR_APPLICATION_NAME + " - " + data.site_info.name);
+
             var operation_div = $("#operation-info");
             if(data.site_info.operation != null) {
                 operation_div.empty();
@@ -149,7 +152,6 @@ $(function() {
                     var actions_container = $("<ul>").addClass("actions").appendTo(operation_div);
 
                     data.site_info.operation.actions.forEach(function(action) {
-                        console.log(action);
                         var action_elem = $("<li>").addClass("action").text(action.name).appendTo(actions_container);
                         if(action.result == true) {
                             action_elem.addClass("succeeded")

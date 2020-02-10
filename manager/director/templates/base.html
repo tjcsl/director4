@@ -26,6 +26,8 @@
         var DEBUG = false;
         {% endif %}
 
+        var DIRECTOR_APPLICATION_NAME = "{{ DJANGO_SETTINGS.DIRECTOR_APPLICATION_NAME }}";
+
         $(function() {
             Messenger.options = {
                 extraClasses: "messenger-fixed messenger-on-bottom messenger-on-right",
@@ -57,7 +59,7 @@
         <ul class="nav navbar-nav">
             {% if site %}
                 <li><i class="fas fa-chevron-right"></i></li>
-                <li><a href="{% url 'sites:info' site.id %}">{{ site.name }}</a></li>
+                <li><a class="nav-site-name" href="{% url 'sites:info' site.id %}">{{ site.name }}</a></li>
             {% endif %}
             {% block navbar %}
             {% endblock %}
