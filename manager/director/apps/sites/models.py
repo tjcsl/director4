@@ -153,6 +153,12 @@ class Site(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self):
+        return "<Site: " + str(self) + ">"
+
 
 class DockerImageQuerySet(models.query.QuerySet):
     def get_default_image(self) -> "DockerImage":
@@ -222,6 +228,28 @@ class DockerImage(models.Model):
             ),
             "full_install_command": self.get_full_install_command(),
         }
+
+    def __str__(self) -> str:
+        res = self.name
+
+        if self.is_custom or self.parent is not None:
+            res += "("
+
+            if self.is_custom:
+                res += "custom"
+
+            if self.parent is not None:
+                if self.is_custom:
+                    res += ", "
+
+                res += "from " + self.parent.name
+
+            res += ")"
+
+        return res
+
+    def __repr__(self) -> str:
+        return "<DockerImage: " + str(self) + ">"
 
 
 class DockerImageExtraPackage(models.Model):
