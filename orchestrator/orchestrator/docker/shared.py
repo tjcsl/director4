@@ -21,7 +21,7 @@ def gen_director_shared_params(  # pylint: disable=unused-argument
         env["DATABASE_URL"] = site_data["database_url"]
 
     return {
-        "image": "alpine",
+        "image": site_data["docker_image"]["name"],
         "mounts": [
             Mount(
                 type="bind",
