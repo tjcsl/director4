@@ -254,6 +254,15 @@ DIRECTOR_APPLICATION_NAME = "Director"
 # All generated database passwords will be this long.
 DIRECTOR_DATABASE_PASSWORD_LENGTH = 50
 
+# All new sites will be assigned this Docker image. It should be
+# "docker pull"-able from each appserver somehow (from Docker Hub, locally built,
+# or in a registry).
+# This should almost always be a ":latest" image.
+# WARNING: Do not try to delete the DockerImage specified here! Weird things may happen.
+DIRECTOR_DEFAULT_DOCKER_IMAGE = "alpine:latest"
+# See the description of DockerImage.install_command in director/apps/sites/models.py
+DIRECTOR_DEFAULT_DOCKER_IMAGE_INSTALL_COMMAND_PREFIX = "apk add --"
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:

@@ -119,6 +119,7 @@ class Site(models.Model):
             "no_redirect_domains": list({split_domain(url) for url in self.list_urls()}),
             "primary_url_base": main_url,
             "database_url": (self.database.db_url if self.database is not None else None),
+            "docker_image": self.docker_image.serialize_for_appserver(),
         }
 
     def serialize_for_balancer(self) -> Dict[str, Any]:
@@ -153,11 +154,74 @@ class Site(models.Model):
         super().save(*args, **kwargs)
 
 
+class DockerImageQuerySet(models.query.QuerySet):
+    def get_default_image(self) -> "DockerImage":
+        return self.get_or_create(
+            name=settings.DIRECTOR_DEFAULT_DOCKER_IMAGE,
+            defaults={
+                "is_custom": False,
+                "parent": None,
+                "install_command_prefix": (
+                    settings.DIRECTOR_DEFAULT_DOCKER_IMAGE_INSTALL_COMMAND_PREFIX
+                ),
+            },
+        )[0]
+
+
+def _docker_image_get_default_image() -> "DockerImage":
+    return DockerImage.objects.get_default_image()
+
+
 class DockerImage(models.Model):
+    objects = DockerImageQuerySet.as_manager()
+
     # Examples: legacy_director_dynamic, site_1
+    # For non-custom images (parent images), these should always be ":latest" images.
+    # Weird things will happen if they aren't.
     name = models.CharField(max_length=32, blank=False, null=False, unique=True)
     # True if created by a user, False if created by a Director admin
     is_custom = models.BooleanField(null=False)
+
+    # Parent image, for custom images
+    parent = models.ForeignKey(
+        "DockerImage",
+        null=True,
+        blank=True,
+        unique=False,
+        on_delete=models.SET(_docker_image_get_default_image),
+        related_name="children",
+    )
+
+    # This will be run with sh -c '<cmd> <pkgs>' where <cmd> is this command
+    # and <pkgs> is a space-separated list of packages.
+    install_command_prefix = models.TextField(blank=True, null=False, default="")
+
+    def get_full_install_command(self) -> Optional[str]:
+        """Get the full command to install all of this site's packages, or None
+        if it has no packages to install."""
+
+        if self.parent is not None:
+            install_command_prefix = self.parent.install_command_prefix
+            if not install_command_prefix:
+                return None
+        else:
+            return None
+
+        package_names = self.extra_packages.values_list("name", flat=True)
+        if package_names.exists():
+            return install_command_prefix + " " + " ".join(package_names)
+        else:
+            return None
+
+    def serialize_for_appserver(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "is_custom": self.is_custom,
+            "parent_name": (
+                self.parent.name if self.parent is not None else None
+            ),
+            "full_install_command": self.get_full_install_command(),
+        }
 
 
 class DockerImageExtraPackage(models.Model):

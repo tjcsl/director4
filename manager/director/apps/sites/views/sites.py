@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-import random
-import string
 from typing import Optional
 
 from django.contrib import messages
@@ -71,15 +69,9 @@ def create_view(request: HttpRequest) -> HttpResponse:
         if form.is_valid():
             site = form.save(commit=False)
 
-            docker_image = DockerImage.objects.create(
-                name="tmp_site_" + "".join(random.choice(string.ascii_letters) for _ in range(10)),
-                is_custom=True,
-            )
-            site.docker_image = docker_image
+            site.docker_image = DockerImage.objects.get_default_image()
             site.save()
             form.save_m2m()
-            docker_image.name = "site_{}".format(site.id)
-            docker_image.save()
 
             operations.create_site(site)
 
