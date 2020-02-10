@@ -14,6 +14,14 @@ from .utils import run_in_executor
 
 
 class TerminalContainer:  # pylint: disable=too-many-instance-attributes
+    """Class for starting a specific site's terminal container.
+
+    WARNING: Whenever you see operations on the raw socket (self.socket._sock), there's probably
+    a reason we don't do them on self.socket, even if it isn't explicitly documented.
+    So be careful.
+
+    """
+
     def __init__(self, client: DockerClient, site_id: int, site_data: Dict[str, Any]) -> None:
         self.client = client
         self.site_id = site_id
@@ -30,9 +38,10 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
     async def start(self) -> None:
         await self._start_attach()
 
-        # The default timeout is 60 seconds, which is way too low
         assert self.socket is not None
-        self.socket._sock.settimeout(None)  # pylint: disable=protected-access
+        # The default timeout is 60 seconds, which is way too low
+        # 1 day is probably overkill, but why not?
+        self.socket._sock.settimeout(24 * 60 * 60)  # pylint: disable=protected-access
 
         await self.resize(24, 80)
 
@@ -105,14 +114,14 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
     @run_in_executor(None)
     def read(self, bufsize: int) -> bytes:
-        assert self.socket is not None
-
-        return cast(bytes, self.socket.read(bufsize))
+        if self.socket is not None:
+            return cast(bytes, self.socket._sock.recv(bufsize))  # pylint: disable=protected-access
+        else:
+            return b""
 
     @run_in_executor(None)
     def write(self, data: bytes) -> None:
         assert self.socket is not None
-
         # self.socket.write() doesn't work -- the SocketIO object is not marked as writable.
         os.write(self.socket.fileno(), data)
 
@@ -124,6 +133,9 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
     @run_in_executor(None)
     def close(self) -> None:
-        assert self.socket is not None
-
-        self.socket.close()
+        if self.socket is not None:
+            # It's not enough to close the socket; to force-interrupt read()s we need to shut
+            # it down first.
+            self.socket._sock.shutdown(socket.SHUT_RDWR)  # pylint: disable=protected-access
+            self.socket._sock.close()  # pylint: disable=protected-access
+            self.socket = None

@@ -3,6 +3,7 @@ import asyncio
 import json
 import logging
 import re
+import signal
 import ssl
 import sys
 import time
@@ -46,7 +47,9 @@ async def terminal_handler(  # pylint: disable=unused-argument
 
     logger.info("Opening terminal for site %s", site_id)
 
-    terminal = TerminalContainer(create_client(), site_id, site_data)
+    client = create_client()
+
+    terminal = TerminalContainer(client, site_id, site_data)
     await terminal.start()
 
     logger.info("Opened terminal for site %s", site_id)
@@ -98,8 +101,13 @@ async def terminal_handler(  # pylint: disable=unused-argument
                 break
 
     await asyncio.wait(
-        [websock_loop(), terminal_loop()], return_when=asyncio.ALL_COMPLETED,
+        [websock_loop(), terminal_loop(), stop_event], return_when=asyncio.FIRST_COMPLETED,
     )
+
+    await terminal.close()
+    await websock.close()
+
+    client.close()
 
 
 async def status_handler(
@@ -182,8 +190,16 @@ async def status_handler(
                 ),
             )
 
-            done, _ = await asyncio.wait([log_generator_fut], timeout=timeout)
-            if log_generator_fut in done:
+            done, _ = await asyncio.wait(
+                [log_generator_fut, stop_event],
+                timeout=timeout,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            if stop_event in done:
+                log_generator_fut.cancel()
+                await websock.close()
+                break
+            elif log_generator_fut in done:
                 line = await log_generator_fut
                 if line.startswith(b"DIRECTOR: "):
                     await send_status()
@@ -204,6 +220,8 @@ async def status_handler(
     except websockets.exceptions.ConnectionClosed:
         if log_generator_fut is not None:
             log_generator_fut.cancel()
+    finally:
+        client.close()
 
 
 async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -> None:
@@ -222,7 +240,27 @@ async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -
             params.update(match.groupdict())
 
             await handler(websock, params)
+            await websock.close()
             return
+
+
+stop_event = asyncio.get_event_loop().create_future()
+
+
+# https://websockets.readthedocs.io/en/stable/deployment.html#graceful-shutdown
+async def run_server(*args: Any, **kwargs: Any) -> None:
+    async with websockets.serve(*args, **kwargs) as server:
+        logger.info("Started server")
+        await stop_event
+        logger.info("Stopping server")
+        server.close()
+        await server.wait_closed()
+        logger.info("Stopped server")
+
+
+def sigint_handler() -> None:
+    stop_event.set_result(None)
+    asyncio.get_event_loop().remove_signal_handler(signal.SIGINT)
 
 
 def main(argv: List[str]) -> None:
@@ -254,10 +292,10 @@ def main(argv: List[str]) -> None:
 
     loop = asyncio.get_event_loop()
 
-    loop.run_until_complete(
-        websockets.serve(route, options.bind, options.port, ssl=ssl_context)  # type: ignore
-    )
-    loop.run_forever()
+    loop.add_signal_handler(signal.SIGTERM, stop_event.set_result, None)
+    loop.add_signal_handler(signal.SIGINT, sigint_handler)
+
+    loop.run_until_complete(run_server(route, options.bind, options.port, ssl=ssl_context))
 
 
 if __name__ == "__main__":
