@@ -21,6 +21,7 @@ def get_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
     try:
         return get_site_file(site_id, request.args["path"])
     except SiteFilesException as ex:
+        traceback.print_exc()
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         traceback.print_exc()
