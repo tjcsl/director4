@@ -175,7 +175,7 @@ class DockerImageQuerySet(models.query.QuerySet):
 
 
 def _docker_image_get_default_image() -> "DockerImage":
-    return DockerImage.objects.get_default_image()
+    return DockerImage.objects.get_default_image()  # type: ignore
 
 
 class DockerImage(models.Model):

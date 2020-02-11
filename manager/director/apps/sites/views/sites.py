@@ -69,7 +69,7 @@ def create_view(request: HttpRequest) -> HttpResponse:
         if form.is_valid():
             site = form.save(commit=False)
 
-            site.docker_image = DockerImage.objects.get_default_image()
+            site.docker_image = DockerImage.objects.get_default_image()  # type: ignore
             site.save()
             form.save_m2m()
 
