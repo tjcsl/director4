@@ -39,6 +39,15 @@ def get_site_directory_path(site_id: int) -> str:
     return os.path.join(settings.SITES_DIRECTORY, *id_parts)
 
 
+def check_run_sh_exists(site_id: int) -> bool:
+    site_directory = get_site_directory_path(site_id)
+
+    return any(
+        os.path.exists(os.path.join(site_directory, suffix))
+        for suffix in ["run.sh", "private/run.sh", "public/run.sh"]
+    )
+
+
 def _run_helper_script_prog(
     callback: Callable[[List[str], Dict[str, Any]], T], args: List[str], kwargs: Dict[str, Any]
 ) -> T:

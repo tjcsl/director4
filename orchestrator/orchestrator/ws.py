@@ -14,6 +14,7 @@ from docker.models.services import Service
 
 from .docker.services import get_director_service_name, get_service_by_name
 from .docker.utils import create_client
+from .files import check_run_sh_exists
 from .terminal import TerminalContainer
 
 logger = logging.getLogger(__name__)
@@ -153,7 +154,12 @@ async def status_handler(
     async def send_status() -> None:
         service.reload()
 
-        data = {"running": False, "starting": False, "start_time": None}
+        data = {
+            "running": False,
+            "starting": False,
+            "start_time": None,
+            "run_sh_exists": check_run_sh_exists(site_id),
+        }
 
         tasks = service.tasks()
 
