@@ -144,6 +144,10 @@ ul.errors {
     margin-top: 0.5em;
 }
 
+ul.errorlist {
+    color: red;
+}
+
 .help-text {
     font-size: 80%;
 }
