@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - {{ site.name }}{% endblock %}
+
+{% block main %}
+    {% include "table_form.html" with form=form form_submit_text="Save image" %}
+{% endblock %}

@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .. import operations
-from ..forms import SiteCreateForm
+from ..forms import ImageSelectForm, SiteCreateForm
 from ..models import DockerImage, Site
 
 
@@ -90,6 +90,25 @@ def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
     context = {"site": site}
     return render(request, "sites/info.html", context)
+
+
+@login_required
+def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    if request.method == "POST":
+        form = ImageSelectForm(request.POST)
+        if form.is_valid():
+            # pylint: disable=unused-variable
+            docker_image = DockerImage.objects.filter_user_visible().get(  # type: ignore  # noqa
+                name=form.cleaned_data["image"]
+            )
+            write_run_sh_file = form.cleaned_data["write_run_sh_file"]  # noqa
+    else:
+        form = ImageSelectForm(initial={"image": site.docker_image, "write_run_sh_file": False})
+
+    context = {"site": site, "form": form}
+    return render(request, "sites/image_select.html", context)
 
 
 @require_POST

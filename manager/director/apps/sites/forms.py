@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core import validators
 
-from .models import DatabaseHost, Site
+from .models import DatabaseHost, DockerImage, Site
 
 
 class SiteCreateForm(forms.ModelForm):
@@ -90,4 +90,22 @@ class SiteMetaForm(forms.ModelForm):
 class DatabaseCreateForm(forms.Form):
     host = forms.ModelChoiceField(
         queryset=DatabaseHost.objects.all(), widget=forms.RadioSelect(), empty_label=None
+    )
+
+
+class ImageSelectForm(forms.Form):
+    image = forms.ChoiceField(
+        choices=lambda: DockerImage.objects.filter_user_visible().values_list(  # type: ignore
+            "name", "friendly_name",
+        ),
+        required=False,
+        widget=forms.widgets.RadioSelect(),
+    )
+
+    write_run_sh_file = forms.BooleanField(
+        label="Write run.sh file",
+        label_suffix="?",
+        required=False,
+        help_text="Based on the image you selected, this will write a sample run.sh file. "
+        "If you've already created a run.sh file, it will be overwritten.",
     )
