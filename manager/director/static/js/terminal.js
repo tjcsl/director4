@@ -59,6 +59,7 @@ function setupTerminal(uri, wrapper, options) {
 
     function openWS() {
         term.reset();
+        term.clear();
         term.setOption("disableStdin", true);
         term.setOption("cursorBlink", false);
         term.write("Connecting...");
@@ -81,6 +82,7 @@ function setupTerminal(uri, wrapper, options) {
         connected = true;
 
         term.reset();
+        term.clear();
         term.write("Launching terminal...");
 
         wrapper.removeClass("disconnected");
@@ -96,6 +98,7 @@ function setupTerminal(uri, wrapper, options) {
             term.focus();
         }
         term.reset();
+        term.clear();
 
         updateSize(term.rows, term.cols);
         setTimeout(function() {
@@ -144,6 +147,7 @@ function setupTerminal(uri, wrapper, options) {
         }
         else {
             term.reset();
+            term.clear();
         }
 
         connected = false;
