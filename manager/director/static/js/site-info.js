@@ -197,7 +197,7 @@ $(function() {
                 else {
                     status_text = "Running since "
                         + (start_time.getHours() % 12 == 0 ? 12 : start_time.getHours() % 12) + ":" + start_time.getMinutes().toString().padStart(2, "0") + ":" + start_time.getSeconds().toString().padStart(2, "0") + " " + (start_time.getHours() < 12 ? "AM" : "PM")
-                        + " on " + start_time.getMonth() + "/" + start_time.getDay() + "/" + start_time.getYear();
+                        + " on " + (start_time.getMonth() + 1) + "/" + start_time.getDate() + "/" + start_time.getFullYear();
                 }
             }
             else {
