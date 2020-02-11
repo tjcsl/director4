@@ -165,13 +165,19 @@ class DockerImageQuerySet(models.query.QuerySet):
         return self.get_or_create(
             name=settings.DIRECTOR_DEFAULT_DOCKER_IMAGE,
             defaults={
+                "friendly_name": settings.DIRECTOR_DEFAULT_DOCKER_IMAGE_FRIENDLY_NAME,
                 "is_custom": False,
+                "is_user_visible": False,
                 "parent": None,
                 "install_command_prefix": (
                     settings.DIRECTOR_DEFAULT_DOCKER_IMAGE_INSTALL_COMMAND_PREFIX
                 ),
             },
         )[0]
+
+
+    def filter_user_visible(self) -> "models.query.QuerySet[DockerImage]":
+        return self.filter(is_user_visible=True, is_custom=False, friendly_name__isnull=False)
 
 
 def _docker_image_get_default_image() -> "DockerImage":
@@ -185,8 +191,19 @@ class DockerImage(models.Model):
     # For non-custom images (parent images), these should always be ":latest" images.
     # Weird things will happen if they aren't.
     name = models.CharField(max_length=32, blank=False, null=False, unique=True)
+
+    # Will be shown to the user.
+    friendly_name = models.CharField(
+        max_length=32, blank=True, null=True, unique=True, default=None,
+    )
+
     # True if created by a user, False if created by a Director admin
     is_custom = models.BooleanField(null=False)
+
+    # If this is set to True, users will be allowed to select this image on the image
+    # selection form.
+    # If is_custom is False or friendly_name is null, this is implicitly False.
+    is_user_visible = models.BooleanField(null=False, default=False)
 
     # Parent image, for custom images
     parent = models.ForeignKey(

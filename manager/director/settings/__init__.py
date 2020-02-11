@@ -260,6 +260,10 @@ DIRECTOR_DATABASE_PASSWORD_LENGTH = 50
 # This should almost always be a ":latest" image.
 # WARNING: Do not try to delete the DockerImage specified here! Weird things may happen.
 DIRECTOR_DEFAULT_DOCKER_IMAGE = "alpine:latest"
+
+# These attributes will be set on the default image:
+# The friendly_name for the Docker image.
+DIRECTOR_DEFAULT_DOCKER_IMAGE_FRIENDLY_NAME = "Alpine"
 # See the description of DockerImage.install_command in director/apps/sites/models.py
 DIRECTOR_DEFAULT_DOCKER_IMAGE_INSTALL_COMMAND_PREFIX = "apk add --"
 
