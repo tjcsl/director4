@@ -6,9 +6,8 @@ import json
 from typing import Any, Dict, Optional, cast
 
 import websockets
-from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
-from channels.generic.websocket import AsyncWebsocketConsumer, JsonWebsocketConsumer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer, AsyncWebsocketConsumer
 
 from django.conf import settings
 
@@ -16,125 +15,178 @@ from ...utils.appserver import appserver_open_websocket
 from .models import Database, Site
 
 
-class SiteConsumer(JsonWebsocketConsumer):
+class SiteConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.site: Optional[Site] = None
         self.connected = False
 
-    def connect(self) -> None:
+        self.status_websocket: Optional[websockets.client.WebSocketClientProtocol] = None
+
+    async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
-            self.close()
+            await self.close()
             return
 
         site_id = int(self.scope["url_route"]["kwargs"]["site_id"])
         try:
-            self.site = Site.objects.filter_for_user(self.scope["user"]).get(id=site_id)
+            self.site = await self.get_site_for_user(self.scope["user"], id=site_id)
         except Site.DoesNotExist:
-            self.close()
+            await self.close()
             return
 
         assert self.site is not None
-        async_to_sync(self.channel_layer.group_add)(
+        await self.channel_layer.group_add(
             self.site.channels_group_name, self.channel_name,
         )
 
         self.connected = True
-        self.accept()
+        await self.accept()
 
-        self.send_site_info()
+        await self.send_site_info()
 
-    def disconnect(self, code: int) -> None:
+        await self.open_status_websocket()
+
+        if self.connected:
+            asyncio.get_event_loop().create_task(self.status_websocket_mainloop())
+
+    @database_sync_to_async
+    def get_site_for_user(self, user, **kwargs: Any) -> Site:  # pylint: disable=no-self-use
+        return cast(Site, Site.objects.filter_for_user(user).get(**kwargs))
+
+    async def open_status_websocket(self) -> None:
+        assert self.site is not None
+
+        for i in range(settings.DIRECTOR_NUM_APPSERVERS):
+            try:
+                self.status_websocket = await asyncio.wait_for(
+                    appserver_open_websocket(i, "/ws/sites/{}/status".format(self.site.id)),
+                    timeout=1,
+                )
+
+                # We successfully connected; break
+                break
+            except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
+                pass  # Connection failure; try the next appserver
+
+        if self.status_websocket is None:
+            await self.close()
+            self.connected = False
+            return
+
+    async def status_websocket_mainloop(self) -> None:
+        assert self.status_websocket is not None
+
+        while True:
+            try:
+                msg = await self.status_websocket.recv()
+            except websockets.exceptions.ConnectionClosed:
+                await self.close()
+                self.connected = False
+                break
+
+            if isinstance(msg, str):
+                await self.send_json({"site_status": json.loads(msg)},)
+
+    async def disconnect(self, code: int) -> None:
         if self.site is not None:
-            async_to_sync(self.channel_layer.group_discard)(
+            await self.channel_layer.group_discard(
                 self.site.channels_group_name, self.channel_name,
             )
 
         self.site = None
         self.connected = False
 
-    def receive_json(self, content: Any, **kwargs: Any) -> None:
+        if self.status_websocket is not None:
+            await self.status_websocket.close()
+
+    async def receive_json(self, content: Any, **kwargs: Any) -> None:
         if self.connected:
             pass
 
-    def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
-        self.send_site_info()
+    async def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
+        await self.send_site_info()
 
-    def operation_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
-        self.send_site_info()
+    async def operation_updated(
+        self, event: Dict[str, Any]  # pylint: disable=unused-argument
+    ) -> None:
+        await self.send_site_info()
 
-    def send_site_info(self) -> None:
-        if self.connected:
-            assert self.site is not None
+    @database_sync_to_async
+    def dump_site_info(self) -> Optional[Dict[str, Any]]:
+        assert self.site is not None
 
-            try:
-                self.site.refresh_from_db()
-            except Site.DoesNotExist:
-                self.send_json({"site_info": None})
-                return
+        try:
+            self.site.refresh_from_db()
+        except Site.DoesNotExist:
+            return None
 
-            site_info: Dict[str, Any] = {
-                "name": self.site.name,
-                "main_url": self.site.main_url,
-                "description": self.site.description,
-                "purpose": self.site.purpose,
-                "purpose_display": self.site.get_purpose_display(),
-                "type": self.site.type,
-                "type_display": self.site.get_type_display(),
-                "users": list(self.site.users.values_list("username", flat=True)),
+        site_info: Dict[str, Any] = {
+            "name": self.site.name,
+            "main_url": self.site.main_url,
+            "description": self.site.description,
+            "purpose": self.site.purpose,
+            "purpose_display": self.site.get_purpose_display(),
+            "type": self.site.type,
+            "type_display": self.site.get_type_display(),
+            "users": list(self.site.users.values_list("username", flat=True)),
+        }
+
+        if self.site.has_database:
+            database = Database.objects.get(site=self.site)
+
+            site_info["database"] = {
+                "username": database.username,
+                "password": database.password,
+                "db_host": database.db_host,
+                "db_port": database.db_port,
+                "db_type": database.db_type,
+                "db_url": database.db_url,
             }
+        else:
+            site_info["database"] = None
 
-            if self.site.has_database:
-                database = Database.objects.get(site=self.site)
+        # This should be a format that Javascript can parse natively
+        datetime_format = "%Y-%m-%d %H:%M:%S %Z"
 
-                site_info["database"] = {
-                    "username": database.username,
-                    "password": database.password,
-                    "db_host": database.db_host,
-                    "db_port": database.db_port,
-                    "db_type": database.db_type,
-                    "db_url": database.db_url,
-                }
-            else:
-                site_info["database"] = None
+        if self.site.has_operation:
+            site_info["operation"] = {
+                "type": self.site.operation.type,
+                "created_time": (
+                    self.site.operation.created_time.strftime(datetime_format)
+                    if self.site.operation.created_time is not None
+                    else None
+                ),
+                "started_time": (
+                    self.site.operation.started_time.strftime(datetime_format)
+                    if self.site.operation.started_time is not None
+                    else None
+                ),
+                "actions": [
+                    {
+                        "slug": action.slug,
+                        "name": action.name,
+                        "started_time": (
+                            action.started_time.strftime(datetime_format)
+                            if action.started_time is not None
+                            else None
+                        ),
+                        "result": action.result,
+                        # The following fields are intentionally omitted:
+                        # before_state, after_state, equivalent_command, message
+                        # Do not add them in.
+                    }
+                    for action in self.site.operation.list_actions_in_order()
+                ],
+            }
+        else:
+            site_info["operation"] = None
 
-            # This should be a format that Javascript can parse natively
-            datetime_format = "%Y-%m-%d %H:%M:%S %Z"
+        return site_info
 
-            if self.site.has_operation:
-                site_info["operation"] = {
-                    "type": self.site.operation.type,
-                    "created_time": (
-                        self.site.operation.created_time.strftime(datetime_format)
-                        if self.site.operation.created_time is not None
-                        else None
-                    ),
-                    "started_time": (
-                        self.site.operation.started_time.strftime(datetime_format)
-                        if self.site.operation.started_time is not None
-                        else None
-                    ),
-                    "actions": [
-                        {
-                            "slug": action.slug,
-                            "name": action.name,
-                            "started_time": (
-                                action.started_time.strftime(datetime_format)
-                                if action.started_time is not None
-                                else None
-                            ),
-                            "result": action.result,
-                            # The following fields are intentionally omitted:
-                            # before_state, after_state, equivalent_command, message
-                            # Do not add them in.
-                        }
-                        for action in self.site.operation.list_actions_in_order()
-                    ],
-                }
-            else:
-                site_info["operation"] = None
-
-            self.send_json({"site_info": site_info})
+    async def send_site_info(self) -> None:
+        if self.connected:
+            await self.send_json({"site_info": await self.dump_site_info()})
 
 
 class SiteTerminalConsumer(AsyncWebsocketConsumer):

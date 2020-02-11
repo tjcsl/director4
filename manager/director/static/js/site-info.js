@@ -186,6 +186,27 @@ $(function() {
                 }
             }
         }
+        else if(data.site_status !== undefined) {
+            var status_text;
+            if(data.site_status.running) {
+                if(data.site_status.starting) {
+                    status_text = "Shutting down";
+                }
+                else {
+                    status_text = "Running";
+                }
+            }
+            else {
+                if(data.site_status.starting) {
+                    status_text = "Starting";
+                }
+                else {
+                    status_text = "Stopped";
+                }
+            }
+
+            $(".site-status").text(status_text);
+        }
     });
 
     $(window).on("beforeunload", function() {

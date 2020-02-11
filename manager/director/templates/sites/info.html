@@ -20,7 +20,7 @@
                         <b>Type:</b> <span class="site-info" data-key="purpose_display">{{ site.get_purpose_display }}</span> - <span class="site-info" data-key="type_display">{{ site.get_type_display }}</span><br />
                         <b>Description:</b> <span class="site-info" data-key="description">{{ site.description|default:"None" }}</span><br />
                         <b>Users:</b> <span class="site-info" data-key="users">{{ site.users.all|join:", "|default:"None" }}</span><br />
-
+                        <strong>Process status:</strong> <span class="site-status"><span class="italic">Loading</span></span><br>
                         <br>
                     </p>
 
