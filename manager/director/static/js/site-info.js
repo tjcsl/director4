@@ -187,13 +187,17 @@ $(function() {
             }
         }
         else if(data.site_status !== undefined) {
+            var start_time = new Date(data.site_status.start_time);
+
             var status_text;
             if(data.site_status.running) {
                 if(data.site_status.starting) {
                     status_text = "Shutting down";
                 }
                 else {
-                    status_text = "Running";
+                    status_text = "Running since "
+                        + (start_time.getHours() % 12 == 0 ? 12 : start_time.getHours() % 12) + ":" + start_time.getMinutes().toString().padStart(2, "0") + ":" + start_time.getSeconds().toString().padStart(2, "0") + " " + (start_time.getHours() < 12 ? "AM" : "PM")
+                        + " on " + start_time.getMonth() + "/" + start_time.getDay() + "/" + start_time.getYear();
                 }
             }
             else {

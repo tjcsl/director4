@@ -153,12 +153,22 @@ async def status_handler(
     async def send_status() -> None:
         service.reload()
 
-        data = {"running": False, "starting": False}
+        data = {"running": False, "starting": False, "start_time": None}
 
         tasks = service.tasks()
 
         if any(task["Status"]["State"] == "running" for task in tasks):
             data["running"] = True
+
+            # Date() in JavaScript can parse the default date format
+            data["start_time"] = max(
+                (
+                    task["Status"]["Timestamp"]
+                    for task in tasks
+                    if task["Status"]["State"] == "running"
+                ),
+                default=None,
+            )
 
         if any(
             # Not running, but supposed to be
