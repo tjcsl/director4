@@ -223,9 +223,7 @@ class DockerImage(models.Model):
         return {
             "name": self.name,
             "is_custom": self.is_custom,
-            "parent_name": (
-                self.parent.name if self.parent is not None else None
-            ),
+            "parent_name": (self.parent.name if self.parent is not None else None),
             "full_install_command": self.get_full_install_command(),
         }
 
