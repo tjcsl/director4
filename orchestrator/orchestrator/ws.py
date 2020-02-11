@@ -203,6 +203,8 @@ async def status_handler(
                 line = await log_generator_fut
                 if line.startswith(b"DIRECTOR: "):
                     await send_status()
+                    await asyncio.sleep(1.0)
+                    await send_status()
 
                 log_generator_fut = None
             else:
