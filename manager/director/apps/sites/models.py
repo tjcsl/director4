@@ -175,7 +175,6 @@ class DockerImageQuerySet(models.query.QuerySet):
             },
         )[0]
 
-
     def filter_user_visible(self) -> "models.query.QuerySet[DockerImage]":
         return self.filter(is_user_visible=True, is_custom=False, friendly_name__isnull=False)
 
