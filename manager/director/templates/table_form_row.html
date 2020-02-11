@@ -1,7 +1,7 @@
 <div class="tbl-row">
 {% if form_field %}
     <span class="tbl-cell" style="vertical-align:top;padding:6px 5px 0px 0px;">{{ form_field.label_tag }}</span>
-    <span class="tbl-cell" style="padding-bottom:5px;{% if form_field.field.widget.input_type == "checkbox" %}padding-top:6px;{% elif form_field.field.widget.input_type == "radio" %}padding-top:6px;{% endif %}">
+    <span class="tbl-cell" style="padding-bottom:5px;{% if form_field.field.widget.input_type == "checkbox" or form_field.field.widget.input_type == "select" or form_field.field.widget.input_type == "radio" %}padding-top:6px;{% endif %}">
         {% if form_field.field.widget.input_type == "radio" %}
             {% for subwidget in form_field.subwidgets %}
                 {{ subwidget }}<br>
