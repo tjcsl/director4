@@ -92,13 +92,13 @@ class DirectorSiteLogFollower:
 
         self.proc.terminate()
 
+        self.stopped = True
+
         try:
             await asyncio.wait_for(self.proc.wait(), timeout=timeout)
         except asyncio.TimeoutError:
             self.proc.kill()
             await self.proc.wait()
-
-        self.stopped = True
 
     async def __aenter__(self) -> "DirectorSiteLogFollower":
         await self.start()
