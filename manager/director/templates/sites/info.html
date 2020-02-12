@@ -47,7 +47,7 @@
                 <a href="{% url 'auth:index' %}" class="btn btn-ion"><i class="fa fa-undo-alt"></i> Back</a>
                 <a href="{% url 'sites:edit' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Configure Site</a>
                 {% if request.user.is_superuser or site.purpose == "project" %}
-                <a href="{% url 'sites:delete' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-alt"></i> Delete Site</a>
+                <a href="{% url 'sites:delete' site.id %}" class="btn btn-ion btn-danger"><i class="far fa-trash-alt"></i> Delete Site</a>
                 {% endif %}
             </p>
         </div>
@@ -65,7 +65,7 @@
                     <span class="help-text"><small>&lt;type&gt;://&lt;username&gt;:&lt;password&gt;@&lt;server&gt;:&lt;port&gt;/&lt;database&gt;</small></span>
                 </div>
                 <a href="{% url 'sites:database_shell' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Database shell</a>
-                <a href="{% url 'sites:delete_database' site.id %}" class="btn btn-ion btn-danger"><i class="fa fa-trash-alt"></i> Delete Database</a>
+                <a href="{% url 'sites:delete_database' site.id %}" class="btn btn-ion btn-danger"><i class="far fa-trash-alt"></i> Delete Database</a>
             </div>
             <div id="no-database-info"{% if site.database %} style="display: none"{% endif %}>
                 <p>This site has no databases associated with it.</p>
