@@ -31,8 +31,8 @@ $(function() {
             debug: DEBUG,
             automaticOpen: true,
             reconnectInterval: 1000,
-            maxReconnectInterval: 5000,
-            reconnectDecay: 1.5,
+            maxReconnectInterval: 10000,
+            reconnectDecay: 3,
             maxReconnectAttempts: null,
             timeoutInterval: 2000,
         }
