@@ -64,10 +64,6 @@ class Site(models.Model):
     # Users who have access to this site
     users = models.ManyToManyField(get_user_model(), blank=True)
 
-    # The path to the process (either absolute or relative to `/site` within the Docker container)
-    # to launch (for dynamic sites)
-    process_path = models.CharField(max_length=100, null=False, blank=True)
-
     # Whether to enable access via the <name>.sites.tjhsst.edu domain
     sites_domain_enabled = models.BooleanField(default=True)
 
