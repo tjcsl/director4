@@ -40,14 +40,15 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
             self.site.channels_group_name, self.channel_name,
         )
 
-        self.connected = True
-        await self.accept()
-
-        await self.send_site_info()
-
         await self.open_status_websocket()
 
-        if self.connected:
+        if self.status_websocket is not None:
+            self.connected = True
+
+            await self.accept()
+
+            await self.send_site_info()
+
             asyncio.get_event_loop().create_task(self.status_websocket_mainloop())
 
     @database_sync_to_async
