@@ -1,6 +1,3 @@
 <form method="{{ form_method|default:'POST' }}"{% if form_action %} action="{{ form_action }}"{% endif %}>
     {% csrf_token %}
     <div class="tbl" style="padding-bottom: 10px">
-        {% for form_field in form %}
-        {% include "table_form_row.html" with form_field=form_field only %}
-        {% endfor %}

@@ -16,6 +16,7 @@
         {% url 'sites:edit_names' site.id as names_form_url %}
         {% with form=names_form form_submit_text="Save" form_action=names_form_url %}
             {% include "table_form_header.html" %}
+            {% include "table_form_rows.html" %}
 
             {% include "table_form_row.html" with form_item="<h4>Custom domains</h4>" %}
             {{ domains_formset.management_form }}
