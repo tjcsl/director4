@@ -218,6 +218,10 @@ class DockerImage(models.Model):
     # and <pkgs> is a space-separated list of packages.
     install_command_prefix = models.TextField(blank=True, null=False, default="")
 
+    # The user will have the option to copy this into their site's run.sh
+    # when they select a Docker image.
+    run_script_template = models.TextField(blank=True, null=False, default="")
+
     def get_full_install_command(self) -> Optional[str]:
         """Get the full command to install all of this site's packages, or None
         if it has no packages to install."""
