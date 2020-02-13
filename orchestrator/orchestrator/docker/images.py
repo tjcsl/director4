@@ -21,7 +21,7 @@ def get_dockerfile_path(base_path: str) -> str:
     return os.path.join(settings.DOCKERFILE_DIRECTORY, base_path)
 
 
-def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]):
+def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]) -> None:
     image_name = image_data["name"]
     parent_name = image_data["parent_name"]
     full_install_command = image_data["full_install_command"]
@@ -32,7 +32,7 @@ def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]):
         pass
     else:
         # TODO: Implement updating existing images
-        raise OrchestratorActionError("Docker image already exists: {}".format())
+        raise OrchestratorActionError("Docker image already exists: {}".format(image_name))
 
     file_path = get_dockerfile_path(image_name)
 
