@@ -6,7 +6,6 @@ from typing import Any, Dict
 
 import jinja2
 from docker.client import DockerClient
-from docker.errors import ImageNotFound
 
 from .. import settings
 from ..exceptions import OrchestratorActionError
@@ -25,14 +24,6 @@ def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]) 
     image_name = image_data["name"]
     parent_name = image_data["parent_name"]
     full_install_command = image_data["full_install_command"]
-
-    try:
-        _ = client.images.get(image_name)
-    except ImageNotFound:
-        pass
-    else:
-        # TODO: Implement updating existing images
-        raise OrchestratorActionError("Docker image already exists: {}".format(image_name))
 
     file_path = get_dockerfile_path(image_name)
 
