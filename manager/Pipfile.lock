@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "afde93525d41036ce346cfcccf45720980e8e11d2ae69732d8f12f6a2421fe89"
+            "sha256": "29042223199adf8f889b79d2161315daf5a2526c8c9a19c42e1cb70a1d1fe0b8"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -214,11 +214,19 @@
         },
         "django-extensions": {
             "hashes": [
-                "sha256:12064d2f7301b2092639e8cccfc53927966a4967f6e841b4a6be220083f37d3a",
-                "sha256:85adae2a91ebfa67b5b5d1b5d35a3bb2452663de812347b981a37092fb35290b"
+                "sha256:1a03c4e8bade575f8c2be6c76456f8a2be3f9b02ab9f47d3535afa9562dc0493",
+                "sha256:2699cc1d6fb4bd393c0b5832fea4bc685f2ace5800b3c9ff222b2080f161ac04"
             ],
             "index": "pypi",
-            "version": "==2.2.7"
+            "version": "==2.2.8"
+        },
+        "django-redis-cache": {
+            "hashes": [
+                "sha256:5c581743de5994e6b15abfd5b3dbcb8bf00e42d97658c96b7218bcb6a63f863b",
+                "sha256:bc0eaf20d275708e0437cbea28f9965e1922c15291f6206edbef3966c029836b"
+            ],
+            "index": "pypi",
+            "version": "==2.1.0"
         },
         "hiredis": {
             "hashes": [
@@ -484,6 +492,13 @@
                 "sha256:b02c06db6cf09c12dd25137e563b31700d3b80fcc4ad23abb7a315f2789819be"
             ],
             "version": "==2019.3"
+        },
+        "redis": {
+            "hashes": [
+                "sha256:0dcfb335921b88a850d461dc255ff4708294943322bd55de6cfd68972490ca1f",
+                "sha256:b205cffd05ebfd0a468db74f0eedbff8df1a7bfc47521516ade4692991bb0833"
+            ],
+            "version": "==3.4.1"
         },
         "requests": {
             "hashes": [
@@ -951,6 +966,7 @@
                 "sha256:fc0fea399acb12edbf8a628ba8d2312f583bdbdb3335635db062fa98cf71fca4",
                 "sha256:fe460b922ec15dd205595c9b5b99e2f056fd98ae8f9f56b888e7a17dc2b757e7"
             ],
+            "markers": "implementation_name == 'cpython' and python_version < '3.8'",
             "version": "==1.4.1"
         },
         "typing-extensions": {
