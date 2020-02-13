@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - {{ title }}{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'vendor/highlight-js-9.18.1/styles/default.css' %}">
+    <script src="{% static 'vendor/highlight-js-9.18.1/highlight.pack.js' %}"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+{% endblock %}
+
+{% block main %}
+    {{ doc_content|safe }}
+{% endblock %}
+

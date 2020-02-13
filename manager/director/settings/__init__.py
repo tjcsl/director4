@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "director.apps.auth",
     "director.apps.users",
     "director.apps.sites",
+    "director.apps.docs",
 ]
 
 MIDDLEWARE = [
@@ -275,6 +276,9 @@ DIRECTOR_DEFAULT_DOCKER_IMAGE = "alpine:latest"
 DIRECTOR_DEFAULT_DOCKER_IMAGE_FRIENDLY_NAME = "Alpine"
 # See the description of DockerImage.install_command in director/apps/sites/models.py
 DIRECTOR_DEFAULT_DOCKER_IMAGE_INSTALL_COMMAND_PREFIX = "apk add --"
+
+DIRECTOR_DOCS_DIR = "/usr/local/www/director-docs"
+DIRECTOR_DOCS_CACHE_TIMEOUT = 24 * 60 * 60
 
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import

@@ -26,6 +26,7 @@ urlpatterns = [
     path("", include("social_django.urls", namespace="social")),
     path("", include("director.apps.auth.urls", namespace="auth")),
     path("sites/", include("director.apps.sites.urls", namespace="sites")),
+    path("docs/", include("director.apps.docs.urls", namespace="docs")),
 ]
 
 if settings.DEBUG:
