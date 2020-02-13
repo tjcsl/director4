@@ -20,13 +20,12 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
 
     page = page.rstrip("/")
 
-    base_path = os.path.normpath(os.path.join(settings.DIRECTOR_DOCS_DIR, page))
+    director_dir_clean = os.path.normpath(settings.DIRECTOR_DOCS_DIR)
+    base_path = os.path.normpath(os.path.join(director_dir_clean, page))
 
     # Sanity check 1: Make sure they aren't trying to address a file outside the
     # directory.
-    if os.path.commonpath(
-        [base_path, settings.DIRECTOR_DOCS_DIR.rstrip("/")]
-    ) != settings.DIRECTOR_DOCS_DIR.rstrip("/"):
+    if os.path.commonpath([base_path, director_dir_clean]) != director_dir_clean:
         return {}, None
 
     # Sanity check 2: Don't allow loading hidden files.
