@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+import json
 from typing import Optional
 
 from django.contrib import messages
@@ -107,7 +108,33 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
     else:
         form = ImageSelectForm(initial={"image": site.docker_image, "write_run_sh_file": False})
 
-    context = {"site": site, "form": form}
+    image_subwidgets_and_data = []
+    for subwidget in form["image"].subwidgets:  # type: ignore
+        try:
+            image = DockerImage.objects.filter_user_visible().get(  # type: ignore
+                name=subwidget.data["value"]
+            )
+        except DockerImage.DoesNotExist:
+            image_data = {}
+        else:
+            image_data = {"has_run_sh_template": bool(image.run_script_template)}
+
+        image_subwidgets_and_data.append((subwidget, image_data))
+
+    context = {
+        "site": site,
+        "form": form,
+        "image_subwidgets_and_data": image_subwidgets_and_data,
+        "image_json": json.dumps(
+            {
+                image.name: {
+                    "friendly_name": image.friendly_name,
+                    "run_script_template": image.run_script_template,
+                }
+                for image in DockerImage.objects.filter_user_visible()  # type: ignore
+            }
+        ),
+    }
     return render(request, "sites/image_select.html", context)
 
 

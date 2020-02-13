@@ -3,6 +3,51 @@
 
 {% block titlesuffix %} - {{ site.name }}{% endblock %}
 
+{% block head %}
+    <script>
+        var images = JSON.parse("{{ image_json|escapejs }}");
+        $(function() {
+            function updateRunShExists() {
+                var has_run_sh = $("input[name='image']:checked").closest(".image-radio-container").hasClass("has-run-script-template");
+                $("#id_write_run_sh_file").prop("disabled", !has_run_sh);
+            }
+
+            updateRunShExists();
+            $("input[name='image']").change(updateRunShExists);
+        });
+    </script>
+
+    <style>
+        .has-run-script-template::after {
+            color: gray;
+            content: "Has run.sh template";
+            padding-left: 5px;
+            font-style: italic;
+        }
+    </style>
+{% endblock %}
+
 {% block main %}
-    {% include "table_form.html" with form=form form_submit_text="Save image" %}
+    {% include "table_form_header.html" with form=form form_submit_text="Save image" %}
+
+    {% with field=form.image %}
+    <div class="tbl-row">
+        <span class="tbl-cell" style="vertical-align:top;padding:6px 5px 0px 0px; min-width: 150px">{{ field.label_tag }}</span>
+        <div class="tbl-cell" style="padding-bottom:5px;padding-top:6px;">
+            {% for subwidget, image_data in image_subwidgets_and_data %}
+                <span class="image-radio-container {% if image_data.has_run_sh_template %} has-run-script-template{% endif %}">{{ subwidget }}</span><br>
+            {% endfor %}
+            {{ field.errors }}
+            {% if field.help_text %}<br>{{ field.help_text }}{% endif %}
+        </div>
+    </div>
+    {% endwith %}
+
+    {% for field in form %}
+    {% if field.name != "image" %}
+    {% include "table_form_row.html" with form_field=field %}
+    {% endif %}
+    {% endfor %}
+
+    {% include "table_form_footer.html" with form=form form_submit_text="Save image" %}
 {% endblock %}
