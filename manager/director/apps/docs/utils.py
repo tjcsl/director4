@@ -13,6 +13,30 @@ from django.core.cache import cache
 
 
 def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
+    """Given the name of a documentation page, this function finds the correct file within
+    ``settings.DIRECTOR_DOCS_DIR``, extracts JSON-encoded metadata from a
+    "<!-- META: ... -->" comment on the first line if it is present, and returns 1) the metadata
+    and 2) the HTML to render (or None of the page is not found).
+
+    This function caches the rendered HTML. It does, however, check the file modification dates
+    to see if detecting if the cache is out-of-date, and it ignores the cache if this is the
+    case. This avoids the need to clear the cache whenever the original Markdown files are
+    updated.
+
+    This function blocks the following potential security breaches:
+    1. Attempts to access files outside the repo (for example, through use of "..")
+    2. Attempts to access hidden files (the docs are in a Git repository, so we need
+       to block access to ".git", and while we're at it let's block all hidden files)
+
+    Args:
+        page: The name of the documentation page to retrieve.
+
+    Returns:
+        A tuple of (metadata, text_html) where text_html is the HTML to render or None if
+        the page was not found.
+
+    """
+
     # We do some checks that should prevent ".." attacks later, but
     # it's a good idea to check here too
     if ".." in page.split("/"):
