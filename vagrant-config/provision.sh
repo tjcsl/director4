@@ -151,7 +151,7 @@ docker service create --replicas=1 \
     nginx:latest
 
 # Prune system
-docker system prune
+docker system prune --force
 
 
 # Create /data directories
@@ -168,7 +168,11 @@ done
 # Docs repo
 mkdir -p /usr/local/www/director-docs
 chown vagrant:vagrant /usr/local/www/director-docs
-sudo -u vagrant git clone https://github.com/tjcsl/director4-docs.git /usr/local/www/director-docs
+if [ -d /usr/local/www/director-docs/.git ]; then
+    (cd /usr/local/www/director-docs && sudo -u vagrant git pull)
+else
+    sudo -u vagrant git clone https://github.com/tjcsl/director4-docs.git /usr/local/www/director-docs
+fi
 
 ## Application setup
 # Setup secret.pys
@@ -178,6 +182,8 @@ fi
 if [[ ! -e orchestrator/orchestrator/settings/secret.py ]]; then
     cp orchestrator/orchestrator/settings/secret.{sample,py}
 fi
+
+sudo -H -u vagrant ./scripts/install_dependencies.sh
 
 # Migrate database
 (cd manager; sudo -H -u vagrant pipenv run ./manage.py migrate)
