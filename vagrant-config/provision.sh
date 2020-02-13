@@ -165,6 +165,11 @@ for dir in /data/sites /data/images; do
     chown vagrant:vagrant "$dir"
 done
 
+# Docs repo
+mkdir -p /usr/local/www/director-docs
+chown vagrant:vagrant /usr/local/www/director-docs
+sudo -u vagrant git clone https://github.com/tjcsl/director4-docs.git /usr/local/www/director-docs
+
 ## Application setup
 # Setup secret.pys
 if [[ ! -e manager/director/settings/secret.py ]]; then
