@@ -1,8 +1,4 @@
-{% if parent %}
-FROM {{ parent }}
-{% else %}
-FROM alpine
-{% endif %}
+FROM {{ parent|default("alpine", boolean=True) }}
 
 MAINTAINER {{ maintainer }}
 
