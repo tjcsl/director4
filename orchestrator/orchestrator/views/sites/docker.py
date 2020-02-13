@@ -7,6 +7,7 @@ from typing import Tuple, Union
 
 from flask import Blueprint, request
 
+from ...docker.images import build_custom_docker_image
 from ...docker.services import (
     remove_director_service,
     restart_director_service,
@@ -68,6 +69,22 @@ def remove_docker_service_page(site_id: int) -> Union[str, Tuple[str, int]]:
 
     try:
         remove_director_service(create_client(), site_id)
+    except OrchestratorActionError as ex:
+        traceback.print_exc()
+        return str(ex), 500
+    except BaseException:  # pylint: disable=broad-except
+        traceback.print_exc()
+        return "Error", 500
+    else:
+        return "Success"
+
+
+@docker_blueprint.route("/sites/build-docker-image", methods=["POST"])
+def build_custom_docker_image_page() -> Union[str, Tuple[str, int]]:
+    """Builds a Docker image based on provided parameters."""
+
+    try:
+        build_custom_docker_image(create_client(), json.loads(request.form["data"]))
     except OrchestratorActionError as ex:
         traceback.print_exc()
         return str(ex), 500

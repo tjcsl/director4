@@ -15,6 +15,8 @@ NGINX_SERVICE_NAME = "director-nginx"
 DATA_DIRECTORY = "/data"
 # Where site files are stored
 SITES_DIRECTORY = "/data/sites"
+# Where image Dockerifles are stored
+DOCKERFILE_DIRECTORY = "/data/images"
 
 # The prefix to add to commands being run to operate on files in SITES_DIRECTORY
 SITE_DIRECTORY_COMMAND_PREFIX: List[str] = []
