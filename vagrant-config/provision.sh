@@ -160,7 +160,7 @@ for dir in /data; do
     chown root:root "$dir"
 done
 
-for dir in /data/sites; do
+for dir in /data/sites /data/images; do
     mkdir -p "$dir"
     chown vagrant:vagrant "$dir"
 done
