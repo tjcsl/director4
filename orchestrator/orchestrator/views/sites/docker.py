@@ -83,6 +83,9 @@ def remove_docker_service_page(site_id: int) -> Union[str, Tuple[str, int]]:
 def build_custom_docker_image_page() -> Union[str, Tuple[str, int]]:
     """Builds a Docker image based on provided parameters."""
 
+    if "data" not in request.form:
+        return "Error", 400
+
     try:
         build_custom_docker_image(create_client(), json.loads(request.form["data"]))
     except OrchestratorActionError as ex:
