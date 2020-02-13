@@ -16,8 +16,8 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_DIRECTORY
 dockerfile_template = jinja_env.get_template("Dockerfile")
 
 
-def get_dockerfile_path(base_path: str) -> str:
-    return os.path.join(settings.DOCKERFILE_DIRECTORY, base_path)
+def get_docker_image_directory(image_name: str) -> str:
+    return os.path.join(settings.DOCKERFILE_DIRECTORY, image_name)
 
 
 def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]) -> None:
@@ -25,22 +25,32 @@ def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]) 
     parent_name = image_data["parent_name"]
     full_install_command = image_data["full_install_command"]
 
-    file_path = get_dockerfile_path(image_name)
-
     context = {
         "parent": parent_name,
         "maintainer": "CSL",
         "full_install_command": full_install_command,
     }
-    content = dockerfile_template.render(context)
+    dockerfile_content = dockerfile_template.render(context)
+
+    image_directory = get_docker_image_directory(image_name)
+
+    # This path used to be the Dockerfile, so to handle the transition
+    # we need to remove it if it exists.
+    if os.path.isfile(image_directory):
+        os.remove(image_directory)
+
+    if not os.path.exists(image_directory):
+        os.mkdir(image_directory, mode=0o755)
+
+    dockerfile_path = os.path.join(image_directory, "Dockerfile")
 
     try:
-        with open(file_path, "w+") as f_obj:
-            f_obj.write(content)
+        with open(dockerfile_path, "w+") as f_obj:
+            f_obj.write(dockerfile_content)
     except OSError as ex:
         raise OrchestratorActionError("Error writing Dockerfile: {}".format(ex))
 
     # We want to delete intermediate containers during the build process
     image, build_logs = client.images.build(
-        path=settings.DOCKERFILE_DIRECTORY, rm=True, dockerfile=image_name, tag=image_name
+        path=image_directory, rm=True, dockerfile="Dockerfile", tag=image_name
     )
