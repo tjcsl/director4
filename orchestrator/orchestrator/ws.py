@@ -53,7 +53,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
 
     logger.info("Opening terminal for site %s", site_id)
 
-    client = create_client()
+    client = create_client(timeout=60)
 
     terminal = TerminalContainer(client, site_id, site_data)
     await terminal.start()
