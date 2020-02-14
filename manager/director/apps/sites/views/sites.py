@@ -105,6 +105,7 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
                 name=form.cleaned_data["image"]
             )
             write_run_sh_file = form.cleaned_data["write_run_sh_file"]  # noqa
+            package_names = form.cleaned_data["packages"].strip().split()  # noqa
     else:
         form = ImageSelectForm(initial={"image": site.docker_image, "write_run_sh_file": False})
 

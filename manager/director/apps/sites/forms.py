@@ -1,8 +1,10 @@
+from typing import Any, Dict
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core import validators
 
-from .models import DatabaseHost, DockerImage, Site
+from .models import DatabaseHost, DockerImage, DockerImageExtraPackage, Site
 
 
 class SiteCreateForm(forms.ModelForm):
@@ -109,3 +111,20 @@ class ImageSelectForm(forms.Form):
         help_text="Based on the image you selected, this will write a sample run.sh file. "
         "If you've already created a run.sh file, it will be overwritten.",
     )
+
+    packages = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+        help_text="This should be a space-separated list of packages to install in the image.",
+    )
+
+    def clean(self) -> Dict[str, Any]:
+        cleaned_data = super().clean()
+
+        # Make sure the package names can all fit in the name field
+        max_package_name_length = DockerImageExtraPackage._meta.get_field("name").max_length
+        package_names = cleaned_data["packages"].strip().split()
+        if any(len(name) > max_package_name_length for name in package_names):
+            self.add_error("packages", "One of your package names is too long")
+
+        return cleaned_data
