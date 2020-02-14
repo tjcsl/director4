@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from typing import cast
+from typing import Any, cast
 
 import docker
 
 
-def create_client(**kwargs) -> docker.client.DockerClient:
+def create_client(**kwargs: Any) -> docker.client.DockerClient:
     """ Creates DockerClient instance from the environment.
 
     Returns:
