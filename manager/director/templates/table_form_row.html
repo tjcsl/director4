@@ -11,7 +11,7 @@
         {% endif %}
         {{ form_field.errors }}
         {% if form_field.help_text %}
-        <p>{{ form_field.help_text }}</p>
+        {{ form_field.help_text|linebreaks }}
         {% endif %}
     </span>
 {% else %}
