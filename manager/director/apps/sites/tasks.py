@@ -13,7 +13,7 @@ from ...utils import database as database_utils
 from ...utils.secret_generator import gen_database_password
 from . import actions
 from .helpers import auto_run_operation_wrapper
-from .models import Database, DatabaseHost, Domain, Site
+from .models import Database, DatabaseHost, DockerImage, DockerImageExtraPackage, Domain, Site
 
 
 @shared_task
@@ -233,6 +233,65 @@ def restart_service_task(operation_id: int) -> None:
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
+
+        wrapper.add_action("Restarting Docker service", actions.restart_docker_service)
+
+
+@shared_task
+def update_image_task(
+    operation_id: int, base_image_name: str, write_run_sh_file: bool, package_names: List[str],
+) -> None:
+    scope: Dict[str, Any] = {
+        "base_image_name": base_image_name,
+        "write_run_sh_file": write_run_sh_file,
+        "package_names": package_names,
+    }
+
+    with auto_run_operation_wrapper(operation_id, scope) as wrapper:
+        wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
+
+        @wrapper.add_action("Updating site image object")
+        def update_image_object(  # pylint: disable=unused-argument
+            site: Site, scope: Dict[str, Any],
+        ) -> Iterator[Union[Tuple[str, str], str]]:
+            yield "Retrieving parent DockerImage"
+
+            parent_image = DockerImage.objects.get(name=scope["base_image_name"])
+
+            if not site.docker_image.is_custom:
+                yield "Creating new DockerImage object for site"
+
+                site.docker_image = DockerImage.objects.create(
+                    # Basic attributes
+                    name="site_{:04d}".format(site.id),
+                    is_custom=True,
+                    parent=parent_image,
+                    # Just setting these for completeness; they
+                    # all have sane defaults
+                    is_user_visible=False,
+                    friendly_name="",
+                    description="",
+                    run_script_template="",
+                )
+
+                site.save()
+            else:
+                yield "Updating site DockerImage"
+                site.docker_image.parent = parent_image
+                site.docker_image.save()
+
+            yield "Pruning image package list"
+            site.docker_image.extra_packages.exclude(name__in=scope["package_names"]).delete()
+
+            yield "Creating image package objects"
+            for name in scope["package_names"]:
+                DockerImageExtraPackage.objects.get_or_create(image=site.docker_image, name=name)
+
+            yield "Models updated"
+
+        wrapper.add_action("Building Docker image", actions.build_docker_image)
+
+        wrapper.add_action("Updating Docker service", actions.update_docker_service)
 
         wrapper.add_action("Restarting Docker service", actions.restart_docker_service)
 

@@ -108,6 +108,25 @@ def restart_docker_service(
     yield "Restarted Docker service"
 
 
+def build_docker_image(site: Site, scope: Dict[str, Any]) -> Iterator[Union[Tuple[str, str], str]]:
+    if not site.docker_image.is_custom:
+        yield "Site does not have a custom Docker image; skipping"
+        return
+
+    for appserver in scope["pingable_appservers"]:
+        yield "Connecting to appserver {} to build Docker image".format(appserver)
+
+        appserver_open_http_request(
+            appserver,
+            "/sites/build-docker-image",
+            method="POST",
+            data={"data": json.dumps(site.docker_image.serialize_for_appserver())},
+            timeout=60 * 60,
+        )
+
+    yield "Build Docker image"
+
+
 def update_balancer_nginx_config(  # pylint: disable=unused-argument
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:

@@ -14,6 +14,7 @@ from .tasks import (
     regen_site_secrets_task,
     rename_site_task,
     restart_service_task,
+    update_image_task,
 )
 
 
@@ -75,6 +76,15 @@ def edit_site_names(
 def restart_service(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="restart_site")
     restart_service_task.delay(operation.id)
+
+    send_operation_updated_message(site)
+
+
+def update_image(
+    site: Site, base_image_name: str, write_run_sh_file: bool, package_names: List[str],
+) -> None:
+    operation = Operation.objects.create(site=site, type="update_docker_image")
+    update_image_task.delay(operation.id, base_image_name, write_run_sh_file, package_names)
 
     send_operation_updated_message(site)
 

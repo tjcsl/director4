@@ -97,17 +97,29 @@ def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
 def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
+    if site.has_operation:
+        messages.error(request, "An operation is already being performed on this site")
+        return redirect("sites:info", site.id)
+
     if request.method == "POST":
         form = ImageSelectForm(request.POST)
         if form.is_valid():
-            # pylint: disable=unused-variable
-            docker_image = DockerImage.objects.filter_user_visible().get(  # type: ignore  # noqa
-                name=form.cleaned_data["image"]
+            operations.update_image(
+                site,
+                form.cleaned_data["image"],
+                form.cleaned_data["write_run_sh_file"],
+                form.cleaned_data["packages"].strip().split(),
             )
-            write_run_sh_file = form.cleaned_data["write_run_sh_file"]  # noqa
-            package_names = form.cleaned_data["packages"].strip().split()  # noqa
+
+            return redirect("sites:info", site.id)
     else:
-        form = ImageSelectForm(initial={"image": site.docker_image, "write_run_sh_file": False})
+        form = ImageSelectForm(
+            initial={
+                "image": site.docker_image.parent,
+                "write_run_sh_file": False,
+                "packages": " ".join(site.docker_image.extra_packages.values_list("name", flat=True)),
+            }
+        )
 
     image_subwidgets_and_data = []
     for subwidget in form["image"].subwidgets:  # type: ignore
