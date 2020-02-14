@@ -43,6 +43,11 @@
                     <span style="font-size: 70%">(such as the database password)</span>
                 </form>
             </p>
+
+            <p>
+                <a href="{% url 'sites:image_select' site.id %}" class="btn btn-ion"><i class="fab fa-docker"></i> Customize Docker image</a>
+            </p>
+
             <p>
                 <a href="{% url 'auth:index' %}" class="btn btn-ion"><i class="fa fa-undo-alt"></i> Back</a>
                 <a href="{% url 'sites:edit' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Configure Site</a>
