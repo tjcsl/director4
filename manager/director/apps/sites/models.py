@@ -391,6 +391,8 @@ class Operation(models.Model):
         ("delete_site_database", "Deleting site database"),
         # Regenerate the database password.
         ("regen_site_secrets", "Regenerating site secrets"),
+        # Updating something about the site's Docker image
+        ("update_docker_image", "Updating site Docker image"),
         # Delete a site, its files, its database, its Docker image, etc.
         ("delete_site", "Deleting site"),
         # Restart a site's process
