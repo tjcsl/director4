@@ -6,6 +6,7 @@ import socket
 from typing import Any, Dict, Optional, cast
 
 from docker.client import DockerClient
+from docker.errors import ImageNotFound
 from docker.models.containers import Container
 
 from . import settings
@@ -77,6 +78,18 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         )
 
         assert self.container is not None
+
+        try:
+            image = self.client.images.get(run_params["image"])
+        except ImageNotFound:
+            pass
+        else:
+            if self.container.image.id != image.id:
+                self.container.stop()
+
+                self.container = containers.get_or_create_container(
+                    self.client, self.container_name, run_params=run_params,
+                )
 
         env = {}
         if self.site_data.get("database_url"):
