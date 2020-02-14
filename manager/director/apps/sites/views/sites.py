@@ -117,7 +117,9 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
             initial={
                 "image": site.docker_image.parent,
                 "write_run_sh_file": False,
-                "packages": " ".join(site.docker_image.extra_packages.values_list("name", flat=True)),
+                "packages": " ".join(
+                    site.docker_image.extra_packages.values_list("name", flat=True)
+                ),
             }
         )
 
