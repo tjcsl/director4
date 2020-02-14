@@ -79,8 +79,8 @@
                         <a class="dropdown-item" href="{% url 'sites:operations' %}"><i class="fas fa-fw fa-running"></i> Operations</a>
                     {% endif %}
                     <!--<li class="feedback"><a href=""><i class="fa fa-fw fa-smile-o"></i> Send Feedback</a></li>
-                    <li><a href=""><i class="fa fa-fw fa-question-circle"></i> Documentation</a></li>
                     <li><a href=""><i class="fa fa-fw fa-info-circle"></i> About/Credits</a></li>-->
+                    <a class="dropdown-item" href="{% url 'docs:index' %}"><i class="fas fa-fw fa-question-circle"></i> Documentation</a>
                     <a class="dropdown-item" href="{% url 'auth:logout' %}"><i class="fas fa-fw fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
