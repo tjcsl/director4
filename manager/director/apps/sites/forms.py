@@ -108,8 +108,8 @@ class ImageSelectForm(forms.Form):
         label="Write run.sh file",
         label_suffix="?",
         required=False,
-        help_text="Based on the image you selected, this will write a sample run.sh file. "
-        "If you've already created a run.sh file, it will be overwritten.",
+        help_text="Based on the image you selected, this will write a sample run.sh file.\n"
+        "WARNING: If you've already created a run.sh file, it will be overwritten.",
     )
 
     packages = forms.CharField(
