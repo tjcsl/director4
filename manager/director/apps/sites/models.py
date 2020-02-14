@@ -192,6 +192,10 @@ class DockerImage(models.Model):
         max_length=32, blank=True, null=True, unique=True, default=None,
     )
 
+    # A general description of what is in the image, what it's useful for, etc.
+    # The user will see this when they select an image.
+    description = models.TextField(blank=True, null=False, default="")
+
     # True if created by a user, False if created by a Director admin
     is_custom = models.BooleanField(null=False)
 
