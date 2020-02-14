@@ -97,9 +97,9 @@ class DatabaseCreateForm(forms.Form):
 
 class ImageSelectForm(forms.Form):
     image = forms.ChoiceField(
-        choices=lambda: DockerImage.objects.filter_user_visible().values_list(  # type: ignore
-            "name", "friendly_name",
-        ),
+        choices=lambda: DockerImage.objects.filter_user_visible()  # type: ignore
+        .order_by("friendly_name")
+        .values_list("name", "friendly_name"),
         required=False,
         widget=forms.widgets.RadioSelect(),
     )
