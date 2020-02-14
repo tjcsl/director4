@@ -104,12 +104,23 @@ async def terminal_handler(  # pylint: disable=unused-argument
                 await terminal.close()
                 break
 
+    websock_task = asyncio.Task(websock_loop())
+    terminal_task = asyncio.Task(terminal_loop())
+
     await asyncio.wait(
-        [websock_loop(), terminal_loop(), stop_event], return_when=asyncio.FIRST_COMPLETED,
+        [websock_task, terminal_task, stop_event], return_when=asyncio.FIRST_COMPLETED,
     )
 
     await terminal.close()
     await websock.close()
+
+    if not websock_task.done():
+        websock_task.cancel()
+        await websock_task
+
+    if not terminal_task.done():
+        terminal_task.cancel()
+        await terminal_task
 
     client.close()
 
@@ -198,6 +209,10 @@ async def status_handler(
         if not ping_task.done():
             ping_task.cancel()
             await ping_task
+
+        if not log_task:
+            log_task.cancel()
+            await log_task
 
     await websock.close()
 
