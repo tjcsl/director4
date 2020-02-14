@@ -2,6 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import json
+import random
 from typing import Any, Dict, Iterator, Tuple, Union
 
 from ...utils.appserver import (
@@ -26,7 +27,7 @@ def find_pingable_appservers(  # pylint: disable=unused-argument
 def update_appserver_nginx_config(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
-    appserver = scope["pingable_appservers"][0]
+    appserver = random.choice(scope["pingable_appservers"])
 
     try:
         yield "Connecting to appserver {} to update Nginx config".format(appserver)
@@ -81,7 +82,7 @@ def update_appserver_nginx_config(
 def update_docker_service(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
-    appserver = scope["pingable_appservers"][0]
+    appserver = random.choice(scope["pingable_appservers"])
 
     yield "Connecting to appserver {} to create/update Docker service".format(appserver)
     appserver_open_http_request(
@@ -97,7 +98,7 @@ def update_docker_service(
 def restart_docker_service(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
-    appserver = scope["pingable_appservers"][0]
+    appserver = random.choice(scope["pingable_appservers"])
 
     yield "Connecting to appserver {} to restart Docker service".format(appserver)
     appserver_open_http_request(
