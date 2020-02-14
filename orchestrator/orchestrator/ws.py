@@ -152,13 +152,13 @@ async def status_handler(
 
     service: Service = get_service_by_name(client, get_director_service_name(site_id))
 
-    async def ping_loop() -> None:
+    async def ping_loop() -> None:  # type: ignore
         while True:
             try:
                 await websock.ping()
                 await asyncio.sleep(30)
             except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
-                return
+                break
 
     async def log_loop(log_follower: DirectorSiteLogFollower) -> None:
         try:
@@ -189,7 +189,7 @@ async def status_handler(
         log_task = asyncio.Task(log_loop(log_follower))
 
         await asyncio.wait(
-            [ping_task, log_task, stop_event], return_when=asyncio.FIRST_COMPLETED,
+            [ping_task, log_task, stop_event], return_when=asyncio.FIRST_COMPLETED,  # type: ignore
         )
 
         if not ping_task.done():
