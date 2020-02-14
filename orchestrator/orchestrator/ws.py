@@ -200,11 +200,17 @@ async def status_handler(
             return
 
         ping_task = asyncio.Task(ping_loop())
+        wait_closed_task = asyncio.Task(websock.wait_closed())
         log_task = asyncio.Task(log_loop(log_follower))
 
         await asyncio.wait(
-            [ping_task, log_task, stop_event], return_when=asyncio.FIRST_COMPLETED,  # type: ignore
+            [ping_task, wait_closed_task, log_task, stop_event],  # type: ignore
+            return_when=asyncio.FIRST_COMPLETED,
         )
+
+        if not wait_closed_task.done():
+            wait_closed_task.cancel()
+            await wait_closed_task
 
         if not ping_task.done():
             ping_task.cancel()
