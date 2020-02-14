@@ -18,12 +18,14 @@
     </script>
 
     <style>
-        div.image-subwidget-container:not(:first-child) {
-            margin-top: 10px;
+        div.image-subwidget-container {
+            margin-bottom: 5px;
         }
 
         div.image-subwidget-container label {
             margin-bottom: 0;
+
+            font-weight: bold;
         }
 
         .has-run-script-template::after {
@@ -46,7 +48,7 @@
             <div class="image-subwidget-container">
                 <div class="image-radio-container {% if image_data.has_run_sh_template %} has-run-script-template{% endif %}">{{ subwidget }}</div>
                 {% if image_data.description %}
-                <div style="margin-left: 1.1em">{{ image_data.description }}</div>
+                <div style="margin-left: 1.1em">{{ image_data.description|linebreaks }}</div>
                 {% endif %}
             </div>
             {% endfor %}
