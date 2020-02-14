@@ -10,7 +10,9 @@
             {{ form_field }}
         {% endif %}
         {{ form_field.errors }}
-        {% if form_field.help_text %}<br>{{ form_field.help_text }}{% endif %}
+        {% if form_field.help_text %}
+        <p>{{ form_field.help_text }}</p>
+        {% endif %}
     </span>
 {% else %}
 <span class="tbl-cell" style="vertical-align:baseline;padding-right:5px;">{{ form_item }}</span>
