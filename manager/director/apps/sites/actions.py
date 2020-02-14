@@ -1,13 +1,17 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+import asyncio
 import json
 import random
-from typing import Any, Dict, Iterator, Tuple, Union
+from typing import Any, AsyncGenerator, Dict, Iterator, Tuple, Union
+
+from django.conf import settings
 
 from ...utils.appserver import (
     AppserverProtocolError,
     appserver_open_http_request,
+    appserver_open_websocket,
     iter_pingable_appservers,
 )
 from ...utils.balancer import balancer_open_http_request, iter_pingable_balancers
@@ -113,18 +117,38 @@ def build_docker_image(site: Site, scope: Dict[str, Any]) -> Iterator[Union[Tupl
         yield "Site does not have a custom Docker image; skipping"
         return
 
-    for appserver in scope["pingable_appservers"]:
-        yield "Connecting to appserver {} to build Docker image".format(appserver)
-
-        appserver_open_http_request(
-            appserver,
-            "/sites/build-docker-image",
-            method="POST",
-            data={"data": json.dumps(site.docker_image.serialize_for_appserver())},
-            timeout=60 * 60,
+    for i in range(settings.DIRECTOR_NUM_APPSERVERS):
+        executor = build_docker_image_async(
+            site, scope, i, site.docker_image.serialize_for_appserver(),
         )
 
+        # Async generators are hard in synchronous code
+        while True:
+            try:
+                item = asyncio.get_event_loop().run_until_complete(executor.__anext__())
+            except StopAsyncIteration:
+                break
+            else:
+                yield item
+
     yield "Build Docker image"
+
+
+async def build_docker_image_async(
+    site: Site, scope: Dict[str, Any], appserver_num: int, data: Dict[str, Any],
+) -> AsyncGenerator[Union[Tuple[str, str], str], None]:
+    yield "Connecting to appserver {} to build Docker image".format(appserver_num)
+    websock = await asyncio.wait_for(
+        appserver_open_websocket(appserver_num, "/ws/sites/build-docker-image"), timeout=1,
+    )
+
+    await websock.send(json.dumps(data))
+
+    result = json.loads(await websock.recv())
+    yield "Result: {}".format(result)
+
+    if not result["successful"]:
+        raise Exception(result["msg"])
 
 
 def update_balancer_nginx_config(  # pylint: disable=unused-argument

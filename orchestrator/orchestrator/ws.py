@@ -14,8 +14,10 @@ from typing import Any, Dict, List, Optional, Union
 import websockets
 from docker.models.services import Service
 
+from .docker.images import build_custom_docker_image
 from .docker.services import get_director_service_name, get_service_by_name
 from .docker.utils import create_client
+from .exceptions import OrchestratorActionError
 from .files import check_run_sh_exists
 from .logs import DirectorSiteLogFollower
 from .terminal import TerminalContainer
@@ -223,10 +225,45 @@ async def status_handler(
     await websock.close()
 
 
+async def build_image_handler(  # pylint: disable=unused-argument
+    websock: websockets.client.WebSocketClientProtocol, params: Dict[str, Any],
+) -> None:
+    try:
+        build_data = json.loads(await websock.recv())
+    except (websockets.exceptions.ConnectionClosed, json.JSONDecodeError, asyncio.CancelledError):
+        return
+
+    client = await asyncio.get_event_loop().run_in_executor(None, create_client)
+
+    try:
+        await asyncio.get_event_loop().run_in_executor(
+            None, build_custom_docker_image, client, build_data,
+        )
+    except OrchestratorActionError as ex:
+        logger.error(
+            "Error building image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
+        )
+        result = {"successful": False, "msg": str(ex)}
+    except BaseException as ex:  # pylint: disable=broad-except
+        logger.error(
+            "Error building image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
+        )
+        result = {"successful": False, "msg": "Error"}
+    else:
+        logger.info("Built image %s", build_data["name"])
+        result = {"successful": True, "msg": "Success"}
+
+    try:
+        await websock.send(json.dumps(result))
+    except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+        pass
+
+
 async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -> None:
     routes = [
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/terminal/?$"), terminal_handler),
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/status/?$"), status_handler),
+        (re.compile(r"^/ws/sites/build-docker-image/?$"), build_image_handler),
     ]
 
     for route_re, handler in routes:
