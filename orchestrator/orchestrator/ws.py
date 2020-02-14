@@ -163,6 +163,9 @@ async def status_handler(
     async def log_loop(log_follower: DirectorSiteLogFollower) -> None:
         try:
             async for line in log_follower.iter_lines():
+                if not line:
+                    break
+
                 if line.startswith("DIRECTOR: "):
                     service.reload()
 
