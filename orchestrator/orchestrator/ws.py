@@ -9,7 +9,7 @@ import re
 import signal
 import ssl
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import websockets
 from docker.models.services import Service
@@ -167,8 +167,15 @@ async def status_handler(
                     service.reload()
 
                     await websock.send(json.dumps(serialize_service_status(site_id, service)))
-                    await asyncio.sleep(1.0)
-                    await websock.send(json.dumps(serialize_service_status(site_id, service)))
+                    asyncio.ensure_future(wait_and_send_status(1.0))
+                    asyncio.ensure_future(wait_and_send_status(10.0))
+        except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+            pass
+
+    async def wait_and_send_status(duration: Union[int, float]) -> None:
+        try:
+            await asyncio.sleep(duration)
+            await websock.send(json.dumps(serialize_service_status(site_id, service)))
         except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
             pass
 
