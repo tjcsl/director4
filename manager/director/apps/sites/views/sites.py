@@ -117,7 +117,10 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
         except DockerImage.DoesNotExist:
             image_data = {}
         else:
-            image_data = {"has_run_sh_template": bool(image.run_script_template)}
+            image_data = {
+                "has_run_sh_template": bool(image.run_script_template),
+                "description": image.description,
+            }
 
         image_subwidgets_and_data.append((subwidget, image_data))
 

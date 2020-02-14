@@ -18,6 +18,14 @@
     </script>
 
     <style>
+        div.image-subwidget-container:not(:first-child) {
+            margin-top: 10px;
+        }
+
+        div.image-subwidget-container label {
+            margin-bottom: 0;
+        }
+
         .has-run-script-template::after {
             color: gray;
             content: "Has run.sh template";
@@ -35,7 +43,12 @@
         <span class="tbl-cell" style="vertical-align:top;padding:6px 5px 0px 0px; min-width: 150px">{{ field.label_tag }}</span>
         <div class="tbl-cell" style="padding-bottom:5px;padding-top:6px;">
             {% for subwidget, image_data in image_subwidgets_and_data %}
-                <span class="image-radio-container {% if image_data.has_run_sh_template %} has-run-script-template{% endif %}">{{ subwidget }}</span><br>
+            <div class="image-subwidget-container">
+                <div class="image-radio-container {% if image_data.has_run_sh_template %} has-run-script-template{% endif %}">{{ subwidget }}</div>
+                {% if image_data.description %}
+                <div style="margin-left: 1.1em">{{ image_data.description }}</div>
+                {% endif %}
+            </div>
             {% endfor %}
             {{ field.errors }}
             {% if field.help_text %}<br>{{ field.help_text }}{% endif %}
