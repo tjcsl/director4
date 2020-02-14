@@ -135,7 +135,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
     @run_in_executor(None)
     def close(self) -> None:
-        if not self.closed:
+        if self.socket is not None and not self.closed:
             # It's not enough to close the socket; to force-interrupt read()s we need to shut
             # it down first.
             self.socket._sock.shutdown(socket.SHUT_RDWR)  # pylint: disable=protected-access
