@@ -13,6 +13,8 @@ from typing import Any, Dict, List, Optional
 
 SPECIAL_EXIT_CODE = 145  # Denotes that the text shown on stderr is safe to show to the user
 
+BUFSIZE = 4096
+
 
 def chroot_into(directory: str) -> None:
     if os.getuid() != 0:
@@ -129,7 +131,7 @@ def get_cmd(site_directory: str, relpath: str, max_size_str: str) -> None:
                 sys.exit(SPECIAL_EXIT_CODE)
             f_obj.seek(0, os.SEEK_SET)
 
-            for chunk in iter(lambda: f_obj.read(4096), b""):
+            for chunk in iter(lambda: f_obj.read(BUFSIZE), b""):
                 sys.stdout.buffer.write(chunk)
                 sys.stdout.flush()
     except OSError as ex:
@@ -178,7 +180,7 @@ def monitor_cmd(site_directory: str) -> None:
                 # Other errors (directories not existing, etc.) are silently
                 # ignored as they may have been caused by race conditions.
 
-                stdin_data += sys.stdin.buffer.read1(4096)  # type: ignore
+                stdin_data += sys.stdin.buffer.read1(BUFSIZE)  # type: ignore
                 while b"\n" in stdin_data:
                     index = stdin_data.find(b"\n")
                     line = stdin_data[:index]  # Implicitly removing the trailing newline
