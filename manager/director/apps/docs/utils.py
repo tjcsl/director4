@@ -93,6 +93,7 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
                 "footnotes",
                 "tables",
                 "meta",
+                "nl2br",
                 markdown.extensions.toc.TocExtension(
                     permalink="", permalink_class="headerlink fa fa-link",
                 ),
