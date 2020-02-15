@@ -7,6 +7,23 @@
     <link rel="stylesheet" href="{% static 'vendor/highlight-js-9.18.1/styles/default.css' %}">
     <script src="{% static 'vendor/highlight-js-9.18.1/highlight.pack.js' %}"></script>
     <script>hljs.initHighlightingOnLoad();</script>
+
+    <style>
+        a.headerlink {
+            color: black;
+            opacity: 0.5;
+            padding-left: 10px;
+            font-size: 40%;
+            text-decoration: none;
+            position: relative;
+            bottom: 6px;
+        }
+
+        h1:not(:hover) .headerlink, h2:not(:hover) .headerlink, h3:not(:hover) .headerlink,
+        h4:not(:hover) .headerlink, h5:not(:hover) .headerlink, h6:not(:hover) .headerlink {
+            display: none;
+        }
+    </style>
 {% endblock %}
 
 {% block main %}

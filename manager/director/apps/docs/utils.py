@@ -7,6 +7,7 @@ import time
 from typing import Any, Dict, Optional, Tuple
 
 import markdown
+import markdown.extensions.toc
 
 from django.conf import settings
 from django.core.cache import cache
@@ -102,7 +103,15 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
 
         # Render as HTML
         text_html = markdown.markdown(
-            text_md, extensions=["fenced_code", "footnotes", "tables", "toc"],
+            text_md,
+            extensions=[
+                "fenced_code",
+                "footnotes",
+                "tables",
+                markdown.extensions.toc.TocExtension(
+                    permalink="", permalink_class="headerlink fa fa-link",
+                ),
+            ],
         )
 
         # Save the data (and the modification time)
