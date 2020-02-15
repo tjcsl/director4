@@ -20,6 +20,7 @@ def create_balancer_ssl_context() -> Optional[ssl.SSLContext]:
         return None
 
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    context.verify_mode = ssl.CERT_REQUIRED
     context.load_verify_locations(cafile=settings.DIRECTOR_BALANCER_SSL["cafile"])
 
     client_certinfo = settings.DIRECTOR_BALANCER_SSL.get("client_cert", None)
