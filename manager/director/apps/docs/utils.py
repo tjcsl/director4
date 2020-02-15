@@ -84,35 +84,23 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
                 return cached_meta, cached_text_html
 
         with open(path) as f_obj:
-            # We use readlines() instead of read() because it's easier to work with
-            # a list of lines when we do some editing later
-            lines = f_obj.readlines()
-
-        # Extract embedded "metadata"
-        metadata = {}
-        meta_prefix = "<!-- META: "
-        meta_suffix = " -->"
-        if lines:
-            first_line = lines[0].strip()
-            if first_line.startswith(meta_prefix) and first_line.strip().endswith(meta_suffix):
-                lines.pop(0)
-                metadata = json.loads(first_line[len(meta_prefix): -len(meta_suffix)].strip())
-
-        # Reconstruct the original text
-        text_md = "".join(lines)
+            text_md = f_obj.read()
 
         # Render as HTML
-        text_html = markdown.markdown(
-            text_md,
+        markdown_converter = markdown.Markdown(
             extensions=[
                 "fenced_code",
                 "footnotes",
                 "tables",
+                "meta",
                 markdown.extensions.toc.TocExtension(
                     permalink="", permalink_class="headerlink fa fa-link",
                 ),
             ],
         )
+
+        text_html = markdown_converter.convert(text_md)
+        metadata = markdown_converter.Meta
 
         # Save the data (and the modification time)
         cache.set(

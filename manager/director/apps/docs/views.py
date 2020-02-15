@@ -15,9 +15,14 @@ def doc_page_view(request: HttpRequest, page_name: str = "") -> HttpResponse:
     if text_html is None:
         raise Http404
 
+    if "title" in metadata:
+        title = " ".join(metadata["title"])
+    else:
+        title = page_name.rstrip("/").split("/")[-1]
+
     context = {
         "doc_content": text_html,
-        "title": metadata.get("title", page_name.rstrip("/").split("/")[-1]),
+        "title": title,
     }
 
     return render(request, "docs/doc_page.html", context)
