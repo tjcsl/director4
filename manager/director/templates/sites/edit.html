@@ -22,9 +22,13 @@
             {{ domains_formset.management_form }}
             {% for formset_form in domains_formset %}
                 {% for formset_field in formset_form %}
-                    {% include "table_form_row.html" with form_field=formset_field only %}
+                    {% include "table_form_row.html" with form_field=formset_field form_field_delete_btn=True form_field_extra_classes="custom-domain" only %}
                 {% endfor %}
             {% endfor %}
+            <button type="button" class="btn btn-ion" onclick="$('.custom-domain').last().clone().insertBefore(this).find('input').val('');">
+                <i class="fas fa-plus"></i>
+                Add another
+            </button>
 
             {% include "table_form_footer.html" %}
         {% endwith %}

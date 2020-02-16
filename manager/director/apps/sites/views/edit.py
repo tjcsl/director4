@@ -52,7 +52,11 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
     if request.method == "POST":
         names_form = SiteNamesForm(request.POST)
-        domains_formset = DomainFormSet(request.POST, prefix="domains")
+        domains_formset = DomainFormSet(
+            request.POST,
+            prefix="domains",
+            form_kwargs={"user_is_superuser": request.user.is_superuser},
+        )
         if site.has_operation:
             messages.error(request, "An operation is already being performed on this site")
         elif names_form.is_valid() and domains_formset.is_valid():

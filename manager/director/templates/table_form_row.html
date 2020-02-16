@@ -1,4 +1,4 @@
-<div class="tbl-row">
+<div class="tbl-row{% if form_field_extra_classes %} {{ form_field_extra_classes }}{% endif %}">
 {% if form_field %}
     <span class="tbl-cell" style="vertical-align:top;padding:6px 5px 0px 0px; min-width: 150px">{{ form_field.label_tag }}</span>
     <span class="tbl-cell" style="padding-bottom:5px;{% if form_field.field.widget.input_type == "checkbox" or form_field.field.widget.input_type == "radio" %}padding-top:6px;{% endif %}">
@@ -14,6 +14,13 @@
         {{ form_field.help_text|linebreaks }}
         {% endif %}
     </span>
+{% if form_field_delete_btn %}
+    <span class="tbl-cell" style="padding-left: 5px; position: relative; top: -2px; cursor: pointer;">
+        <a class="btn btn-ion" href="javascript:void(0)" onclick="$(this).closest('.tbl-row').remove();">
+            <i class="fas fa-times"></i>
+        </a>
+    </span>
+{% endif %}
 {% else %}
 <span class="tbl-cell" style="vertical-align:baseline;padding-right:5px;">{{ form_item }}</span>
 {% endif %}

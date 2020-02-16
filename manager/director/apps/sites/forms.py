@@ -65,12 +65,26 @@ class DomainForm(forms.Form):
         validators=[
             validators.RegexValidator(
                 regex=r"^(?!(.*\.)?sites\.tjhsst\.edu$)[0-9a-zA-Z_\- .]+$",
-                message="You can only have one sites.tjhsst.edu domain, and it must match the name "
-                "of your site.",
+                message="You can only have one sites.tjhsst.edu domain, the automatically generated"
+                " one that matches the name of your site.",
             ),
         ],
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
+
+    def __init__(self, *args: Any, user_is_superuser: bool = False, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.user_is_superuser = user_is_superuser
+
+    def clean(self) -> Dict[str, Any]:
+        cleaned_data = super().clean()
+
+        if not self.user_is_superuser:
+            if "domain" in cleaned_data and cleaned_data["domain"].endswith("tjhsst.edu"):
+                self.add_error("domain", "Only administrators can add tjhsst.edu domains")
+
+        return cleaned_data
 
 
 DomainFormSet = forms.formset_factory(DomainForm)  # type: ignore
