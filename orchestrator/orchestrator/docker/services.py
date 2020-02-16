@@ -72,8 +72,8 @@ exec sleep 2147483647"""
             "networks": ["director-sites"],
             "resources": Resources(
                 # 0.1 CPUs, 100M or so of memory
-                cpu_limit=convert_cpu_limit(0.1),
-                mem_limit=convert_memory_limit("100MB"),
+                cpu_limit=convert_cpu_limit(site_data["resource_limits"]["cpus"]),
+                mem_limit=convert_memory_limit(site_data["resource_limits"]["mem_limit"]),
             ),
             "env": env,
             "log_driver": "json-file",

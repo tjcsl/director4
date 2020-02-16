@@ -35,8 +35,8 @@ def gen_director_container_params(
     params.update(
         {
             "working_dir": "/site",
-            "nano_cpus": convert_cpu_limit(0.1),
-            "mem_limit": convert_memory_limit("100MB"),
+            "nano_cpus": convert_cpu_limit(site_data["resource_limits"]["cpus"]),
+            "mem_limit": convert_memory_limit(site_data["resource_limits"]["mem_limit"]),
             "privileged": False,
             "read_only": False,
             "environment": env,
