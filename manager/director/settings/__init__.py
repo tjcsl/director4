@@ -280,6 +280,11 @@ DIRECTOR_DEFAULT_DOCKER_IMAGE_INSTALL_COMMAND_PREFIX = "apk add --"
 DIRECTOR_DOCS_DIR = "/usr/local/www/director-docs"
 DIRECTOR_DOCS_CACHE_TIMEOUT = 24 * 60 * 60
 
+# Fractions of a CPU
+DIRECTOR_RESOURCES_DEFAULT_CPUS: float = 0.1
+# Memory in bytes
+DIRECTOR_RESOURCES_DEFAULT_MEMORY_LIMIT: int = 100 * 1000 * 1000
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:
@@ -290,6 +295,14 @@ CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE = not DEBUG
 assert len(DIRECTOR_APPSERVER_HOSTS) == len(
     DIRECTOR_APPSERVER_WS_HOSTS
 ), "DIRECTOR_APPSERVER_HOSTS and DIRECTOR_APPSERVER_WS_HOSTS must be the same length"
+
+# We allow string memory limits in the model, but that's because we can do validation there.
+# If we allowed strings here, then a typo while editing secret.py could make nearly all sites on
+# Director break when certain operations are performed.
+assert (
+    isinstance(DIRECTOR_RESOURCES_DEFAULT_MEMORY_LIMIT, int)
+    and DIRECTOR_RESOURCES_DEFAULT_MEMORY_LIMIT > 0
+), "DIRECTOR_RESOURCES_DEFAULT_MEMORY must be a positive integer"
 
 DIRECTOR_NUM_APPSERVERS = len(DIRECTOR_APPSERVER_HOSTS) if DIRECTOR_APPSERVER_HOSTS else 0
 DIRECTOR_NUM_BALANCERS = len(DIRECTOR_BALANCER_HOSTS) if DIRECTOR_BALANCER_HOSTS else 0

@@ -77,6 +77,9 @@ class Site(models.Model):
         "Database", null=True, blank=True, on_delete=models.SET_NULL, related_name="site"
     )
 
+    # Tell Pylint about the implicit related field
+    resource_limits: "SiteResourceLimits"
+
     @property
     def site_path(self) -> str:
         return "/web/site-{}".format(self.id)
@@ -121,6 +124,7 @@ class Site(models.Model):
             "primary_url_base": main_url,
             "database_url": (self.database.db_url if self.database is not None else None),
             "docker_image": self.docker_image.serialize_for_appserver(),
+            "resource_limits": self.serialize_resource_limits(),
         }
 
     def serialize_for_balancer(self) -> Dict[str, Any]:
@@ -131,6 +135,31 @@ class Site(models.Model):
                 self.domain_set.filter(status="active").values_list("domain", flat=True)
             ),
         }
+
+    def serialize_resource_limits(self) -> Dict[str, Any]:
+        limits = {
+            "cpus": settings.DIRECTOR_RESOURCES_DEFAULT_CPUS,
+            "mem_limit": settings.DIRECTOR_RESOURCES_DEFAULT_MEMORY_LIMIT,
+        }
+
+        try:
+            resource_limits = self.resource_limits
+        except SiteResourceLimits.DoesNotExist:
+            return limits
+
+        for name in ["cpus", "mem_limit"]:
+            value = getattr(resource_limits, name)
+
+            # Only use if the new value if a) it's not None or "" and b) either it's not a number or
+            # it's <= 0
+            if (
+                value is not None
+                and value != ""
+                and (not isinstance(value, (int, float)) or value > 0)
+            ):
+                limits[name] = value
+
+        return limits
 
     @property
     def has_operation(self) -> bool:
