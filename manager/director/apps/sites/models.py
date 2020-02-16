@@ -6,7 +6,12 @@ from typing import Any, Dict, List, Optional
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.core.validators import MinLengthValidator, RegexValidator
+from django.core.validators import (
+    MaxValueValidator,
+    MinLengthValidator,
+    MinValueValidator,
+    RegexValidator,
+)
 from django.db import models  # pylint: disable=unused-import # noqa
 from django.utils import timezone
 
@@ -154,6 +159,37 @@ class Site(models.Model):
 
     def __repr__(self):
         return "<Site: " + str(self) + ">"
+
+
+class SiteResourceLimits(models.Model):
+    site = models.OneToOneField(
+        Site, null=False, blank=False, on_delete=models.CASCADE, related_name="resource_limits",
+    )
+
+    # Fractions of a CPU
+    cpus = models.FloatField(
+        null=True,
+        blank=True,
+        default=None,
+        # Must be between 0 and 3
+        validators=[MinValueValidator(0), MaxValueValidator(3)],
+    )
+
+    # Memory limit
+    mem_limit = models.CharField(
+        null=False,
+        blank=True,
+        default="",
+        max_length=10,
+        validators=[
+            RegexValidator(
+                regex=r"^(\d+(\s*[KMG]i?B)?)?$",
+                message="Must be either 1) blank for the default limit or 2) a number followed by "
+                "one of the suffixes KiB, MiB, or GiB (powers of 1024) or KB, MB, GB (powers of "
+                "1000).",
+            ),
+        ],
+    )
 
 
 class DockerImageQuerySet(models.query.QuerySet):

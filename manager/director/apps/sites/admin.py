@@ -12,6 +12,7 @@ from .models import (
     Domain,
     Operation,
     Site,
+    SiteResourceLimits,
 )
 
 admin.site.register(DockerImage)
@@ -22,6 +23,7 @@ admin.site.register(DatabaseHost)
 admin.site.register(Database)
 
 admin.site.register(Site)
+admin.site.register(SiteResourceLimits)
 
 admin.site.register(Operation)
 admin.site.register(Action)
