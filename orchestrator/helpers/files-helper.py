@@ -7,6 +7,7 @@ import json
 import os
 import select
 import stat
+import string
 import sys
 from typing import Any, Dict, List, Optional
 
@@ -23,6 +24,20 @@ def chroot_into(directory: str) -> None:
 
     os.chroot(directory)
     os.chdir("/")
+
+
+# Later, this function may support more complicated strings
+def get_new_mode(old_mode: int, mode_str: str) -> int:
+    if set(mode_str) < set("01234567"):
+        return int(mode_str, base=8)
+    else:
+        raise ValueError("Invalid mode string")
+
+
+def update_mode(path: str, mode_str: str) -> None:
+    old_mode = os.stat(path).st_mode
+    new_mode = get_new_mode(old_mode, mode_str)
+    os.chmod(path, new_mode)
 
 
 def construct_scandir_file_dicts(dirpath: str) -> List[Dict[str, Optional[str]]]:
@@ -139,7 +154,7 @@ def get_cmd(site_directory: str, relpath: str, max_size_str: str) -> None:
         sys.exit(SPECIAL_EXIT_CODE)
 
 
-def write_cmd(site_directory: str, relpath: str) -> None:
+def write_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None) -> None:
     if relpath.startswith("/"):
         print("Invalid path", file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
@@ -147,6 +162,11 @@ def write_cmd(site_directory: str, relpath: str) -> None:
     chroot_into(site_directory)
 
     try:
+        mode_updated = False
+        if mode_str is not None and os.path.exists(relpath):
+            update_mode(relpath, mode_str)
+            mode_updated = True
+
         with open(relpath, "wb") as f_obj:
             while True:
                 chunk = sys.stdin.buffer.read1(BUFSIZE)
@@ -155,6 +175,9 @@ def write_cmd(site_directory: str, relpath: str) -> None:
 
                 f_obj.write(chunk)
                 f_obj.flush()
+
+        if mode_str is not None and not mode_updated:
+            update_mode(relpath, mode_str)
     except OSError as ex:
         print(ex, file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
@@ -289,7 +312,7 @@ def main(argv: List[str]) -> None:
         "setup": (setup_cmd, [1]),
         "ls": (ls_cmd, [2]),
         "get": (get_cmd, [3]),
-        "write": (write_cmd, [2]),
+        "write": (write_cmd, [2, 3]),
         "monitor": (monitor_cmd, [1]),
     }
 

@@ -44,6 +44,7 @@ def write_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
             site_id,
             request.args["path"],
             iter_chunks(request.stream, settings.FILE_STREAM_BUFSIZE),
+            mode_str=request.args.get("mode", None),
         )
     except SiteFilesException as ex:
         traceback.print_exc()

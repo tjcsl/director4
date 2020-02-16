@@ -158,14 +158,21 @@ def get_site_file(site_id: int, relpath: str) -> str:
         raise SiteFilesException("Internal error")
 
 
-def write_site_file(site_id: int, relpath: str, data: Union[bytes, Iterable[bytes]]) -> None:
+def write_site_file(
+    site_id: int,
+    relpath: str,
+    data: Union[bytes, Iterable[bytes]],
+    *,
+    mode_str: Optional[str] = None,
+) -> None:
     site_dir = get_site_directory_path(site_id)
 
+    args = ["write", site_dir, relpath]
+    if mode_str is not None:
+        args.append(mode_str)
+
     proc = run_helper_script_prog(
-        ["write", site_dir, relpath],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
 
     if isinstance(data, bytes):
