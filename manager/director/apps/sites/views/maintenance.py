@@ -88,7 +88,10 @@ def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
             form = SiteResourceLimitsForm(request.POST)
             if form.is_valid():
                 operations.update_resource_limits(
-                    site, form.cleaned_data["cpus"], form.cleaned_data["mem_limit"], form.cleaned_data["notes"],
+                    site,
+                    form.cleaned_data["cpus"],
+                    form.cleaned_data["mem_limit"],
+                    form.cleaned_data["notes"],
                 )
 
                 return redirect("sites:info", site.id)
