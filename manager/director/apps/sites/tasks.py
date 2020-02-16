@@ -269,7 +269,7 @@ def update_image_task(
                     # Just setting these for completeness; they
                     # all have sane defaults
                     is_user_visible=False,
-                    friendly_name="",
+                    friendly_name=None,
                     description="",
                     run_script_template="",
                 )
