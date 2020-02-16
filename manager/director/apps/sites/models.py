@@ -235,6 +235,9 @@ class SiteResourceLimits(models.Model):
         ],
     )
 
+    # Administrative notes about why the site has been allocated extra resources
+    notes = models.TextField(null=False, blank=True, default="")
+
     # IMPORTANT: Do not add additional fields without adding the appropriate filters to
     # SiteResourceLimitsQuerySet.filter_has_custom_limits() above!!!
 

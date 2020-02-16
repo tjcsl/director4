@@ -11,6 +11,11 @@
         <li>
             <a href="{% url 'sites:info' site.id %}">{{ site.name }}</a>: {{ site.resource_limits.stringify_limits }}
             (<a href="{% url 'sites:resource_limits' site.id %}">Edit resource limits</a>)
+            {% if site.resource_limits.notes %}
+            <ul>
+                <li>{{ site.resource_limits.notes }}</li>
+            </ul>
+            {% endif %}
         </li>
     {% endfor %}
     </ul>

@@ -174,8 +174,8 @@ def create_database_task(operation_id: int, database_host_id: int) -> None:
 
 
 @shared_task
-def update_resource_limits_task(operation_id: int, cpus: float, mem_limit: str) -> None:
-    scope: Dict[str, Any] = {"cpus": cpus, "mem_limit": mem_limit}
+def update_resource_limits_task(operation_id: int, cpus: float, mem_limit: str, notes: str) -> None:
+    scope: Dict[str, Any] = {"cpus": cpus, "mem_limit": mem_limit, "notes": notes}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
@@ -192,6 +192,7 @@ def update_resource_limits_task(operation_id: int, cpus: float, mem_limit: str) 
 
             site.resource_limits.cpus = scope["cpus"]
             site.resource_limits.mem_limit = scope["mem_limit"]
+            site.resource_limits.notes = scope["notes"]
             site.resource_limits.save()
 
             yield ("after_state", str(site.resource_limits))

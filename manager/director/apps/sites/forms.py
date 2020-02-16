@@ -153,3 +153,9 @@ class SiteResourceLimitsForm(forms.Form):
             ),
         ],
     )
+
+    notes = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+        help_text="Why is this site being given custom resource limits?",
+    )
