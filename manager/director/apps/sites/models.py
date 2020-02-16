@@ -220,10 +220,11 @@ class SiteResourceLimits(models.Model):
         ],
     )
 
+    def stringify_limits(self) -> str:
+        return "cpus={}, mem_limit={}".format(self.cpus, self.mem_limit or None)
+
     def __str__(self) -> str:
-        return "Site {}: cpus={}, mem_limit={}".format(
-            self.site.name, self.cpus, self.mem_limit or None
-        )
+        return "Site {}: {}".format(self.site.name, self.stringify_limits())
 
     def __repr__(self):
         return "<SiteResourceLimits: " + str(self) + ">"
