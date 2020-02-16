@@ -58,6 +58,23 @@ def operations_view(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+def custom_resource_limits_list_view(request: HttpRequest) -> HttpResponse:
+    if not request.user.is_superuser:
+        raise Http404
+
+    sites_with_custom_limits = SiteResourceLimits.objects.filter_has_custom_limits()  # type: ignore
+
+    context = {
+        "custom_limit_sites": [
+            Site.objects.get(id=site_id)
+            for site_id in sites_with_custom_limits.values_list("site_id", flat=True)
+        ],
+    }
+
+    return render(request, "sites/custom_resource_limits_list.html", context)
+
+
+@login_required
 def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
     if not request.user.is_superuser:
         raise Http404

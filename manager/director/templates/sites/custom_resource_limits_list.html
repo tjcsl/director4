@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Sites with Custom Resource Limits{% endblock %}
+
+{% block main %}
+    <h1> Sites with Custom Resource Limits</h1>
+
+    <ul>
+    {% for site in custom_limit_sites %}
+        <li>
+            <a href="{% url 'sites:info' site.id %}">{{ site.name }}</a>: {{ site.resource_limits.stringify_limits }}
+            (<a href="{% url 'sites:resource_limits' site.id %}">Edit resource limits</a>)
+        </li>
+    {% endfor %}
+    </ul>
+{% endblock %}

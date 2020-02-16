@@ -13,6 +13,7 @@ from django.core.validators import (
     RegexValidator,
 )
 from django.db import models  # pylint: disable=unused-import # noqa
+from django.db.models import Q
 from django.utils import timezone
 
 from ...utils import split_domain
@@ -190,7 +191,21 @@ class Site(models.Model):
         return "<Site: " + str(self) + ">"
 
 
+class SiteResourceLimitsQuerySet(models.query.QuerySet):
+    def filter_has_custom_limits(self) -> "models.query.QuerySet[SiteResourceLimits]":
+        """Filters this QuerySet to only the SiteResourceLimits objects with values that
+        will actually lead to at least one non-default limit being used.
+
+        This is necessary because a the simple existence of SiteResourceLimits object does
+        not necessarily mean that site has custom limits set.
+
+        """
+        return self.filter(Q(cpus__isnull=False) | Q(cpus__gt=0) | ~Q(mem_limit=""))
+
+
 class SiteResourceLimits(models.Model):
+    objects = SiteResourceLimitsQuerySet.as_manager()
+
     site = models.OneToOneField(
         Site, null=False, blank=False, on_delete=models.CASCADE, related_name="resource_limits",
     )
@@ -219,6 +234,9 @@ class SiteResourceLimits(models.Model):
             ),
         ],
     )
+
+    # IMPORTANT: Do not add additional fields without adding the appropriate filters to
+    # SiteResourceLimitsQuerySet.filter_has_custom_limits() above!!!
 
     def stringify_limits(self) -> str:
         return "cpus={}, mem_limit={}".format(self.cpus, self.mem_limit or None)

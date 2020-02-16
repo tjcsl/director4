@@ -13,6 +13,11 @@ urlpatterns = [
         "prometheus-metrics", views.maintenance.prometheus_metrics_view, name="prometheus-metrics"
     ),
     path("operations/", views.maintenance.operations_view, name="operations"),
+    path(
+        "custom-resource-limits/",
+        views.maintenance.custom_resource_limits_list_view,
+        name="custom_resource_limits_list",
+    ),
     path("create/", views.sites.create_view, name="create"),
     path("create/webdocs/", views.sites.dummy_view, name="create_webdocs"),
     path("<int:site_id>/", views.sites.info_view, name="info"),
