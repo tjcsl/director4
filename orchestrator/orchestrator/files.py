@@ -7,7 +7,6 @@ import os
 import subprocess
 from typing import (  # pylint: disable=unused-import
     Any,
-    AnyStr,
     AsyncGenerator,
     Callable,
     Dict,
@@ -76,7 +75,7 @@ def _run_helper_script_prog(
     return callback(real_args, kwargs)
 
 
-def run_helper_script_prog(args: List[str], **kwargs: Any) -> "subprocess.Popen[AnyStr]":
+def run_helper_script_prog(args: List[str], **kwargs: Any) -> "subprocess.Popen[bytes]":
     return _run_helper_script_prog(
         lambda real_args, kwargs: subprocess.Popen(real_args, **kwargs), args, kwargs,
     )
@@ -108,13 +107,12 @@ def ensure_site_directories_exist(site_id: int) -> None:
         stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
-        universal_newlines=True,
     )
 
     _, stderr = proc.communicate()
 
     if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-        raise SiteFilesException(stderr.strip())
+        raise SiteFilesException(stderr.decode().strip())
     elif proc.returncode != 0:
         raise SiteFilesException("Internal error")
 
@@ -127,15 +125,14 @@ def list_site_files(site_id: int, relpath: str) -> List[Dict[str, str]]:
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        universal_newlines=True,
     )
 
     stdout, stderr = proc.communicate()
 
     if proc.returncode == 0:
-        return cast(List[Dict[str, str]], json.loads(stdout.strip()))
+        return cast(List[Dict[str, str]], json.loads(stdout.decode().strip()))
     elif proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-        raise SiteFilesException(stderr.strip())
+        raise SiteFilesException(stderr.decode().strip())
     else:
         raise SiteFilesException("Internal error")
 
@@ -148,15 +145,14 @@ def get_site_file(site_id: int, relpath: str) -> str:
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        universal_newlines=True,
     )
 
     stdout, stderr = proc.communicate()
 
     if proc.returncode == 0:
-        return stdout
+        return stdout.decode()
     elif proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-        raise SiteFilesException(stderr.strip())
+        raise SiteFilesException(stderr.decode().strip())
     else:
         raise SiteFilesException("Internal error")
 
