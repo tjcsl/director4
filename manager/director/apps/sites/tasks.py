@@ -301,16 +301,22 @@ def update_image_task(
             ) -> Iterator[Union[Tuple[str, str], str]]:
                 appserver = random.choice(scope["pingable_appservers"])
 
-                yield "Connecting to appserver {} to restart Docker service".format(appserver)
-                appserver_open_http_request(
-                    appserver,
-                    "/sites/{}/files/write".format(site.id),
-                    params={"path": "run.sh", "mode": "0755"},
-                    method="POST",
-                    data=site.docker_image.parent.run_script_template.encode().rstrip() + b"\n",
-                )
+                if (
+                    site.docker_image.parent is not None
+                    and site.docker_image.parent.run_script_template
+                ):
+                    yield "Connecting to appserver {} to restart Docker service".format(appserver)
+                    appserver_open_http_request(
+                        appserver,
+                        "/sites/{}/files/write".format(site.id),
+                        params={"path": "run.sh", "mode": "0755"},
+                        method="POST",
+                        data=site.docker_image.parent.run_script_template.encode().rstrip() + b"\n",
+                    )
 
-                yield "Successfully wrote run.sh"
+                    yield "Successfully wrote run.sh"
+                else:
+                    yield "Skipping -- no run.sh template"
 
         wrapper.add_action("Updating Docker service", actions.update_docker_service)
 

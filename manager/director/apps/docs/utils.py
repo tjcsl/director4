@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-import json
 import os
 import time
 from typing import Any, Dict, Optional, Tuple
@@ -101,7 +100,7 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
         )
 
         text_html = markdown_converter.convert(text_md)
-        metadata = markdown_converter.Meta
+        metadata = markdown_converter.Meta  # pylint: disable=no-member
 
         # Save the data (and the modification time)
         cache.set(
