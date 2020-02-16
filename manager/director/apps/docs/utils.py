@@ -3,6 +3,8 @@
 
 import os
 import time
+import urllib.parse
+import xml.etree.ElementTree
 from typing import Any, Dict, Optional, Tuple
 
 import markdown
@@ -10,6 +12,49 @@ import markdown.extensions.toc
 
 from django.conf import settings
 from django.core.cache import cache
+from django.urls import reverse
+
+
+class LinkRewritingTreeProcessor(markdown.treeprocessors.Treeprocessor):
+    def run(self, root: xml.etree.ElementTree.Element) -> None:
+        self.handle_element(root)
+
+    def handle_element(self, element: xml.etree.ElementTree.Element) -> None:
+        # Handle children
+        for child in element:
+            self.handle_element(child)
+
+        if element.tag == "a":
+            href = element.get("href")
+            if href is not None:
+                parts = urllib.parse.urlsplit(href)
+
+                # If it's not an external link, rewrite it
+                if not parts.netloc:
+                    # Extract the path for rewriting
+                    path = parts.path
+
+                    # Strip trailing slashes
+                    path = path.rstrip("/")
+
+                    # Remove .md suffixes
+                    if path.endswith(".md"):
+                        path = path[:-3]
+
+                    # Rewrite "/"-prefixed URLs to make them relative to the main docs app
+                    if path.startswith("/"):
+                        path = reverse("docs:doc_page", args=[path.lstrip("/")])
+
+                    # Recombine and use the new path
+                    new_parts = (parts.scheme, parts.netloc, path, parts.query, parts.fragment)
+
+                    # Update the element
+                    element.set("href", urllib.parse.urlunsplit(new_parts))
+
+
+class LinkRewritingExtension(markdown.extensions.Extension):
+    def extendMarkdown(self, md: markdown.Markdown) -> None:
+        md.treeprocessors.register(LinkRewritingTreeProcessor(md), "link_rewriter", -100)
 
 
 def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
@@ -96,6 +141,7 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
                 markdown.extensions.toc.TocExtension(
                     permalink="", permalink_class="headerlink fa fa-link",
                 ),
+                LinkRewritingExtension(),
             ],
         )
 
