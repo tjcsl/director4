@@ -26,6 +26,10 @@ SITE_TERMINAL_KEEPALIVE_TIMEOUT = 6 * 60 * 60
 # Keep this low because files are not streamed
 MAX_FILE_DOWNLOAD_BYTES = 10 * 1000 * 1000  # 10MB
 
+FLASK_CONFIG = {
+    "MAX_CONTENT_LENGTH": MAX_FILE_UPLOAD_BYTES,  # 10MB
+}
+
 TIMEZONE = "America/New_York"
 
 try:
