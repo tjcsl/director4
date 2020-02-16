@@ -220,6 +220,14 @@ class SiteResourceLimits(models.Model):
         ],
     )
 
+    def __str__(self) -> str:
+        return "Site {}: cpus={}, mem_limit={}".format(
+            self.site.name, self.cpus, self.mem_limit or None
+        )
+
+    def __repr__(self):
+        return "<SiteResourceLimits: " + str(self) + ">"
+
 
 class DockerImageQuerySet(models.query.QuerySet):
     def get_default_image(self) -> "DockerImage":
@@ -456,6 +464,8 @@ class Operation(models.Model):
         ("delete_site_database", "Deleting site database"),
         # Regenerate the database password.
         ("regen_site_secrets", "Regenerating site secrets"),
+        # Updating the site's resource limits
+        ("update_resource_limits", "Updating site resource limits"),
         # Updating something about the site's Docker image
         ("update_docker_image", "Updating site Docker image"),
         # Delete a site, its files, its database, its Docker image, etc.

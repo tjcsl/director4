@@ -15,6 +15,7 @@ from .tasks import (
     rename_site_task,
     restart_service_task,
     update_image_task,
+    update_resource_limits_task,
 )
 
 
@@ -76,6 +77,13 @@ def edit_site_names(
 def restart_service(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="restart_site")
     restart_service_task.delay(operation.id)
+
+    send_operation_updated_message(site)
+
+
+def update_resource_limits(site: Site, cpus: float, mem_limit: str) -> None:
+    operation = Operation.objects.create(site=site, type="update_resource_limits")
+    update_resource_limits_task.delay(operation.id, cpus, mem_limit)
 
     send_operation_updated_message(site)
 

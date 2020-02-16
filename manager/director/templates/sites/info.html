@@ -46,6 +46,9 @@
 
             <p>
                 <a href="{% url 'sites:image_select' site.id %}" class="btn btn-ion"><i class="fab fa-docker"></i> Customize Docker image</a>
+                {% if request.user.is_superuser %}
+                <a href="{% url 'sites:resource_limits' site.id %}" class="btn btn-ion"><i class="fas fa-microchip"></i> Customize resource limits</a>
+                {% endif %}
             </p>
 
             <p>

@@ -2,11 +2,17 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
-from ..models import Action, Operation
+from .. import operations
+from ..forms import SiteResourceLimitsForm
+from ..models import Action, Operation, Site, SiteResourceLimits
+
+# WARNING: Allowing non-superusers to access ANY of the views here presents a major security
+# vulnerability!
 
 
 def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
@@ -49,3 +55,36 @@ def operations_view(request: HttpRequest) -> HttpResponse:
     }
 
     return render(request, "sites/operations.html", context)
+
+
+@login_required
+def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    if not request.user.is_superuser:
+        raise Http404
+
+    site = Site.objects.get(id=site_id)
+
+    if request.method == "POST":
+        if site.has_operation:
+            messages.error(request, "An operation is already being performed on this site")
+        else:
+            form = SiteResourceLimitsForm(request.POST)
+            if form.is_valid():
+                operations.update_resource_limits(
+                    site, form.cleaned_data["cpus"], form.cleaned_data["mem_limit"],
+                )
+
+                return redirect("sites:info", site.id)
+    else:
+        initial_data = {}
+        if SiteResourceLimits.objects.filter(site=site).exists():
+            initial_data = {
+                "cpus": site.resource_limits.cpus,
+                "mem_limit": site.resource_limits.mem_limit,
+            }
+
+        form = SiteResourceLimitsForm(initial=initial_data)
+
+    context = {"site": site, "form": form}
+
+    return render(request, "sites/resource_limits.html", context)

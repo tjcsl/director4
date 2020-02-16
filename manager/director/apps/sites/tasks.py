@@ -15,7 +15,15 @@ from ...utils.appserver import appserver_open_http_request
 from ...utils.secret_generator import gen_database_password
 from . import actions
 from .helpers import auto_run_operation_wrapper
-from .models import Database, DatabaseHost, DockerImage, DockerImageExtraPackage, Domain, Site
+from .models import (
+    Database,
+    DatabaseHost,
+    DockerImage,
+    DockerImageExtraPackage,
+    Domain,
+    Site,
+    SiteResourceLimits,
+)
 
 
 @shared_task
@@ -161,6 +169,35 @@ def create_database_task(operation_id: int, database_host_id: int) -> None:
             assert site.database is not None
 
             database_utils.create_database(site.database)
+
+        wrapper.add_action("Updating Docker service", actions.update_docker_service)
+
+
+@shared_task
+def update_resource_limits_task(operation_id: int, cpus: float, mem_limit: str) -> None:
+    scope: Dict[str, Any] = {"cpus": cpus, "mem_limit": mem_limit}
+
+    with auto_run_operation_wrapper(operation_id, scope) as wrapper:
+        wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
+
+        @wrapper.add_action("Updating SiteResourceLimits object")
+        def update_resource_limits_object(
+            site: Site, scope: Dict[str, Any],
+        ) -> Iterator[Union[Tuple[str, str], str]]:
+            if SiteResourceLimits.objects.filter(site=site).exists():
+                yield ("before_state", str(site.resource_limits))
+
+                site.resource_limits.cpus = scope["cpus"]
+                site.resource_limits.mem_limit = scope["mem_limit"]
+                site.resource_limits.save()
+            else:
+                yield ("before_state", "<nonexistent>")
+
+                SiteResourceLimits.objects.create(
+                    site=site, cpus=scope["cpus"], mem_limit=scope["mem_limit"],
+                )
+
+            yield ("after_state", str(site.resource_limits))
 
         wrapper.add_action("Updating Docker service", actions.update_docker_service)
 

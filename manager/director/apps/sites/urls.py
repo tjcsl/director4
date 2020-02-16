@@ -30,6 +30,12 @@ urlpatterns = [
         name="regen_nginx_config",
     ),
     path("<int:site_id>/restart/", views.sites.restart_view, name="restart_service"),
+    # Admin-only
+    path(
+        "<int:site_id>/resource-limits/",
+        views.maintenance.resource_limits_view,
+        name="resource_limits",
+    ),
 ]
 
 edit_patterns = [

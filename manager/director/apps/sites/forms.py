@@ -128,3 +128,28 @@ class ImageSelectForm(forms.Form):
             self.add_error("packages", "One of your package names is too long")
 
         return cleaned_data
+
+
+class SiteResourceLimitsForm(forms.Form):
+    cpus = forms.FloatField(
+        required=False,
+        min_value=0,
+        max_value=3,
+        widget=forms.NumberInput(attrs={"class": "form-control"}),
+        help_text="Fractions of a CPU to allocate",
+    )
+
+    mem_limit = forms.CharField(
+        required=False,
+        max_length=10,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+        help_text="Memory limit (bytes/KiB/MIB/GiB/KB/MB/GB)",
+        validators=[
+            validators.RegexValidator(
+                regex=r"^(\d+(\s*[KMG]i?B)?)?$",
+                message="Must be either 1) blank for the default limit or 2) a number followed by "
+                "one of the suffixes KiB, MiB, or GiB (powers of 1024) or KB, MB, GB (powers of "
+                "1000).",
+            ),
+        ],
+    )
