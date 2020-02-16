@@ -86,7 +86,6 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
                 operations.edit_site_names(
                     site,
                     new_name=names_form.cleaned_data["name"],
-                    sites_domain_enabled=names_form.cleaned_data["sites_domain_enabled"],
                     domains=domains,
                     request_username=request.user.username,
                 )

@@ -55,20 +55,11 @@ def regen_site_secrets(site: Site) -> None:
 
 
 def edit_site_names(
-    site: Site,
-    *,
-    new_name: str,
-    sites_domain_enabled: bool,
-    domains: List[str],
-    request_username: str
+    site: Site, *, new_name: str, domains: List[str], request_username: str
 ) -> None:
     operation = Operation.objects.create(site=site, type="edit_site_names")
     edit_site_names_task.delay(
-        operation.id,
-        new_name=new_name,
-        sites_domain_enabled=sites_domain_enabled,
-        domains=domains,
-        request_username=request_username,
+        operation.id, new_name=new_name, domains=domains, request_username=request_username,
     )
 
     send_operation_updated_message(site)

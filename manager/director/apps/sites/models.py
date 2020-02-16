@@ -70,9 +70,6 @@ class Site(models.Model):
     # Users who have access to this site
     users = models.ManyToManyField(get_user_model(), blank=True)
 
-    # Whether to enable access via the <name>.sites.tjhsst.edu domain
-    sites_domain_enabled = models.BooleanField(default=True)
-
     # The site database
     database = models.OneToOneField(
         "Database", null=True, blank=True, on_delete=models.SET_NULL, related_name="site"
@@ -90,8 +87,7 @@ class Site(models.Model):
             ("https://" + domain) for domain in self.domain_set.values_list("domain", flat=True)
         ]
 
-        if self.sites_domain_enabled:
-            urls.append(self.sites_url)
+        urls.append(self.sites_url)
 
         return urls
 
@@ -102,17 +98,14 @@ class Site(models.Model):
         )
 
     @property
-    def main_url(self) -> Optional[str]:
+    def main_url(self) -> str:
         # Use the first custom domain if one exists
         domain = self.domain_set.values_list("domain", flat=True).first()
         if domain is not None:
             return "https://{}".format(domain)
 
-        # Then the "sites" URL if it's enabled
-        if self.sites_domain_enabled:
-            return self.sites_url
-
-        return None
+        # Then the "sites" URL
+        return self.sites_url
 
     def serialize_for_appserver(self) -> Dict[str, Any]:
         main_url = self.main_url
@@ -131,7 +124,6 @@ class Site(models.Model):
     def serialize_for_balancer(self) -> Dict[str, Any]:
         return {
             "name": self.name,
-            "sites_domain_enabled": self.sites_domain_enabled,
             "custom_domains": list(
                 self.domain_set.filter(status="active").values_list("domain", flat=True)
             ),
@@ -377,8 +369,7 @@ class DockerImageExtraPackage(models.Model):
 class Domain(models.Model):
     """Represents a custom (non-`sites.tjhsst.edu`) domain.
 
-    `sites.tjhsst.edu` domains MUST be set up by creating a site with that name and setting
-    sites_domain_enabled=True
+    `sites.tjhsst.edu` domains MUST be set up by creating a site with that name.
 
     Note: It must be ensured that *.tjhsst.edu domains can only be set up by Director admins.
 

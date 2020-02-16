@@ -48,13 +48,9 @@ class SiteNamesForm(forms.Form):
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
-    sites_domain_enabled = forms.BooleanField(
-        label="Enable sites.tjhsst.edu domain", label_suffix="?",
-    )
-
     @classmethod
     def build_for_site(cls, site: Site) -> "SiteNamesForm":
-        return SiteNamesForm({"name": site.name, "sites_domain_enabled": site.sites_domain_enabled})
+        return SiteNamesForm({"name": site.name})
 
 
 class DomainForm(forms.Form):

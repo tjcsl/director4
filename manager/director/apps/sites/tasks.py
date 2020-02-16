@@ -56,16 +56,10 @@ def rename_site_task(operation_id: int, new_name: str) -> None:
 
 @shared_task
 def edit_site_names_task(
-    operation_id: int,
-    *,
-    new_name: str,
-    sites_domain_enabled: bool,
-    domains: List[str],
-    request_username: str,
+    operation_id: int, *, new_name: str, domains: List[str], request_username: str,
 ) -> None:
     scope: Dict[str, Any] = {
         "new_name": new_name,
-        "sites_domain_enabled": sites_domain_enabled,
         "domains": domains,
         "request_username": request_username,
     }
@@ -89,10 +83,6 @@ def edit_site_names_task(
             site: Site, scope: Dict[str, Any],
         ) -> Iterator[Union[Tuple[str, str], str]]:
             yield ("before_state", str(site.list_urls()))
-
-            site.sites_domain_enabled = scope["sites_domain_enabled"]
-            site.save(update_fields=["sites_domain_enabled"])
-            yield "Set site.sites_domain_enabled"
 
             request_user = get_user_model().objects.get(username=scope["request_username"])
 
