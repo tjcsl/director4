@@ -186,16 +186,13 @@ def update_resource_limits_task(operation_id: int, cpus: float, mem_limit: str) 
         ) -> Iterator[Union[Tuple[str, str], str]]:
             if SiteResourceLimits.objects.filter(site=site).exists():
                 yield ("before_state", str(site.resource_limits))
-
-                site.resource_limits.cpus = scope["cpus"]
-                site.resource_limits.mem_limit = scope["mem_limit"]
-                site.resource_limits.save()
             else:
                 yield ("before_state", "<nonexistent>")
+                SiteResourceLimits.objects.create(site=site)
 
-                SiteResourceLimits.objects.create(
-                    site=site, cpus=scope["cpus"], mem_limit=scope["mem_limit"],
-                )
+            site.resource_limits.cpus = scope["cpus"]
+            site.resource_limits.mem_limit = scope["mem_limit"]
+            site.resource_limits.save()
 
             yield ("after_state", str(site.resource_limits))
 
