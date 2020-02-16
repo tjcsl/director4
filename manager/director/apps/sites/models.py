@@ -271,7 +271,7 @@ class DockerImageExtraPackage(models.Model):
         "DockerImage", null=False, on_delete=models.CASCADE, related_name="extra_packages"
     )
     # Package name
-    name = models.CharField(max_length=60, blank=False, null=False, unique=True)
+    name = models.CharField(max_length=60, blank=False, null=False)
 
     class Meta:
         constraints = [
