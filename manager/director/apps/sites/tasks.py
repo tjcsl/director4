@@ -2,6 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 # pylint: disable=unused-variable
 
+import random
 from typing import Any, Dict, Iterator, List, Tuple, Union
 
 from celery import shared_task
@@ -10,6 +11,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from ...utils import database as database_utils
+from ...utils.appserver import appserver_open_http_request
 from ...utils.secret_generator import gen_database_password
 from . import actions
 from .helpers import auto_run_operation_wrapper
@@ -290,6 +292,25 @@ def update_image_task(
             yield "Models updated"
 
         wrapper.add_action("Building Docker image", actions.build_docker_image)
+
+        if scope["write_run_sh_file"]:
+
+            @wrapper.add_action("Writing run.sh")
+            def do_write_run_sh_file(  # pylint: disable=unused-argument
+                site: Site, scope: Dict[str, Any],
+            ) -> Iterator[Union[Tuple[str, str], str]]:
+                appserver = random.choice(scope["pingable_appservers"])
+
+                yield "Connecting to appserver {} to restart Docker service".format(appserver)
+                appserver_open_http_request(
+                    appserver,
+                    "/sites/{}/files/write".format(site.id),
+                    params={"path": "run.sh", "mode": "0755"},
+                    method="POST",
+                    data=site.docker_image.parent.run_script_template.encode().rstrip() + b"\n",
+                )
+
+                yield "Successfully wrote run.sh"
 
         wrapper.add_action("Updating Docker service", actions.update_docker_service)
 
