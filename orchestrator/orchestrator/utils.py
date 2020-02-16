@@ -4,7 +4,7 @@
 import asyncio
 import concurrent.futures
 import functools
-from typing import Any, Awaitable, Callable, Coroutine, Optional, Tuple, TypeVar
+from typing import Any, Awaitable, Callable, Coroutine, Generator, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
 U = TypeVar("U")  # pylint: disable=invalid-name
@@ -49,3 +49,12 @@ def run_in_executor(
         return wrapper
 
     return wrap
+
+
+def iter_chunks(stream: Any, bufsize: int) -> Generator[bytes, None, None]:
+    while True:
+        chunk = stream.read(bufsize)
+        if not chunk:
+            break
+
+        yield chunk

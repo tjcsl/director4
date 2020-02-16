@@ -139,6 +139,27 @@ def get_cmd(site_directory: str, relpath: str, max_size_str: str) -> None:
         sys.exit(SPECIAL_EXIT_CODE)
 
 
+def write_cmd(site_directory: str, relpath: str) -> None:
+    if relpath.startswith("/"):
+        print("Invalid path", file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
+    chroot_into(site_directory)
+
+    try:
+        with open(relpath, "wb") as f_obj:
+            while True:
+                chunk = sys.stdin.buffer.read1(BUFSIZE)
+                if not chunk:
+                    break
+
+                f_obj.write(chunk)
+                f_obj.flush()
+    except OSError as ex:
+        print(ex, file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
+
 def monitor_cmd(site_directory: str) -> None:
     chroot_into(site_directory)
 
@@ -268,6 +289,7 @@ def main(argv: List[str]) -> None:
         "setup": (setup_cmd, [1]),
         "ls": (ls_cmd, [2]),
         "get": (get_cmd, [3]),
+        "write": (write_cmd, [2]),
         "monitor": (monitor_cmd, [1]),
     }
 

@@ -10,6 +10,7 @@ from typing import (  # pylint: disable=unused-import
     AsyncGenerator,
     Callable,
     Dict,
+    Iterable,
     List,
     Optional,
     TypeVar,
@@ -155,6 +156,31 @@ def get_site_file(site_id: int, relpath: str) -> str:
         raise SiteFilesException(stderr.decode().strip())
     else:
         raise SiteFilesException("Internal error")
+
+
+def write_site_file(site_id: int, relpath: str, data: Union[bytes, Iterable[bytes]]) -> None:
+    site_dir = get_site_directory_path(site_id)
+
+    proc = run_helper_script_prog(
+        ["write", site_dir, relpath],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    if isinstance(data, bytes):
+        proc.stdin.write(data)
+    else:
+        for chunk in data:
+            proc.stdin.write(chunk)
+
+    _, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+            raise SiteFilesException(stderr.decode().strip())
+        else:
+            raise SiteFilesException("Internal error")
 
 
 class SiteFilesMonitor:
