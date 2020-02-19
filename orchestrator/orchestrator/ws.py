@@ -334,7 +334,7 @@ def main(argv: List[str]) -> None:
     loop.add_signal_handler(signal.SIGINT, sigint_handler)
 
     loop.set_default_executor(
-        concurrent.futures.ThreadPoolExecutor(max_workers=min(32, os.cpu_count() * 3))
+        concurrent.futures.ThreadPoolExecutor(max_workers=min(32, (os.cpu_count() or 2) * 3))
     )
 
     loop.run_until_complete(run_server(route, options.bind, options.port, ssl=ssl_context))
