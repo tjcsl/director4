@@ -58,20 +58,8 @@ done
 systemctl restart postgresql
 systemctl enable postgresql
 
-
-## Setup MySQL
-# Install it
-apt-get -y install mysql-server default-libmysqlclient-dev
-
-# Create users
-run_mysql() {
-    echo "$*" | sudo mysql -u root
-}
-run_mysql "CREATE USER IF NOT EXISTS 'admin'@'%';"
-run_mysql "SET PASSWORD FOR admin@'%' = PASSWORD('pwd');"
-run_mysql "GRANT ALL PRIVILEGES ON *.* TO 'admin'@'%' WITH GRANT OPTION;"
-run_mysql "FLUSH PRIVILEGES;"
-
+## Install MySQL system dependency
+apt-get -y install default-libmysqlclient-dev
 
 ## Setup Redis
 apt-get -y install redis
@@ -155,15 +143,36 @@ docker system prune --force
 
 
 # Create /data directories
-for dir in /data; do
+for dir in /data /data/db; do
     mkdir -p "$dir"
     chown root:root "$dir"
 done
 
-for dir in /data/sites /data/images; do
+for dir in /data/sites /data/images /data/db/postgres /data/db/mysql; do
     mkdir -p "$dir"
     chown vagrant:vagrant "$dir"
 done
+
+## Setup PostgreSQL service
+docker service rm director-postgres || true
+docker service create --replicas=1 \
+    --publish published=5433,target=5432 \
+    --mount type=bind,source=/data/db/postgres,destination=/var/lib/postgresql/data \
+    --env=POSTGRES_USER=postgres \
+    --env=POSTGRES_PASSWORD=pwd \
+    --network director-sites \
+    --name director-postgres \
+    postgres:latest
+
+## Setup MySQL service
+docker service rm director-mysql || true
+docker service create --replicas=1 \
+    --publish published=3307,target=3306 \
+    --mount type=bind,source=/data/db/mysql,destination=/var/lib/mysql \
+    --env=MYSQL_ROOT_PASSWORD=pwd \
+    --network director-sites \
+    --name director-mysql \
+    mariadb:latest
 
 # Docs repo
 mkdir -p /usr/local/www/director-docs
@@ -192,18 +201,29 @@ sudo -H -u vagrant ./scripts/install_dependencies.sh
 (cd manager; sudo -H -u vagrant pipenv run ./manage.py shell -c "
 from director.apps.sites.models import DatabaseHost
 
+remove_databases = [
+    {'hostname': '127.0.0.1', 'port': 5432},
+    {'hostname': '127.0.0.1', 'port': 3306},
+]
+for data in remove_databases:
+    DatabaseHost.objects.filter(**data).delete()
+
 databases = [
     {
-        'hostname': '127.0.0.1',
+        'hostname': 'director-postgres',
         'port': 5432,
         'dbms': 'postgres',
+        'admin_hostname': 'localhost',
+        'admin_port': 5433,
         'admin_username': 'postgres',
         'admin_password': 'pwd',
     },
     {
-        'hostname': '127.0.0.1',
+        'hostname': 'director-mysql',
         'port': 3306,
         'dbms': 'mysql',
+        'admin_hostname': 'localhost',
+        'admin_port': 3307,
         'admin_username': 'admin',
         'admin_password': 'pwd',
     },

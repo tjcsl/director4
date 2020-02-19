@@ -414,13 +414,30 @@ class DatabaseHost(models.Model):
         ("mysql", "MySQL"),
     ]
 
+    # These parameters are passed to the containers to tell them how to connect to the database.
     hostname = models.CharField(max_length=255)
     port = models.PositiveIntegerField()
 
     dbms = models.CharField(max_length=16, choices=DBMS_TYPES)
 
+    # These are used by the appservers to connect to and administer the database.
+    # If either is unset, 'hostname' and 'port' are used, respectively. (Note that setting
+    # admin_port=0 will also force a fallback on 'port'.)
+    # If admin_hostname begins with a "/", it will be interpreted as a Unix socket path.
+    admin_hostname = models.CharField(max_length=255, null=False, blank=True, default="")
+    admin_port = models.PositiveIntegerField(null=True, blank=True, default=None)
+
     admin_username = models.CharField(max_length=255, null=False, blank=False)
     admin_password = models.CharField(max_length=255, null=False, blank=False)
+
+    def serialize_for_appserver(self) -> Dict[str, Any]:
+        return {
+            "dbms": self.dbms,
+            "admin_hostname": self.admin_hostname or self.hostname,
+            "admin_port": self.admin_port or self.port,
+            "admin_username": self.admin_username,
+            "admin_password": self.admin_password,
+        }
 
     def __str__(self) -> str:
         return "{}:{} ({})".format(self.hostname, self.port, self.get_dbms_display())
@@ -455,6 +472,18 @@ class Database(models.Model):
         return "{}://{}:{}@{}:{}/{}".format(
             self.db_type, self.username, self.password, self.db_host, self.db_port, self.db_name
         )
+
+    def serialize_for_appserver(self) -> Dict[str, Any]:
+        return {
+            "host": self.host.serialize_for_appserver(),
+            "db_type": self.db_type,
+            "db_host": self.db_host,
+            "db_port": self.db_port,
+            "username": self.username,
+            "password": self.password,
+            "db_name": self.db_name,
+            "db_url": self.db_url,
+        }
 
 
 class Operation(models.Model):
