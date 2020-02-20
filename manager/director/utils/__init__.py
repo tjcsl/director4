@@ -5,9 +5,4 @@ import urllib.parse
 
 
 def split_domain(url: str) -> str:
-    domain = urllib.parse.urlsplit(url).netloc
-
-    if ":" in domain:
-        domain = domain[: domain.find(":")]
-
-    return domain
+    return urllib.parse.urlsplit(url).hostname or ""
