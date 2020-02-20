@@ -5,7 +5,7 @@ import json
 import traceback
 from typing import Tuple, Union
 
-from flask import Blueprint, request
+from flask import Blueprint, current_app, request
 
 from ... import database as database_utils
 
@@ -20,7 +20,7 @@ def create_database_page() -> Union[str, Tuple[str, int]]:
     try:
         database_utils.create_database(json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"
@@ -34,7 +34,7 @@ def update_database_password_page() -> Union[str, Tuple[str, int]]:
     try:
         database_utils.create_database(json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"
@@ -48,7 +48,7 @@ def delete_database_page() -> Union[str, Tuple[str, int]]:
     try:
         database_utils.delete_database(json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"
