@@ -43,6 +43,7 @@ def gen_director_container_params(
             "log_config": LogConfig(
                 type=LogConfig.types.JSON, config={"max-size": "1k", "max-file": "1"},
             ),
+            "network": "director-sites",
         }
     )
 
