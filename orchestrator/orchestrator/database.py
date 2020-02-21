@@ -44,12 +44,7 @@ def _open_cursor(
             hostname = "localhost"
 
         conn = MySQLdb.connect(
-            host=hostname,
-            port=port,
-            user=username,
-            passwd=password,
-            db=dbname,
-            **kwargs,
+            host=hostname, port=port, user=username, passwd=password, db=dbname, **kwargs,
         )
 
         try:
