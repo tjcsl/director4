@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-import os
+import asyncio
 import socket
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Optional
 
 from docker.client import DockerClient
 from docker.errors import ImageNotFound, NotFound
@@ -36,6 +36,9 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
         self.socket: Optional[socket.SocketIO] = None
 
+        self.reader: Optional[asyncio.StreamReader] = None
+        self.writer: Optional[asyncio.StreamWriter] = None
+
         self.closed = False
 
     async def start(self) -> None:
@@ -45,6 +48,11 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         # The default timeout is 60 seconds, which is way too low
         # 1 day is probably overkill, but why not?
         self.socket._sock.settimeout(24 * 60 * 60)  # pylint: disable=protected-access
+
+        # We have to do this here because the executor doesn't have a running event loop
+        self.reader, self.writer = await asyncio.open_connection(
+            sock=self.socket._sock  # pylint: disable=protected-access
+        )
 
         await self.resize(24, 80)
 
@@ -131,18 +139,16 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
             sock._sock.send(b"\n")  # pylint: disable=protected-access
 
-    @run_in_executor(None)
-    def read(self, bufsize: int) -> bytes:
-        if self.socket is not None:
-            return cast(bytes, self.socket._sock.recv(bufsize))  # pylint: disable=protected-access
-        else:
+    async def read(self, bufsize: int) -> bytes:
+        if self.reader is None or self.closed:
             return b""
 
-    @run_in_executor(None)
-    def write(self, data: bytes) -> None:
-        assert self.socket is not None
-        # self.socket.write() doesn't work -- the SocketIO object is not marked as writable.
-        os.write(self.socket.fileno(), data)
+        return await self.reader.read(bufsize)
+
+    async def write(self, data: bytes) -> None:
+        assert self.writer is not None
+        self.writer.write(data)
+        await self.writer.drain()
 
     @run_in_executor(None)
     def resize(self, rows: int, cols: int) -> None:
