@@ -8,6 +8,7 @@ from typing import Any, AsyncGenerator, Dict, Iterator, Tuple, Union
 
 from django.conf import settings
 
+from ...utils import database as database_utils
 from ...utils.appserver import (
     AppserverProtocolError,
     appserver_open_http_request,
@@ -15,6 +16,7 @@ from ...utils.appserver import (
     iter_pingable_appservers,
 )
 from ...utils.balancer import balancer_open_http_request, iter_pingable_balancers
+from ...utils.secret_generator import gen_database_password
 from .models import Site
 
 
@@ -166,3 +168,24 @@ def update_balancer_nginx_config(  # pylint: disable=unused-argument
             params={"data": json.dumps(site.serialize_for_balancer())},
         )
         yield "Updated balancer {}".format(i)
+
+
+def create_real_site_database(site: Site, scope: Dict[str, Any]):  # pylint: disable=unused-argument
+    yield "Creating real site database"
+
+    assert site.database is not None
+
+    database_utils.create_database(site.database)
+
+
+def regen_database_password(site: Site, scope: Dict[str, Any]):  # pylint: disable=unused-argument
+    yield "Updating password in database model"
+
+    assert site.database is not None
+
+    site.database.password = gen_database_password()
+    site.database.save()
+
+    yield "Updating real password"
+
+    database_utils.update_password(site.database)

@@ -532,6 +532,9 @@ class Operation(models.Model):
         ("delete_site", "Deleting site"),
         # Restart a site's process
         ("restart_site", "Restarting site"),
+        # Tries to ensure everything is correct. Builds the Docker image, updates the
+        # Docker service, and updates the Nginx configuration.
+        ("fix_site", "Attempting to fix site"),
     ]
 
     site = models.OneToOneField(Site, null=False, on_delete=models.PROTECT)

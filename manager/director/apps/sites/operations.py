@@ -10,6 +10,7 @@ from .tasks import (
     create_site_task,
     delete_database_task,
     edit_site_names_task,
+    fix_site_task,
     regen_nginx_config_task,
     regen_site_secrets_task,
     rename_site_task,
@@ -91,5 +92,12 @@ def update_image(
 def create_site(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="create_site")
     create_site_task.delay(operation.id)
+
+    send_operation_updated_message(site)
+
+
+def fix_site(site: Site) -> None:
+    operation = Operation.objects.create(site=site, type="fix_site")
+    fix_site_task.delay(operation.id)
 
     send_operation_updated_message(site)
