@@ -3,6 +3,7 @@
 
 from typing import Any, Dict, List, Optional, cast
 
+import docker
 from docker.client import DockerClient
 from docker.models.services import Service
 from docker.types import EndpointSpec, Resources, RestartPolicy, ServiceMode, UpdateConfig
@@ -120,8 +121,14 @@ def restart_director_service(client: DockerClient, site_id: int) -> None:
     if service is None:
         raise OrchestratorActionError("Service does not exist")
 
-    if not service.force_update():
-        raise OrchestratorActionError("Error restarting service")
+    try:
+        if not service.force_update():
+            raise OrchestratorActionError("Error restarting service")
+    except docker.errors.APIError as ex:
+        if "update out of sequence" in str(ex):
+            pass
+        else:
+            raise
 
 
 def remove_director_service(client: DockerClient, site_id: int) -> None:
