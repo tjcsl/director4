@@ -5,7 +5,7 @@ import json
 import traceback
 from typing import Tuple, Union
 
-from flask import Blueprint, request
+from flask import Blueprint, current_app, request
 
 from ...docker.services import (
     remove_director_service,
@@ -37,10 +37,10 @@ def update_docker_service_page(site_id: int) -> Union[str, Tuple[str, int]]:
 
         update_director_service(create_client(), site_id, json.loads(request.form["data"]))
     except OrchestratorActionError as ex:
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"
@@ -53,10 +53,10 @@ def restart_docker_service_page(site_id: int) -> Union[str, Tuple[str, int]]:
     try:
         restart_director_service(create_client(), site_id)
     except OrchestratorActionError as ex:
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"
@@ -69,10 +69,10 @@ def remove_docker_service_page(site_id: int) -> Union[str, Tuple[str, int]]:
     try:
         remove_director_service(create_client(), site_id)
     except OrchestratorActionError as ex:
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"

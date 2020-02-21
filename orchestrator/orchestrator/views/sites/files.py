@@ -4,7 +4,7 @@
 import traceback
 from typing import Tuple, Union
 
-from flask import Blueprint, request
+from flask import Blueprint, current_app, request
 
 from ... import settings
 from ...files import SiteFilesException, get_site_file, write_site_file
@@ -23,10 +23,10 @@ def get_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
     try:
         return get_site_file(site_id, request.args["path"])
     except SiteFilesException as ex:
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"
@@ -47,10 +47,10 @@ def write_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
             mode_str=request.args.get("mode", None),
         )
     except SiteFilesException as ex:
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"

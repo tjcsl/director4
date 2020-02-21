@@ -5,7 +5,7 @@ import json
 import traceback
 from typing import Tuple, Union
 
-from flask import Blueprint, request
+from flask import Blueprint, current_app, request
 
 from ...configs.nginx import disable_nginx_config, update_nginx_config
 from ...docker.services import reload_nginx_config
@@ -30,10 +30,10 @@ def update_nginx_page(site_id: int) -> Union[str, Tuple[str, int]]:
     try:
         update_nginx_config(site_id, json.loads(request.form["data"]))
     except OrchestratorActionError as ex:
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"
@@ -45,10 +45,10 @@ def reload_nginx_page() -> Union[str, Tuple[str, int]]:
     try:
         reload_nginx_config(create_client())
     except OrchestratorActionError as ex:
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"
@@ -64,10 +64,10 @@ def disable_nginx_page(site_id: int) -> Union[str, Tuple[str, int]]:
     try:
         disable_nginx_config(site_id)
     except OrchestratorActionError as ex:
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
-        traceback.print_exc()
+        current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
         return "Success"
