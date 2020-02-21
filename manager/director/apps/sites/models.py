@@ -301,6 +301,14 @@ class DockerImage(models.Model):
         related_name="children",
     )
 
+    # If this is set, it will be run before anything else.
+    # This should be used to install basic dependencies. For example, in the Python
+    # images this should be used to install virtualenv.
+    # If there are any DockerImageExtraPackages to install, the command that is
+    # run looks like "<base_install_command> && <install_command_prefix> <pkgs>",
+    # so be careful about accidental syntax errors!
+    base_install_command = models.TextField(blank=True, null=False, default="")
+
     # This will be run with sh -c '<cmd> <pkgs>' where <cmd> is this command
     # and <pkgs> is a space-separated list of packages.
     install_command_prefix = models.TextField(blank=True, null=False, default="")
@@ -311,20 +319,30 @@ class DockerImage(models.Model):
 
     def get_full_install_command(self) -> Optional[str]:
         """Get the full command to install all of this site's packages, or None
-        if it has no packages to install."""
+        if there is nothing to do.
+
+        This will only return None if 1) there are no ``DockerImageExtraPackage``s
+        for this ``DockerImage`` AND 2) ``base_install_command`` is empty.
+
+        """
 
         if self.parent is not None:
             install_command_prefix = self.parent.install_command_prefix
-            if not install_command_prefix:
-                return None
+            base_install_command = self.parent.base_install_command
         else:
             return None
 
-        package_names = self.extra_packages.values_list("name", flat=True)
-        if package_names.exists():
-            return install_command_prefix + " " + " ".join(package_names)
-        else:
-            return None
+        command_parts = []
+
+        if base_install_command:
+            command_parts.append(base_install_command)
+
+        if install_command_prefix:
+            package_names = self.extra_packages.values_list("name", flat=True)
+            if package_names.exists():
+                command_parts.append(install_command_prefix + " " + " ".join(package_names))
+
+        return " && ".join(command_parts) if command_parts else None
 
     def serialize_for_appserver(self) -> Dict[str, Any]:
         return {
