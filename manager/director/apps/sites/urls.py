@@ -14,6 +14,11 @@ urlpatterns = [
     ),
     path("operations/", views.maintenance.operations_view, name="operations"),
     path(
+        "operations/<int:operation_id>/delete-and-fix",
+        views.maintenance.operation_delete_fix_view,
+        name="operation-delete-fix",
+    ),
+    path(
         "custom-resource-limits/",
         views.maintenance.custom_resource_limits_list_view,
         name="custom_resource_limits_list",

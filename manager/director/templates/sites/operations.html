@@ -36,6 +36,13 @@
         <div>
             <h2>{{ operation.site.name }} (id {{ operation.site.id }})</h2>
 
+            {% if operation.has_failed %}
+            <form method="POST" action="{% url 'sites:operation-delete-fix' operation.id %}">
+                {% csrf_token %}
+                <input type="submit" value="Remove and try to fix" class="btn btn-ion" title="This removes all records of the failed operation and runs some tasks that should fix most issues.">
+            </form>
+            {% endif %}
+
             <h4>Actions</h4>
             <table class="actions has-border">
                 <tr>

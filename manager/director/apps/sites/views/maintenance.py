@@ -58,6 +58,25 @@ def operations_view(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+def operation_delete_fix_view(request: HttpRequest, operation_id: int) -> HttpResponse:
+    if not request.user.is_superuser:
+        raise Http404
+
+    operation = Operation.objects.get(id=operation_id)
+    site = operation.site
+
+    if not operation.has_failed:
+        messages.error(request, "Can only delete failed operations")
+        return redirect("sites:operations")
+
+    operation.action_set.all().delete()
+    operation.delete()
+
+    operations.fix_site(site)
+    return redirect("sites:operations")
+
+
+@login_required
 def custom_resource_limits_list_view(request: HttpRequest) -> HttpResponse:
     if not request.user.is_superuser:
         raise Http404

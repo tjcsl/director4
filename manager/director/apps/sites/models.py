@@ -546,6 +546,10 @@ class Operation(models.Model):
     def has_started(self) -> bool:
         return self.started_time is not None
 
+    @property
+    def has_failed(self) -> bool:
+        return self.action_set.filter(result=False).exists()
+
     def start_operation(self) -> None:
         self.started_time = timezone.localtime()
         self.save(update_fields=["started_time"])
