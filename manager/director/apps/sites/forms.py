@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+import re
 from typing import Any, Dict
 
 from django import forms
@@ -131,6 +132,8 @@ class ImageSelectForm(forms.Form):
         help_text="This should be a space-separated list of packages to install in the image.",
     )
 
+    PACKAGE_NAME_REGEX = re.compile(r"^[a-zA-Z0-9_][-_a-zA-Z0-9]*$")
+
     def clean(self) -> Dict[str, Any]:
         cleaned_data = super().clean()
 
@@ -139,6 +142,8 @@ class ImageSelectForm(forms.Form):
         package_names = cleaned_data["packages"].strip().split()
         if any(len(name) > max_package_name_length for name in package_names):
             self.add_error("packages", "One of your package names is too long")
+        if any(self.PACKAGE_NAME_REGEX.search(name) is None for name in package_names):
+            self.add_error("packages", "One of your package names is invalid")
 
         return cleaned_data
 
