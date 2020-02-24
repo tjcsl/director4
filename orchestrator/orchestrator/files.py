@@ -190,6 +190,24 @@ def write_site_file(
             raise SiteFilesException("Internal error")
 
 
+def remove_all_site_files_dangerous(site_id: int) -> None:
+    site_dir = get_site_directory_path(site_id)
+    proc = run_helper_script_prog(
+        ["remove-all-site-files-dangerous", site_dir],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    _, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+            raise SiteFilesException(stderr.decode().strip())
+        else:
+            raise SiteFilesException("Internal error")
+
+
 class SiteFilesMonitor:
     def __init__(self, site_id: int) -> None:
         self.site_id = site_id

@@ -91,3 +91,18 @@ def disable_nginx_config(site_id: int) -> None:
             raise OrchestratorActionError(
                 "Error moving old Nginx config out of the way: {}".format(ex)
             ) from ex
+
+
+def remove_nginx_config(site_id: int) -> None:
+    """Returns None on success or a message on failure."""
+    nginx_config_path = os.path.join(
+        settings.NGINX_CONFIG_DIRECTORY, "site-{}.conf".format(site_id)
+    )
+
+    if os.path.exists(nginx_config_path):
+        try:
+            os.remove(nginx_config_path)
+        except OSError as ex:
+            raise OrchestratorActionError(
+                "Error moving old Nginx config out of the way: {}".format(ex)
+            ) from ex

@@ -10,7 +10,6 @@ from celery import shared_task
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
-from ...utils import database as database_utils
 from ...utils.appserver import appserver_open_http_request
 from ...utils.secret_generator import gen_database_password
 from . import actions
@@ -209,27 +208,8 @@ def delete_database_task(operation_id: int) -> None:
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
-        @wrapper.add_action("Deleting real database")
-        def delete_real_database(  # pylint: disable=unused-argument
-            site: Site, scope: Dict[str, Any],
-        ) -> Iterator[Union[Tuple[str, str], str]]:
-            yield "Deleting real database"
-
-            assert site.database is not None
-
-            database_utils.delete_database(site.database)
-
-        @wrapper.add_action("Deleting database object")
-        def delete_database_object(  # pylint: disable=unused-argument
-            site: Site, scope: Dict[str, Any],
-        ) -> Iterator[Union[Tuple[str, str], str]]:
-            yield "Deleting database object in model"
-
-            assert site.database is not None
-
-            site.database.delete()
-
-        wrapper.add_action("Updating Docker service", actions.update_docker_service)
+        if site.database is not None:
+            wrapper.add_action("Deleting database", actions.delete_site_database_and_object)
 
 
 @shared_task
@@ -343,6 +323,29 @@ def create_site_task(operation_id: int) -> None:
             wrapper.add_action(
                 "Updating balancer configuration", actions.update_balancer_nginx_config
             )
+
+
+@shared_task
+def delete_site_task(operation_id: int) -> None:
+    scope: Dict[str, Any] = {}
+
+    site = Site.objects.get(operation__id=operation_id)
+
+    with auto_run_operation_wrapper(operation_id, scope) as wrapper:
+        wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
+
+        if site.database is not None:
+            wrapper.add_action("Deleting database", actions.delete_site_database_and_object)
+
+        wrapper.add_action("Removing Docker service", actions.remove_docker_service)
+
+        wrapper.add_action("Removing Docker image", actions.remove_docker_image)
+
+        wrapper.add_action(
+            "Removing appserver Nginx configuration", actions.remove_appserver_nginx_config
+        )
+
+        wrapper.add_action("Removing site files", actions.remove_all_site_files_dangerous)
 
 
 @shared_task

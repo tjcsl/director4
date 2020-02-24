@@ -6,6 +6,7 @@ import importlib.util
 import json
 import os
 import select
+import shutil
 import stat
 import string
 import sys
@@ -303,6 +304,13 @@ def monitor_cmd(site_directory: str) -> None:
                     print(json.dumps(event_info), flush=True)
 
 
+def remove_all_site_files_dangerous(site_directory: str) -> None:
+    try:
+        shutil.rmtree(site_directory)
+    except OSError as ex:
+        print("Error: {}".format(ex), file=sys.stderr)
+
+
 def main(argv: List[str]) -> None:
     if len(argv) < 2:
         print("Please specify a command", file=sys.stderr)
@@ -314,6 +322,7 @@ def main(argv: List[str]) -> None:
         "get": (get_cmd, [3]),
         "write": (write_cmd, [2, 3]),
         "monitor": (monitor_cmd, [1]),
+        "remove-all-site-files-dangerous": (remove_all_site_files_dangerous_cmd, [1]),
     }
 
     if argv[1] in commands:

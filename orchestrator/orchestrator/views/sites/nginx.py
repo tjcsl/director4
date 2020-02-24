@@ -7,7 +7,7 @@ from typing import Tuple, Union
 
 from flask import Blueprint, current_app, request
 
-from ...configs.nginx import disable_nginx_config, update_nginx_config
+from ...configs.nginx import disable_nginx_config, remove_nginx_config, update_nginx_config
 from ...docker.services import reload_nginx_config
 from ...docker.utils import create_client
 from ...exceptions import OrchestratorActionError
@@ -63,6 +63,25 @@ def disable_nginx_page(site_id: int) -> Union[str, Tuple[str, int]]:
 
     try:
         disable_nginx_config(site_id)
+    except OrchestratorActionError as ex:
+        current_app.logger.error("%s", traceback.format_exc())
+        return str(ex), 500
+    except BaseException:  # pylint: disable=broad-except
+        current_app.logger.error("%s", traceback.format_exc())
+        return "Error", 500
+    else:
+        return "Success"
+
+
+@nginx.route("/sites/<int:site_id>/remove-nginx", methods=["POST"])
+def remove_nginx_page(site_id: int) -> Union[str, Tuple[str, int]]:
+    """Disables the Nginx config for a given site.
+
+    Should be used if deployment fails.
+    """
+
+    try:
+        remove_nginx_config(site_id)
     except OrchestratorActionError as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500

@@ -7,7 +7,12 @@ from typing import Tuple, Union
 from flask import Blueprint, current_app, request
 
 from ... import settings
-from ...files import SiteFilesException, get_site_file, write_site_file
+from ...files import (
+    SiteFilesException,
+    get_site_file,
+    remove_all_site_files_dangerous,
+    write_site_file,
+)
 from ...utils import iter_chunks
 
 files = Blueprint("files", __name__)
@@ -46,6 +51,20 @@ def write_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
             iter_chunks(request.stream, settings.FILE_STREAM_BUFSIZE),
             mode_str=request.args.get("mode", None),
         )
+    except SiteFilesException as ex:
+        current_app.logger.error("%s", traceback.format_exc())
+        return str(ex), 500
+    except BaseException:  # pylint: disable=broad-except
+        current_app.logger.error("%s", traceback.format_exc())
+        return "Error", 500
+    else:
+        return "Success"
+
+
+@files.route("/sites/<int:site_id>/remove-all-site-files-dangerous", methods=["POST"])
+def remove_all_site_files_dangerous_page(site_id: int) -> Union[str, Tuple[str, int]]:
+    try:
+        remove_all_site_files_dangerous(site_id)
     except SiteFilesException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500

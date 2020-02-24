@@ -6,6 +6,7 @@ from typing import Any, Dict
 
 import jinja2
 from docker.client import DockerClient
+from docker.errors import ImageNotFound
 
 from .. import settings
 from ..exceptions import OrchestratorActionError
@@ -54,3 +55,11 @@ def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]) 
     image, build_logs = client.images.build(
         path=image_directory, rm=True, dockerfile="Dockerfile", tag=image_name
     )
+
+
+def remove_docker_image(client: DockerClient, name: str) -> None:
+    try:
+        client.images.remove(name)
+    except ImageNotFound:
+        # This is the desired state; don't throw an error
+        pass

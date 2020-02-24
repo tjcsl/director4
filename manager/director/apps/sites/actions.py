@@ -85,6 +85,27 @@ def update_appserver_nginx_config(
             yield "Successfully reloaded confgiration"
 
 
+def remove_appserver_nginx_config(
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    appserver = random.choice(scope["pingable_appservers"])
+    yield "Connecting to appserver {} to remove Nginx config".format(appserver)
+
+    appserver_open_http_request(
+        appserver, "/sites/{}/remove-nginx".format(site.id), method="POST", timeout=60,
+    )
+
+    yield "Reloading Nginx config on all appservers"
+    for i in scope["pingable_appservers"]:
+        yield "Reloading Nginx config on appserver {}".format(i)
+
+        appserver_open_http_request(
+            i, "/sites/reload-nginx", method="POST", timeout=120,
+        )
+
+    yield "Done"
+
+
 def update_docker_service(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
@@ -112,6 +133,19 @@ def restart_docker_service(
     )
 
     yield "Restarted Docker service"
+
+
+def remove_docker_service(
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    appserver = random.choice(scope["pingable_appservers"])
+
+    yield "Connecting to appserver {} to remove Docker service".format(appserver)
+    appserver_open_http_request(
+        appserver, "/sites/{}/remove-docker-service".format(site.id), method="POST",
+    )
+
+    yield "Removed Docker service"
 
 
 def build_docker_image(site: Site, scope: Dict[str, Any]) -> Iterator[Union[Tuple[str, str], str]]:
@@ -153,6 +187,34 @@ async def build_docker_image_async(
         raise Exception(result["msg"])
 
 
+def remove_docker_image(  # pylint: disable=unused-argument
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    if not site.docker_image.is_custom:
+        yield "Site does not have a custom Docker image; skipping"
+        return
+
+    for i in range(settings.DIRECTOR_NUM_APPSERVERS):
+        yield "Removing Docker image on appserver {}".format(i)
+
+        appserver_open_http_request(
+            i, "/sites/remove-docker-image", params={"name": site.docker_image.name}, method="POST",
+        )
+
+
+def remove_all_site_files_dangerous(
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    appserver = random.choice(scope["pingable_appservers"])
+
+    yield "Connecting to appserver {} to remove site files".format(appserver)
+    appserver_open_http_request(
+        appserver, "/sites/{}/remove-all-site-files-dangerous".format(site.id), method="POST",
+    )
+
+    yield "Removed site files"
+
+
 def update_balancer_nginx_config(  # pylint: disable=unused-argument
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
@@ -168,6 +230,18 @@ def update_balancer_nginx_config(  # pylint: disable=unused-argument
             params={"data": json.dumps(site.serialize_for_balancer())},
         )
         yield "Updated balancer {}".format(i)
+
+
+def delete_site_database_and_object(  # pylint: disable=unused-argument
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    assert site.database is not None
+
+    yield "Deleting real database"
+    database_utils.delete_database(site.database)
+
+    yield "Deleting database object in model"
+    site.database.delete()
 
 
 def create_real_site_database(site: Site, scope: Dict[str, Any]):  # pylint: disable=unused-argument
