@@ -304,7 +304,7 @@ def monitor_cmd(site_directory: str) -> None:
                     print(json.dumps(event_info), flush=True)
 
 
-def remove_all_site_files_dangerous(site_directory: str) -> None:
+def remove_all_site_files_dangerous_cmd(site_directory: str) -> None:
     try:
         shutil.rmtree(site_directory)
     except OSError as ex:
