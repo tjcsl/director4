@@ -167,6 +167,10 @@ async def status_handler(
 
     service: Service = get_service_by_name(client, get_director_service_name(site_id))
 
+    if service is None:
+        await websock.close()
+        return
+
     async def ping_loop() -> None:  # type: ignore
         while True:
             try:

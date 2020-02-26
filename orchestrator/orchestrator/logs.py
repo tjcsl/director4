@@ -27,7 +27,9 @@ class DirectorSiteLogFollower:
         self.proc_life_timeout = 90.0
 
     async def start(self, *, since_time: Union[int, float, None] = None) -> None:
-        assert self.service is not None
+        if self.service is None:
+            self.stopped = True
+            return
 
         if since_time is None:
             since_time = time.time()
@@ -51,6 +53,9 @@ class DirectorSiteLogFollower:
         self.stopped = False
 
     async def iter_lines(self) -> AsyncGenerator[str, None]:
+        if self.stopped:
+            return
+
         assert self.proc is not None
         assert self.proc.stdout is not None
 
@@ -79,6 +84,9 @@ class DirectorSiteLogFollower:
                 await self.start(since_time=since_time)
 
     async def _read_line(self, *, timeout: Union[int, float, None]) -> str:
+        if self.stopped:
+            return ""
+
         assert self.proc is not None
         assert self.proc.stdout is not None
 
