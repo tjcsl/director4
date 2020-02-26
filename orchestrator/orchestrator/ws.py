@@ -13,6 +13,7 @@ import ssl
 import sys
 from typing import Any, Dict, List, Optional, Union
 
+import docker
 import websockets
 from docker.models.services import Service
 
@@ -192,6 +193,8 @@ async def status_handler(
                     asyncio.ensure_future(wait_and_send_status(1.0))
                     asyncio.ensure_future(wait_and_send_status(10.0))
         except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+            pass
+        except docker.errors.NotFound:
             pass
 
     async def wait_and_send_status(duration: Union[int, float]) -> None:
