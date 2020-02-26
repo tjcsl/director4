@@ -178,3 +178,19 @@ def restart_view(request: HttpRequest, site_id: int) -> HttpResponse:
     operations.restart_service(site)
 
     return redirect("sites:info", site.id)
+
+
+@login_required
+def delete_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    if site.has_operation:
+        messages.error(request, "An operation is already being performed on this site")
+        return redirect("sites:info", site.id)
+
+    if request.method == "POST":
+        if request.POST.get("confirm") == site.name:
+            operations.delete_site(site)
+            return redirect("sites:info", site.id)
+
+    return render(request, "sites/delete.html", {"site": site})

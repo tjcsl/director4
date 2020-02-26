@@ -9,6 +9,7 @@ from .tasks import (
     create_database_task,
     create_site_task,
     delete_database_task,
+    delete_site_task,
     edit_site_names_task,
     fix_site_task,
     regen_nginx_config_task,
@@ -99,5 +100,12 @@ def create_site(site: Site) -> None:
 def fix_site(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="fix_site")
     fix_site_task.delay(operation.id)
+
+    send_operation_updated_message(site)
+
+
+def delete_site(site: Site) -> None:
+    operation = Operation.objects.create(site=site, type="delete_site")
+    delete_site_task.delay(operation.id)
 
     send_operation_updated_message(site)

@@ -32,6 +32,10 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         try:
             self.site = await self.get_site_for_user(self.scope["user"], id=site_id)
         except Site.DoesNotExist:
+            await self.accept()
+            self.connected = True
+            await self.send_site_info()
+            self.connected = False
             await self.close()
             return
 
@@ -115,7 +119,8 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
 
     @database_sync_to_async
     def dump_site_info(self) -> Optional[Dict[str, Any]]:
-        assert self.site is not None
+        if self.site is None:
+            return None
 
         try:
             self.site.refresh_from_db()

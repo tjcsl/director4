@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from ...utils.appserver import appserver_open_http_request
 from ...utils.secret_generator import gen_database_password
 from . import actions
-from .helpers import auto_run_operation_wrapper
+from .helpers import auto_run_operation_wrapper, send_site_updated_message
 from .models import (
     Database,
     DatabaseHost,
@@ -346,6 +346,10 @@ def delete_site_task(operation_id: int) -> None:
         )
 
         wrapper.add_action("Removing site files", actions.remove_all_site_files_dangerous)
+
+    site.delete()
+
+    send_site_updated_message(site)
 
 
 @shared_task

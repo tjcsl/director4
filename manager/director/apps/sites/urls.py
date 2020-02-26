@@ -27,7 +27,7 @@ urlpatterns = [
     path("create/webdocs/", views.sites.dummy_view, name="create_webdocs"),
     path("<int:site_id>/", views.sites.info_view, name="info"),
     path("<int:site_id>/image/select/", views.sites.image_select_view, name="image_select"),
-    path("<int:site_id>/delete/", views.sites.dummy_view, name="delete"),
+    path("<int:site_id>/delete/", views.sites.delete_view, name="delete"),
     path("<int:site_id>/terminal/", views.sites.terminal_view, name="terminal"),
     path(
         "<int:site_id>/secrets/regenerate/",

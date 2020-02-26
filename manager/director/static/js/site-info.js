@@ -49,7 +49,11 @@ $(function() {
             }
 
             if(data.site_info === null) {
-                var modal_div = $("<div>").addClass("modal").attr("role", "dialog");
+                if($("#site-deleted-modal").length) {
+                    return;
+                }
+
+                var modal_div = $("<div>").addClass("modal").attr("role", "dialog").attr("id", "site-deleted-modal");
 
                 var modal_dialog = $("<div>").addClass("modal-dialog").appendTo(modal_div);
                 var modal_content = $("<div>").addClass("modal-content").appendTo(modal_dialog);
@@ -74,6 +78,8 @@ $(function() {
                     keyboard: false,
                     show: true,
                 });
+
+                ws.close();
 
                 return;
             }
