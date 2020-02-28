@@ -44,7 +44,8 @@ def get_new_mode(old_mode: int, mode_str: str) -> int:
 
         return (old_mode | mask) if mode_str[0] == "+" else (old_mode & (0o777 ^ mask))
     else:
-        raise ValueError("Invalid mode string")
+        print("Invalid mode string", file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
 
 
 def update_mode(path: str, mode_str: str) -> None:
