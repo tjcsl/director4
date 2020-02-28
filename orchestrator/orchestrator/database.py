@@ -231,3 +231,20 @@ def delete_database(database_info: Dict[str, Any]) -> None:
             )
     else:
         raise ValueError("Unknown DBMS {!r}".format(database_info["db_type"]))
+
+
+def run_single_query(database_info: Dict[str, Any], sql: str) -> str:
+    with open_site_cursor(database_info) as cursor:
+        try:
+            cursor.execute(sql)
+        except psycopg2.DatabaseError as ex:
+            return str(ex)
+        else:
+            if cursor.description is None:
+                return ""
+            else:
+                result = "\t".join(column.name for column in cursor.description)
+                for row in cursor:
+                    result += "\n" + "\t".join(map(str, row))
+
+                return result
