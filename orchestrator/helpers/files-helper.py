@@ -31,6 +31,18 @@ def chroot_into(directory: str) -> None:
 def get_new_mode(old_mode: int, mode_str: str) -> int:
     if set(mode_str) < set("01234567"):
         return int(mode_str, base=8)
+    elif mode_str.startswith(("+", "-")) and set(mode_str[1:]) < set("rwx"):
+        mode_masks = {
+            "r": stat.S_IRUSR + stat.S_IRGRP + stat.S_IROTH,
+            "w": stat.S_IWUSR + stat.S_IWGRP + stat.S_IWOTH,
+            "x": stat.S_IXUSR + stat.S_IXGRP + stat.S_IXOTH,
+        }
+        mask = 0
+        for ch in mode_str[1:]:
+            if ch in mode_masks:
+                mask |= mode_masks[ch]
+
+        return (old_mode | mask) if mode_str[0] == "+" else (old_mode & (0o777 ^ mask))
     else:
         raise ValueError("Invalid mode string")
 
