@@ -74,7 +74,7 @@ def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
             params["mode"] = request.GET["mode"]
 
         try:
-            res = appserver_open_http_request(
+            appserver_open_http_request(
                 appserver,
                 "/sites/{}/files/write".format(site.id),
                 method="POST",
@@ -95,7 +95,7 @@ def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
         for f_obj in files:
             try:
-                res = appserver_open_http_request(
+                appserver_open_http_request(
                     appserver,
                     "/sites/{}/files/write".format(site.id),
                     method="POST",
