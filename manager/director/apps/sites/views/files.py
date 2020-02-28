@@ -69,12 +69,16 @@ def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
         return HttpResponse("No appservers online", content_type="text/plain", status=500)
 
     if "path" in request.GET and "contents" in request.POST:
+        params = {"path": request.GET["path"]}
+        if request.GET.get("mode", ""):
+            params["mode"] = request.GET["mode"]
+
         try:
             res = appserver_open_http_request(
                 appserver,
                 "/sites/{}/files/write".format(site.id),
                 method="POST",
-                params={"path": request.GET["path"]},
+                params=params,
                 data=request.POST["contents"].encode(),
                 timeout=600,
             )
