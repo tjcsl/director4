@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+import os
 from typing import Generator, Union
 
 from django.contrib.auth.decorators import login_required
@@ -50,7 +51,11 @@ def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, Str
 
             yield chunk
 
-    return StreamingHttpResponse(stream(), content_type="text/plain")
+    response = StreamingHttpResponse(stream(), content_type="text/plain")
+    response["Content-Type"] = "application/octet-stream"
+    response["Content-Disposition"] = "attachment; filename={}".format(os.path.basename(path))
+
+    return response
 
 
 @require_POST
