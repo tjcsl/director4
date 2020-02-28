@@ -153,6 +153,10 @@ def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]
         stderr=subprocess.PIPE,
     )
 
+    line = proc.stderr.readline().decode().strip()
+    if line != "OK":
+        raise SiteFilesException(line)
+
     errors = ""
 
     selector = selectors.DefaultSelector()

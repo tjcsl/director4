@@ -32,15 +32,25 @@ def get_file_page(site_id: int) -> Union[Tuple[str, int], Response]:
 
     try:
         stream = stream_site_file(site_id, request.args["path"])
+
+        # Get the first chunk so we can see if there are any errors
+        try:
+            first_chunk = next(stream)
+        except StopIteration:
+            # Empty file
+            first_chunk = b""
     except SiteFilesException as ex:
         current_app.logger.error("%s", traceback.format_exc())
-        return str(ex), 500
+        return str(ex), 400
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500
     else:
 
         def stream_wrapper() -> Generator[bytes, None, None]:
+            if first_chunk:
+                yield first_chunk
+
             try:
                 yield from stream
             except SiteFilesException:

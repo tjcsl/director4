@@ -39,8 +39,8 @@ def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, Str
             params={"path": path},
             timeout=10,
         )
-    except AppserverProtocolError:
-        return HttpResponse(status=500)
+    except AppserverProtocolError as ex:
+        return HttpResponse(str(ex), status=500)
 
     def stream() -> Generator[bytes, None, None]:
         while True:

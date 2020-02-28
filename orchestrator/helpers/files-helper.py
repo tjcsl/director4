@@ -222,6 +222,8 @@ def get_cmd(site_directory: str, relpath: str, max_size_str: str) -> None:
                 sys.exit(SPECIAL_EXIT_CODE)
             f_obj.seek(0, os.SEEK_SET)
 
+            print("OK", file=sys.stderr, flush=True)
+
             for chunk in iter(lambda: f_obj.read(BUFSIZE), b""):
                 sys.stdout.buffer.write(chunk)
                 sys.stdout.flush()
