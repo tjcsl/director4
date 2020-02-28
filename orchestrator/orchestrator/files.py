@@ -208,6 +208,81 @@ def remove_all_site_files_dangerous(site_id: int) -> None:
             raise SiteFilesException("Internal error")
 
 
+def remove_site_file(site_id: int, relpath: str) -> None:
+    site_dir = get_site_directory_path(site_id)
+
+    args = ["rm", site_dir, relpath]
+
+    proc = run_helper_script_prog(
+        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+
+    _, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+            raise SiteFilesException(stderr.decode().strip())
+        else:
+            raise SiteFilesException("Internal error")
+
+
+def remove_site_directory_recur(site_id: int, relpath: str) -> None:
+    site_dir = get_site_directory_path(site_id)
+
+    args = ["rmdir-recur", site_dir, relpath]
+
+    proc = run_helper_script_prog(
+        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+
+    _, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+            raise SiteFilesException(stderr.decode().strip())
+        else:
+            raise SiteFilesException("Internal error")
+
+
+def make_site_directory(site_id: int, relpath: str, *, mode_str: Optional[str] = None) -> None:
+    site_dir = get_site_directory_path(site_id)
+
+    args = ["mkdir", site_dir, relpath]
+    if mode_str is not None:
+        args.append(mode_str)
+
+    proc = run_helper_script_prog(
+        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+
+    _, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+            raise SiteFilesException(stderr.decode().strip())
+        else:
+            raise SiteFilesException("Internal error")
+
+
+def chmod_path(site_id: int, relpath: str, *, mode_str: str) -> None:
+    site_dir = get_site_directory_path(site_id)
+
+    proc = run_helper_script_prog(
+        ["chmod", site_dir, relpath, mode_str],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    _, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+            raise SiteFilesException(stderr.decode().strip())
+        else:
+            raise SiteFilesException("Internal error")
+
+
 class SiteFilesMonitor:
     def __init__(self, site_id: int) -> None:
         self.site_id = site_id

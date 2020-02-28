@@ -135,6 +135,50 @@ def ls_cmd(site_directory: str, relpath: str) -> None:
     print(json.dumps(construct_scandir_file_dicts(relpath)))
 
 
+def chmod_cmd(site_directory: str, relpath: str, mode_str: str) -> None:
+    if relpath.startswith("/"):
+        print("Invalid path", file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
+    chroot_into(site_directory)
+
+    update_mode(relpath, mode_str)
+
+
+def mkdir_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None) -> None:
+    if relpath.startswith("/"):
+        print("Invalid path", file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
+    chroot_into(site_directory)
+
+    os.makedirs(relpath, mode=0o755, exist_ok=True)
+    if mode_str is not None and mode_str != "":
+        update_mode(relpath, mode_str)
+
+
+def rm_cmd(site_directory: str, relpath: str) -> None:
+    if relpath.startswith("/"):
+        print("Invalid path", file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
+    chroot_into(site_directory)
+
+    if os.path.exists(relpath):
+        os.remove(relpath)
+
+
+def rmdir_recur_cmd(site_directory: str, relpath: str) -> None:
+    if relpath.startswith("/"):
+        print("Invalid path", file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
+    chroot_into(site_directory)
+
+    if os.path.isdir(relpath):
+        shutil.rmtree(relpath)
+
+
 def get_cmd(site_directory: str, relpath: str, max_size_str: str) -> None:
     if relpath.startswith("/"):
         print("Invalid path", file=sys.stderr)
@@ -336,6 +380,10 @@ def main(argv: List[str]) -> None:
         "write": (write_cmd, [2, 3]),
         "monitor": (monitor_cmd, [1]),
         "remove-all-site-files-dangerous": (remove_all_site_files_dangerous_cmd, [1]),
+        "rm": (rm_cmd, [2]),
+        "rmdir-recur": (rmdir_recur_cmd, [2]),
+        "mkdir": (mkdir_cmd, [2, 3]),
+        "chmod": (chmod_cmd, [3]),
     }
 
     if argv[1] in commands:
