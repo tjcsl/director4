@@ -7,13 +7,24 @@
     <script>
         var images = JSON.parse("{{ image_json|escapejs }}");
         $(function() {
-            function updateRunShExists() {
+            var run_sh_explanation = $("<p>").text("For reference, here's the run.sh we're going to write:").appendTo($("#id_write_run_sh_file").closest(".tbl-cell"));
+            var run_sh_pre = $("<pre>").appendTo($("<code>").appendTo($("#id_write_run_sh_file").closest(".tbl-cell")));
+
+            function updateRunSh() {
                 var has_run_sh = $("input[name='image']:checked").closest(".image-radio-container").hasClass("has-run-script-template");
                 $("#id_write_run_sh_file").prop("disabled", !has_run_sh);
+
+                run_sh_pre.text(images[$("input[name='image']:checked").val()].run_script_template);
+                if(has_run_sh) {
+                    run_sh_explanation.show();
+                }
+                else {
+                    run_sh_explanation.hide();
+                }
             }
 
-            updateRunShExists();
-            $("input[name='image']").change(updateRunShExists);
+            updateRunSh();
+            $("input[name='image']").change(updateRunSh);
         });
     </script>
 
