@@ -63,6 +63,10 @@ database_patterns = [
 file_patterns = [
     path("", views.sites.dummy_view, name="editor"),
     path("get/", views.files.get_file_view, name="get_file"),
+    path("rm/", views.files.remove_file_view, name="remove_file"),
+    path("rmdir-recur/", views.files.remove_directory_recur_view, name="remove_directory_recur"),
+    path("mkdir/", views.files.make_directory_view, name="mkdir"),
+    path("chmod/", views.files.chmod_view, name="chmod"),
 ]
 
 urlpatterns.extend(
