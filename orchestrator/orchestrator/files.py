@@ -4,12 +4,14 @@
 import asyncio
 import json
 import os
+import selectors
 import subprocess
 from typing import (  # pylint: disable=unused-import
     Any,
     AsyncGenerator,
     Callable,
     Dict,
+    Generator,
     Iterable,
     List,
     Optional,
@@ -25,6 +27,8 @@ HELPER_SCRIPT_PATH = os.path.join(
 )
 
 HELPER_SPECIAL_EXIT_CODE = 145  # Denotes that the text shown on stderr is safe to show to the user
+
+BUFSIZE = 4096
 
 T = TypeVar("T")
 
@@ -138,24 +142,50 @@ def list_site_files(site_id: int, relpath: str) -> List[Dict[str, str]]:
         raise SiteFilesException("Internal error")
 
 
-def get_site_file(site_id: int, relpath: str) -> str:
+def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]:
     site_dir = get_site_directory_path(site_id)
 
     proc = run_helper_script_prog(
         ["get", site_dir, relpath, str(settings.MAX_FILE_DOWNLOAD_BYTES)],
+        bufsize=0,  # THIS IS IMPORTANT
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
 
-    stdout, stderr = proc.communicate()
+    errors = ""
 
-    if proc.returncode == 0:
-        return stdout.decode()
-    elif proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-        raise SiteFilesException(stderr.decode().strip())
-    else:
-        raise SiteFilesException("Internal error")
+    selector = selectors.DefaultSelector()
+    selector.register(proc.stdout, selectors.EVENT_READ)
+    selector.register(proc.stderr, selectors.EVENT_READ)
+
+    while proc.poll() is None:
+        ready_files = selector.select(timeout=300)
+
+        for key, _ in ready_files:
+            if key.fileobj == proc.stdout:
+                buf = proc.stdout.read(BUFSIZE)
+                if not buf:
+                    break
+
+                yield buf
+            elif key.fileobj == proc.stderr:
+                errors += proc.stderr.read(BUFSIZE).decode()
+
+    while True:
+        buf = proc.stdout.read(BUFSIZE)
+        if not buf:
+            break
+
+        yield buf
+
+    errors += proc.stderr.read().decode()
+
+    if proc.returncode != 0:
+        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+            raise SiteFilesException(errors.strip())
+        else:
+            raise SiteFilesException("Internal error")
 
 
 def write_site_file(
@@ -253,6 +283,25 @@ def make_site_directory(site_id: int, relpath: str, *, mode_str: Optional[str] =
 
     proc = run_helper_script_prog(
         args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+
+    _, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+            raise SiteFilesException(stderr.decode().strip())
+        else:
+            raise SiteFilesException("Internal error")
+
+
+def rename_path(site_id: int, oldpath: str, newpath: str) -> None:
+    site_dir = get_site_directory_path(site_id)
+
+    proc = run_helper_script_prog(
+        ["rename", site_dir, oldpath, newpath],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
 
     _, stderr = proc.communicate()

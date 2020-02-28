@@ -145,6 +145,24 @@ def chmod_cmd(site_directory: str, relpath: str, mode_str: str) -> None:
     update_mode(relpath, mode_str)
 
 
+def rename_cmd(site_directory: str, oldpath: str, newpath: str) -> None:
+    if oldpath.startswith("/"):
+        print("Invalid path", file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
+    if newpath.startswith("/"):
+        print("Invalid path", file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
+    chroot_into(site_directory)
+
+    try:
+        os.rename(oldpath, newpath)
+    except OSError as ex:
+        print(ex, file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
+
 def mkdir_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None) -> None:
     if relpath.startswith("/"):
         print("Invalid path", file=sys.stderr)
@@ -384,6 +402,7 @@ def main(argv: List[str]) -> None:
         "rmdir-recur": (rmdir_recur_cmd, [2]),
         "mkdir": (mkdir_cmd, [2, 3]),
         "chmod": (chmod_cmd, [3]),
+        "rename": (rename_cmd, [3]),
     }
 
     if argv[1] in commands:

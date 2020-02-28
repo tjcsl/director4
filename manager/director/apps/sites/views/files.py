@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from typing import Generator, Union
+
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_GET, require_POST
 
@@ -16,7 +18,7 @@ from ..models import Site
 
 @require_GET
 @login_required
-def get_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
+def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, StreamingHttpResponse]:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
     if "path" not in request.GET:
@@ -40,9 +42,15 @@ def get_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
     except AppserverProtocolError:
         return HttpResponse(status=500)
 
-    text = res.text
+    def stream() -> Generator[bytes, None, None]:
+        while True:
+            chunk = res.response.read(4096)
+            if not chunk:
+                break
 
-    return HttpResponse(text, content_type="text/plain")
+            yield chunk
+
+    return StreamingHttpResponse(stream(), content_type="text/plain")
 
 
 @require_POST
@@ -156,6 +164,38 @@ def chmod_view(request: HttpRequest, site_id: int) -> HttpResponse:
             "/sites/{}/files/chmod".format(site.id),
             method="POST",
             params={"path": path, "mode": mode},
+            timeout=10,
+        )
+    except AppserverProtocolError:
+        return HttpResponse(status=500)
+
+    return HttpResponse("Success", content_type="text/plain")
+
+
+@require_POST
+@login_required
+def rename_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    if "oldpath" not in request.GET:
+        return HttpResponse(status=400)
+    if "newpath" not in request.GET:
+        return HttpResponse(status=400)
+
+    oldpath = request.GET["oldpath"]
+    newpath = request.GET["newpath"]
+
+    try:
+        appserver = next(iter_random_pingable_appservers(timeout=0.5))
+    except StopIteration:
+        return HttpResponse("No appservers online", content_type="text/plain", status=500)
+
+    try:
+        appserver_open_http_request(
+            appserver,
+            "/sites/{}/files/rename".format(site.id),
+            method="POST",
+            params={"oldpath": oldpath, "newpath": newpath},
             timeout=10,
         )
     except AppserverProtocolError:

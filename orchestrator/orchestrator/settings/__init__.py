@@ -23,7 +23,6 @@ SITE_DIRECTORY_COMMAND_PREFIX: List[str] = []
 
 SITE_TERMINAL_KEEPALIVE_TIMEOUT = 6 * 60 * 60
 
-# Keep this low because files are not streamed
 MAX_FILE_DOWNLOAD_BYTES = 10 * 1000 * 1000  # 10MB
 
 MAX_FILE_UPLOAD_BYTES = 10 * 1000 * 1000  # 10MB

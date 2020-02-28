@@ -67,6 +67,7 @@ file_patterns = [
     path("rmdir-recur/", views.files.remove_directory_recur_view, name="remove_directory_recur"),
     path("mkdir/", views.files.make_directory_view, name="mkdir"),
     path("chmod/", views.files.chmod_view, name="chmod"),
+    path("rename/", views.files.rename_view, name="rename"),
 ]
 
 urlpatterns.extend(
