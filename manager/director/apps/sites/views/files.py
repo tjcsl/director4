@@ -60,6 +60,53 @@ def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, Str
 
 @require_POST
 @login_required
+def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    try:
+        appserver = next(iter_random_pingable_appservers(timeout=0.5))
+    except StopIteration:
+        return HttpResponse("No appservers online", content_type="text/plain", status=500)
+
+    if "path" in request.GET and "contents" in request.POST:
+        try:
+            res = appserver_open_http_request(
+                appserver,
+                "/sites/{}/files/write".format(site.id),
+                method="POST",
+                params={"path": request.GET["path"]},
+                data=request.POST["contents"].encode(),
+                timeout=600,
+            )
+        except AppserverProtocolError as ex:
+            return HttpResponse(str(ex), status=500)
+
+        return HttpResponse("Success")
+    else:
+        files = request.FILES.getlist("files[]")
+        if not files:
+            return HttpResponse(status=400)
+
+        basepath = request.GET.get("basepath", "")
+
+        for f_obj in files:
+            try:
+                res = appserver_open_http_request(
+                    appserver,
+                    "/sites/{}/files/write".format(site.id),
+                    method="POST",
+                    params={"path": os.path.join(basepath, f_obj.name)},
+                    data=f_obj.chunks(),
+                    timeout=600,
+                )
+            except AppserverProtocolError as ex:
+                return HttpResponse(str(ex), status=500)
+
+        return HttpResponse("Success")
+
+
+@require_POST
+@login_required
 def remove_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
