@@ -200,7 +200,7 @@ def appserver_open_http_request(
     if method == "POST" and data is None:
         data = b""
 
-    if data is not None and not isinstance(data, bytes):
+    if isinstance(data, (dict, list)):
         data = urllib.parse.urlencode(data).encode()
 
     full_url = "{}://{}{}{}".format(
