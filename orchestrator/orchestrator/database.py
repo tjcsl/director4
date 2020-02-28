@@ -85,8 +85,8 @@ def open_site_cursor(database_info: Dict[str, Any]) -> ContextManager[Any]:
 
     return _open_cursor(
         dbms=database_info["db_type"],
-        hostname=database_info["db_host"],
-        port=database_info["db_port"],
+        hostname=database_info["host"]["admin_hostname"],
+        port=database_info["host"]["admin_port"],
         username=database_info["username"],
         password=database_info["password"],
         dbname=database_info["db_name"],
