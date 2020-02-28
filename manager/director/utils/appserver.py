@@ -10,7 +10,7 @@ import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any, Dict, Iterator, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterable, Iterator, Optional, Sequence, Tuple, Union
 
 import websockets
 
@@ -161,7 +161,7 @@ def appserver_open_http_request(
     *,
     method: str = "GET",
     params: Union[Dict[str, str], Sequence[Tuple[str, str]], None] = None,
-    data: Union[bytes, Dict[str, str], Sequence[Tuple[str, str]], None] = None,
+    data: Union[bytes, Dict[str, str], Iterable[bytes], None] = None,
     headers: Optional[Dict[str, str]] = None,
     timeout: Union[int, float] = settings.DIRECTOR_APPSERVER_DEFAULT_TIMEOUT,
 ) -> AppserverHTTPResponse:
@@ -200,7 +200,7 @@ def appserver_open_http_request(
     if method == "POST" and data is None:
         data = b""
 
-    if isinstance(data, (dict, list)):
+    if isinstance(data, dict):
         data = urllib.parse.urlencode(data).encode()
 
     full_url = "{}://{}{}{}".format(
@@ -210,7 +210,9 @@ def appserver_open_http_request(
         "?" + urllib.parse.urlencode(params) if params else "",
     )
 
-    request = urllib.request.Request(full_url, method=method, data=data, headers=headers)
+    request = urllib.request.Request(
+        full_url, method=method, data=data, headers=headers  # type: ignore
+    )
     try:
         response = urllib.request.urlopen(request, timeout=timeout, context=appserver_ssl_context)
     except urllib.error.HTTPError as ex:
