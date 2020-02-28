@@ -6,8 +6,8 @@ from typing import Generator, Tuple, Union
 
 from flask import Blueprint, Response, current_app, request
 
-from ... import settings
-from ...files import (
+from .. import settings
+from ..files import (
     SiteFilesException,
     chmod_path,
     make_site_directory,
@@ -18,7 +18,7 @@ from ...files import (
     stream_site_file,
     write_site_file,
 )
-from ...utils import iter_chunks
+from ..utils import iter_chunks
 
 files = Blueprint("files", __name__)
 

@@ -7,15 +7,15 @@ from typing import Tuple, Union
 
 from flask import Blueprint, current_app, request
 
-from ...docker.images import remove_docker_image
-from ...docker.services import (
+from ..docker.images import remove_docker_image
+from ..docker.services import (
     remove_director_service,
     restart_director_service,
     update_director_service,
 )
-from ...docker.utils import create_client
-from ...exceptions import OrchestratorActionError
-from ...files import ensure_site_directories_exist
+from ..docker.utils import create_client
+from ..exceptions import OrchestratorActionError
+from ..files import ensure_site_directories_exist
 
 docker_blueprint = Blueprint("docker", __name__)
 

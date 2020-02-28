@@ -4,10 +4,10 @@
 from flask import Flask, request
 
 from . import settings
-from .views.sites.database import database_blueprint
-from .views.sites.docker import docker_blueprint
-from .views.sites.files import files as files_blueprint
-from .views.sites.nginx import nginx as nginx_blueprint
+from .views.database import database_blueprint
+from .views.docker import docker_blueprint
+from .views.files import files as files_blueprint
+from .views.nginx import nginx as nginx_blueprint
 
 app = Flask(__name__)
 app.register_blueprint(docker_blueprint)

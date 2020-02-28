@@ -7,10 +7,10 @@ from typing import Tuple, Union
 
 from flask import Blueprint, current_app, request
 
-from ...configs.nginx import disable_nginx_config, remove_nginx_config, update_nginx_config
-from ...docker.services import reload_nginx_config
-from ...docker.utils import create_client
-from ...exceptions import OrchestratorActionError
+from ..configs.nginx import disable_nginx_config, remove_nginx_config, update_nginx_config
+from ..docker.services import reload_nginx_config
+from ..docker.utils import create_client
+from ..exceptions import OrchestratorActionError
 
 nginx = Blueprint("nginx", __name__)
 

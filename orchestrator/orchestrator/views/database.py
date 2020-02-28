@@ -7,7 +7,7 @@ from typing import Tuple, Union
 
 from flask import Blueprint, current_app, request
 
-from ... import database as database_utils
+from .. import database as database_utils
 
 database_blueprint = Blueprint("databases", __name__)
 
