@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Database shell for {{ site.name }}{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/database-shell.css' %}">
+    <script src="{% static 'js/database-shell.js' %}"></script>
+
+    <script>
+        $(function() {
+            setupSQLConsole("{% url 'sites:database_shell' site.id %}", $(".sql-console-wrapper"));
+        });
+    </script>
+{% endblock %}
+
+{% block main %}
+    <div class="sql-console-wrapper">
+        <div class="sql-console">
+            <pre class="output"><strong>database: {{ site.database.db_name }}, user: {{ site.database.username }}, type: {{ site.database.db_type }}</strong></pre>
+            <div class="input-container">
+                <div class="prompt">{{ site.database.db_name }}=&gt; </div>
+                <input type="text" class="input" autofocus>
+            </div>
+        </div>
+    </div>
+{% endblock %}

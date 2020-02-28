@@ -1,0 +1,62 @@
+#content {
+    padding: 0;
+}
+
+.sql-console-wrapper {
+    width: 100vw;
+    height: calc(100vh - 40px);
+}
+
+.sql-console {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    font-size: 16px;
+    font-family: monospace;
+    overflow-y: auto;
+}
+.sql-console .output {
+    font-size: 16px;
+    font-family: monospace;
+    padding: 5px;
+    margin: 0;
+    padding-bottom: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.sql-console .input-container {
+    background-color: transparent;
+    font-family: monospace;
+    white-space: pre;
+    font-size: 16px;
+    border: none;
+    padding: 0 5px 0 5px;
+    color: #484848;
+    width: 100vw;
+    max-width: 100vw;
+    display: flex;
+}
+.sql-console .prompt {
+    background-color: transparent;
+    font-family: monospace;
+    white-space: pre;
+    font-size: 16px;
+    border: none;
+    padding: 0;
+    color: #484848;
+    outline: none;
+    flex: 0 1;
+}
+.sql-console .input {
+    background-color: transparent;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 16px;
+    border: none;
+    padding: 0;
+    color: #484848;
+    outline: none;
+    flex: 1 1;
+}

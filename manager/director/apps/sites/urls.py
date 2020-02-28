@@ -56,7 +56,7 @@ edit_patterns = [
 
 database_patterns = [
     path("create/", views.database.create_database_view, name="create_database"),
-    path("shell/", views.sites.dummy_view, name="database_shell"),
+    path("shell/", views.database.database_shell_view, name="database_shell"),
     path("delete/", views.database.delete_database_view, name="delete_database"),
 ]
 
