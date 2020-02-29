@@ -30,7 +30,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
 
         site_id = int(self.scope["url_route"]["kwargs"]["site_id"])
         try:
-            self.site = await self.get_site_for_user(self.scope["user"], id=site_id)
+            self.site = await get_site_for_user(self.scope["user"], id=site_id)
         except Site.DoesNotExist:
             await self.accept()
             self.connected = True
@@ -54,10 +54,6 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
             await self.send_site_info()
 
             asyncio.get_event_loop().create_task(self.status_websocket_mainloop())
-
-    @database_sync_to_async
-    def get_site_for_user(self, user, **kwargs: Any) -> Site:  # pylint: disable=no-self-use
-        return cast(Site, Site.objects.filter_for_user(user).get(**kwargs))
 
     async def open_status_websocket(self) -> None:
         assert self.site is not None
@@ -210,7 +206,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
 
         site_id = int(self.scope["url_route"]["kwargs"]["site_id"])
         try:
-            self.site = await self.get_site_for_user(self.scope["user"], id=site_id)
+            self.site = await get_site_for_user(self.scope["user"], id=site_id)
         except Site.DoesNotExist:
             await self.close()
             return
@@ -223,10 +219,6 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         if self.connected:
             loop = asyncio.get_event_loop()
             loop.create_task(self.mainloop())
-
-    @database_sync_to_async
-    def get_site_for_user(self, user, **kwargs: Any) -> Site:  # pylint: disable=no-self-use
-        return cast(Site, Site.objects.filter_for_user(user).get(**kwargs))
 
     async def open_terminal_connection(self) -> None:
         assert self.site is not None
@@ -300,3 +292,8 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
                     await self.terminal_websock.send(text_data)
             except websockets.exceptions.ConnectionClosed:
                 await self.close()
+
+
+@database_sync_to_async
+def get_site_for_user(user, **kwargs: Any) -> Site:
+    return cast(Site, Site.objects.filter_for_user(user).get(**kwargs))
