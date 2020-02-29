@@ -23,11 +23,7 @@ urlpatterns = [
         views.maintenance.custom_resource_limits_list_view,
         name="custom_resource_limits_list",
     ),
-    path(
-        "management/",
-        views.maintenance.management_view,
-        name="management",
-    ),
+    path("management/", views.maintenance.management_view, name="management"),
     path("create/", views.sites.create_view, name="create"),
     path("create/webdocs/", views.sites.dummy_view, name="create_webdocs"),
 ]
@@ -60,30 +56,16 @@ site_patterns = [
     path("image/select/", views.sites.image_select_view, name="image_select"),
     path("delete/", views.sites.delete_view, name="delete"),
     path("terminal/", views.sites.terminal_view, name="terminal"),
+    path("secrets/regenerate/", views.sites.regenerate_secrets_view, name="regenerate_secrets"),
     path(
-        "secrets/regenerate/",
-        views.sites.regenerate_secrets_view,
-        name="regenerate_secrets",
-    ),
-    path(
-        "nginx/regenerate-config",
-        views.sites.regen_nginx_config_view,
-        name="regen_nginx_config",
+        "nginx/regenerate-config", views.sites.regen_nginx_config_view, name="regen_nginx_config",
     ),
     path("restart/", views.sites.restart_view, name="restart_service"),
     # Admin-only
-    path(
-        "resource-limits/",
-        views.maintenance.resource_limits_view,
-        name="resource_limits",
-    ),
+    path("resource-limits/", views.maintenance.resource_limits_view, name="resource_limits"),
     path("edit/", include(edit_patterns)),
     path("database/", include(database_patterns)),
     path("files/", include(file_patterns)),
 ]
 
-urlpatterns.extend(
-    [
-        path("<int:site_id>/", include(site_patterns)),
-    ]
-)
+urlpatterns.extend([path("<int:site_id>/", include(site_patterns))])
