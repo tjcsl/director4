@@ -386,7 +386,8 @@ class SiteFilesMonitor:
 
         assert self.proc.stdin is not None
 
-        await self.proc.stdin.write(b"+" + relpath.encode())  # type: ignore
+        self.proc.stdin.write(b"+" + relpath.encode() + b"\n")
+        await self.proc.stdin.drain()
 
     async def rm_watch(self, relpath: str) -> None:
         if self.proc is None:
@@ -394,7 +395,8 @@ class SiteFilesMonitor:
 
         assert self.proc.stdin is not None
 
-        await self.proc.stdin.write(b"-" + relpath.encode())  # type: ignore
+        self.proc.stdin.write(b"-" + relpath.encode() + b"\n")
+        await self.proc.stdin.drain()
 
     async def aiter_events(self) -> AsyncGenerator[Dict[str, Any], None]:
         if self.proc is None:
@@ -403,7 +405,10 @@ class SiteFilesMonitor:
         assert self.proc.stdout is not None
 
         while True:
-            line = await self.proc.stdout.readline()
+            try:
+                line = await self.proc.stdout.readline()
+            except OSError:
+                line = b""
 
             if not line:
                 break
