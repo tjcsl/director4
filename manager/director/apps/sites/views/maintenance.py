@@ -54,7 +54,7 @@ def operations_view(request: HttpRequest) -> HttpResponse:
         "operations": operation_objs,
     }
 
-    return render(request, "sites/operations.html", context)
+    return render(request, "sites/management/operations.html", context)
 
 
 @login_required
@@ -90,7 +90,7 @@ def custom_resource_limits_list_view(request: HttpRequest) -> HttpResponse:
         ],
     }
 
-    return render(request, "sites/custom_resource_limits_list.html", context)
+    return render(request, "sites/management/custom_resource_limits_list.html", context)
 
 
 @login_required
@@ -130,4 +130,4 @@ def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
     context = {"site": site, "form": form}
 
-    return render(request, "sites/resource_limits.html", context)
+    return render(request, "sites/management/resource_limits.html", context)
