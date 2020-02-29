@@ -312,14 +312,14 @@ def monitor_cmd(site_directory: str) -> None:
                         # Ignore empty lines
                         continue
 
-                    operation = line[0]
+                    operation = bytes((line[0],))
                     try:
                         fname = line[1:].decode()
                     except UnicodeDecodeError:
                         print("Invalid input", file=sys.stderr)
                         sys.exit(SPECIAL_EXIT_CODE)
 
-                    if operation == "+":
+                    if operation == b"+":
                         # Add watch
                         try:
                             watch_desc = inotify.add_watch(fname, directory_watch_flags)
@@ -337,13 +337,13 @@ def monitor_cmd(site_directory: str) -> None:
 
                                 # flush=True is very important
                                 print(json.dumps(event_info), flush=True)
-                    elif operation == "-":
+                    elif operation == b"-":
                         # Remove watch
                         if fname in wds_by_fname:
                             watch_desc = wds_by_fname.pop(fname)
                             fnames_by_wd.pop(watch_desc, None)
                             inotify.rm_watch(watch_desc)
-                    elif operation == "q":
+                    elif operation == b"q":
                         # Quit
                         sys.exit(0)
                     else:
