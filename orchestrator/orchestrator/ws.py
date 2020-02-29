@@ -149,13 +149,18 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
                 msg = json.loads(frame)
                 if not isinstance(msg, dict):
                     continue
-                if "action" not in msg or "path" not in msg:
-                    continue
 
-                if msg["action"] == "add":
-                    await monitor.add_watch(msg["path"])
-                elif msg["action"] == "remove":
-                    await monitor.rm_watch(msg["path"])
+                if "action" in msg and "path" in msg:
+                    if msg["action"] == "add":
+                        await monitor.add_watch(msg["path"])
+                    elif msg["action"] == "remove":
+                        await monitor.rm_watch(msg["path"])
+                elif "heartbeat" in msg:
+                    # Send it back
+                    try:
+                        await websock.send(frame)
+                    except websockets.exceptions.ConnectionClosed:
+                        return
 
     async def monitor_loop() -> None:
         async for event in monitor.aiter_events():
