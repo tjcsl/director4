@@ -113,6 +113,9 @@ def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
                     form.cleaned_data["notes"],
                 )
 
+                if "next" in request.GET:
+                    return redirect(request.GET["next"])
+
                 return redirect("sites:info", site.id)
     else:
         initial_data = {}
