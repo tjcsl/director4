@@ -9,7 +9,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 
 from django.urls import path
 
-from director.apps.sites.consumers import SiteConsumer, SiteTerminalConsumer
+from director.apps.sites.consumers import SiteConsumer, SiteMonitorConsumer, SiteTerminalConsumer
 
 
 class WebsocketCloseConsumer(WebsocketConsumer):
@@ -31,6 +31,7 @@ application = ProtocolTypeRouter(
                 [
                     path("sites/<int:site_id>/", SiteConsumer),
                     path("sites/<int:site_id>/terminal/", SiteTerminalConsumer),
+                    path("sites/<int:site_id>/files/monitor/", SiteMonitorConsumer),
                     path("<path:path>", WebsocketCloseConsumer),
                 ]
             )
