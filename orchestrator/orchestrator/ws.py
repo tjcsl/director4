@@ -21,7 +21,7 @@ from .docker.images import build_custom_docker_image
 from .docker.services import get_director_service_name, get_service_by_name
 from .docker.utils import create_client
 from .exceptions import OrchestratorActionError
-from .files import check_run_sh_exists
+from .files import SiteFilesMonitor, check_run_sh_exists
 from .logs import DirectorSiteLogFollower
 from .terminal import TerminalContainer
 
@@ -128,6 +128,59 @@ async def terminal_handler(  # pylint: disable=unused-argument
         await terminal_task
 
     client.close()
+
+
+async def file_monitor_handler(  # pylint: disable=unused-argument
+    websock: websockets.client.WebSocketClientProtocol, params: Dict[str, Any],
+) -> None:
+    site_id = int(params["site_id"])
+
+    monitor = SiteFilesMonitor(site_id)
+    await monitor.start()
+
+    async def websock_loop() -> None:
+        while True:
+            try:
+                frame = await websock.recv()
+            except websockets.exceptions.ConnectionClosed:
+                return
+
+            if isinstance(frame, str):
+                msg = json.loads(frame)
+                if not isinstance(msg, dict):
+                    continue
+                if "action" not in msg or "path" not in msg:
+                    continue
+
+                if msg["action"] == "add":
+                    await monitor.add_watch(msg["path"])
+                elif msg["action"] == "remove":
+                    await monitor.rm_watch(msg["path"])
+
+    async def monitor_loop() -> None:
+        async for event in monitor.aiter_events():
+            try:
+                await websock.send(json.dumps(event))
+            except websockets.exceptions.ConnectionClosed:
+                break
+
+    websock_task = asyncio.Task(websock_loop())
+    monitor_task = asyncio.Task(monitor_loop())
+
+    await asyncio.wait(
+        [websock_task, monitor_task, stop_event], return_when=asyncio.FIRST_COMPLETED,
+    )
+
+    await websock.close()
+    await monitor.stop_wait(timeout=3)
+
+    if not websock_task.done():
+        websock_task.cancel()
+        await websock_task
+
+    if not monitor_task.done():
+        monitor_task.cancel()
+        await monitor_task
 
 
 def serialize_service_status(site_id: int, service: Service) -> Dict[str, Any]:
@@ -272,6 +325,7 @@ async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -
     routes = [
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/terminal/?$"), terminal_handler),
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/status/?$"), status_handler),
+        (re.compile(r"^/ws/sites/(?P<site_id>\d+)/files/monitor/?$"), file_monitor_handler),
         (re.compile(r"^/ws/sites/build-docker-image/?$"), build_image_handler),
     ]
 
