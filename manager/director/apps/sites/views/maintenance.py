@@ -35,6 +35,14 @@ def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+def management_view(request: HttpRequest) -> HttpResponse:
+    if not request.user.is_superuser:
+        raise Http404
+
+    return render(request, "sites/management/management.html")
+
+
+@login_required
 def operations_view(request: HttpRequest) -> HttpResponse:
     if not request.user.is_superuser:
         raise Http404

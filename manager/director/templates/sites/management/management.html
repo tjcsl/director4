@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Site Management{% endblock %}
+
+{% block main %}
+    <h1>Site Management</h1>
+
+    <h3>Useful links</h3>
+    <ul>
+        <li><a href="{% url 'admin:index' %}">Django Admin</a></li>
+        <li><a href="{% url 'sites:operations' %}">Site Operations</a></li>
+        <li><a href="{% url 'sites:custom_resource_limits_list' %}">Sites with custom resource limits</a></li>
+    </ul>
+{% endblock %}

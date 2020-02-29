@@ -23,6 +23,11 @@ urlpatterns = [
         views.maintenance.custom_resource_limits_list_view,
         name="custom_resource_limits_list",
     ),
+    path(
+        "management/",
+        views.maintenance.management_view,
+        name="management",
+    ),
     path("create/", views.sites.create_view, name="create"),
     path("create/webdocs/", views.sites.dummy_view, name="create_webdocs"),
 ]
