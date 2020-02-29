@@ -378,6 +378,12 @@ class DockerImageExtraPackage(models.Model):
     # Package name
     name = models.CharField(max_length=60, blank=False, null=False)
 
+    def __str__(self) -> str:
+        return "{} for {}".format(self.name, self.image.name)
+
+    def __repr__(self) -> str:
+        return "<DockerImageExtraPackage: " + str(self) + ">"
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["image", "name"], name="unique_image_package")
@@ -423,6 +429,12 @@ class Domain(models.Model):
 
     status = models.CharField(max_length=8, choices=STATUSES, default="active")
 
+    def __str__(self) -> str:
+        return "{} ({})".format(self.domain, self.site)
+
+    def __repr__(self) -> str:
+        return "<Domain: " + str(self) + ">"
+
 
 class DatabaseHost(models.Model):
     # These should be capable of being put in a database URL
@@ -460,6 +472,9 @@ class DatabaseHost(models.Model):
     def __str__(self) -> str:
         return "{}:{} ({})".format(self.hostname, self.port, self.get_dbms_display())
 
+    def __repr__(self) -> str:
+        return "<DatabaseHost: " + str(self) + ">"
+
 
 class Database(models.Model):
     host = models.ForeignKey(DatabaseHost, on_delete=models.CASCADE)
@@ -491,6 +506,12 @@ class Database(models.Model):
             self.db_type, self.username, self.password, self.db_host, self.db_port, self.db_name
         )
 
+    @property
+    def redacted_db_url(self) -> str:
+        return "{}://{}:***@{}:{}/{}".format(
+            self.db_type, self.username, self.db_host, self.db_port, self.db_name
+        )
+
     def serialize_for_appserver(self) -> Dict[str, Any]:
         return {
             "host": self.host.serialize_for_appserver(),
@@ -502,6 +523,12 @@ class Database(models.Model):
             "db_name": self.db_name,
             "db_url": self.db_url,
         }
+
+    def __str__(self) -> str:
+        return self.redacted_db_url
+
+    def __repr__(self) -> str:
+        return "<Database: " + str(self) + ">"
 
 
 class Operation(models.Model):
