@@ -83,7 +83,7 @@ function setupTerminal(uri, wrapper, options) {
 
         term.reset();
         term.clear();
-        term.write("Launching terminal...");
+        term.write("\rLaunching terminal...");
 
         wrapper.removeClass("disconnected");
     }
