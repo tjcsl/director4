@@ -24,7 +24,7 @@ function setupTerminal(uri, wrapper, options) {
         $("<a>").addClass("console-reconnect").attr("href", "#").text("Reconnect").click(openWS),
     );
 
-    var term = new Terminal({ cursorBlink: true });
+    var term = new Terminal({cursorBlink: true});
     var fitAddon = new FitAddon.FitAddon();
     term.loadAddon(fitAddon);
     term.open(container.get(0), true);
@@ -113,7 +113,7 @@ function setupTerminal(uri, wrapper, options) {
 
         if(data instanceof Blob) {
             if(!dataReceived) {
-                firstReceivedData()
+                firstReceivedData();
             }
 
             data.text().then((text) => {
@@ -121,10 +121,15 @@ function setupTerminal(uri, wrapper, options) {
             });
         }
         else if(data instanceof ArrayBuffer) {
+            if(!dataReceived) {
+                firstReceivedData();
+            }
+
             term.write(new Uint8Array(data));
         }
         else {
             var data = JSON.parse(data);
+
             if(!connected && data.connected == true) {
                 firstReceivedResponse();
             }

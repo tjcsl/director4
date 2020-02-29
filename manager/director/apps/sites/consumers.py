@@ -33,9 +33,11 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
             self.site = await get_site_for_user(self.scope["user"], id=site_id)
         except Site.DoesNotExist:
             await self.accept()
+
             self.connected = True
             await self.send_site_info()
             self.connected = False
+
             await self.close()
             return
 
@@ -48,7 +50,6 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
 
         if self.status_websocket is not None:
             self.connected = True
-
             await self.accept()
 
             await self.send_site_info()
