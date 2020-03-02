@@ -232,21 +232,22 @@ def build_docker_image(site: Site, scope: Dict[str, Any]) -> Iterator[Union[Tupl
         yield "Site does not have a custom Docker image; skipping"
         return
 
-    for i in range(settings.DIRECTOR_NUM_APPSERVERS):
-        executor = build_docker_image_async(
-            site, scope, i, site.docker_image.serialize_for_appserver(),
-        )
+    appserver = random.choice(scope["pingable_appservers"])
 
-        # Async generators are hard in synchronous code
-        while True:
-            try:
-                item = asyncio.get_event_loop().run_until_complete(executor.__anext__())
-            except StopAsyncIteration:
-                break
-            else:
-                yield item
+    executor = build_docker_image_async(
+        site, scope, appserver, site.docker_image.serialize_for_appserver(),
+    )
 
-    yield "Build Docker image"
+    # Async generators are hard in synchronous code
+    while True:
+        try:
+            item = asyncio.get_event_loop().run_until_complete(executor.__anext__())
+        except StopAsyncIteration:
+            break
+        else:
+            yield item
+
+    yield "Built Docker image"
 
 
 async def build_docker_image_async(

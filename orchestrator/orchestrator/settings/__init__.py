@@ -18,7 +18,7 @@ STATIC_NGINX_CONFIG_DIRECTORY = "/data/nginx-static/director.d"
 
 DOCKER_REGISTRY_URL = "localhost:4433"
 
-DOCKER_REGISTRY_USER = "user"
+DOCKER_REGISTRY_AUTH_CONFIG = {"username": "user", "password": "user"}
 
 # Main data directory
 DATA_DIRECTORY = "/data"

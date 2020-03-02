@@ -17,7 +17,7 @@ import docker
 import websockets
 from docker.models.services import Service
 
-from .docker.images import build_custom_docker_image
+from .docker.images import build_custom_docker_image, push_custom_docker_image
 from .docker.services import get_director_service_name, get_service_by_name
 from .docker.utils import create_client
 from .exceptions import OrchestratorActionError
@@ -302,6 +302,8 @@ async def build_image_handler(  # pylint: disable=unused-argument
 
     client = await asyncio.get_event_loop().run_in_executor(None, create_client)
 
+    result = {"successful": True, "msg": "Success"}
+
     try:
         await asyncio.get_event_loop().run_in_executor(
             None, build_custom_docker_image, client, build_data,
@@ -310,15 +312,34 @@ async def build_image_handler(  # pylint: disable=unused-argument
         logger.error(
             "Error building image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
         )
-        result = {"successful": False, "msg": str(ex)}
+        result = {"successful": False, "msg": "Error building image: {}".format(ex)}
     except BaseException as ex:  # pylint: disable=broad-except
         logger.error(
             "Error building image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
         )
-        result = {"successful": False, "msg": "Error"}
+        result = {"successful": False, "msg": "Error building image"}
     else:
         logger.info("Built image %s", build_data["name"])
-        result = {"successful": True, "msg": "Success"}
+
+    try:
+        output = await asyncio.get_event_loop().run_in_executor(
+            None, push_custom_docker_image, client, build_data["name"],
+        )
+
+        logger.info("Pushed image %s", build_data["name"])
+        logger.info("Output from pushing image %s: %s", build_data["name"], output)
+    except OrchestratorActionError as ex:
+        logger.error(
+            "Error pushing image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
+        )
+        result = {"successful": False, "msg": "Error pushing image: {}".format(ex)}
+    except BaseException as ex:  # pylint: disable=broad-except
+        logger.error(
+            "Error pushing image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
+        )
+        result = {"successful": False, "msg": "Error pushing image"}
+    else:
+        logger.info("Pushed image %s", build_data["name"])
 
     try:
         await websock.send(json.dumps(result))
