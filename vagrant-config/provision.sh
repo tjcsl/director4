@@ -5,7 +5,12 @@
 set -e
 
 cd /home/vagrant/director
+export USER_HOME=/home/vagrant
+export REGISTRY_CERT_PATH=$USER_HOME/certs
+export REGISTRY_USER=user
+export REGISTRY_PASSWORD=user
 
+cd $USER_HOME/director
 
 ## Always show a colored prompt when possible
 sed -i 's/^#\(force_color_prompt=yes\)/\1/' /home/vagrant/.bashrc
@@ -128,7 +133,7 @@ chown vagrant:vagrant /etc/nginx/nginx.conf
 mkdir -p /etc/nginx/director.d/
 chown vagrant:vagrant /etc/nginx/director.d/
 
-# Setup Docker Swarm service
+# Set up Docker Swarm nginx service
 docker service rm director-nginx || true
 docker service create --replicas=1 \
     --publish published=80,target=80 \
@@ -137,6 +142,15 @@ docker service create --replicas=1 \
     --network director-sites \
     --name director-nginx \
     nginx:latest
+
+# Creates self-signed certificates
+# for insecure registry
+mkdir -p "$REGISTRY_CERT_PATH"
+openssl req \
+    -newkey rsa:4096 -nodes -sha256 -keyout $REGISTRY_CERT_PATH/localhost.key \
+    -x509 -days 3650 -out $REGISTRY_CERT_PATH/localhost.crt \
+    -subj "/C=US/ST=DC/L=Washington/CN=localhost"
+chown -R vagrant:vagrant "$REGISTRY_CERT_PATH"
 
 # Prune system
 docker system prune --force
@@ -148,7 +162,7 @@ for dir in /data /data/db; do
     chown root:root "$dir"
 done
 
-for dir in /data/sites /data/images /data/db/postgres /data/db/mysql /data/nginx-static /data/nginx-static/director.d; do
+for dir in /data/sites /data/images /data/db/postgres /data/db/mysql /data/nginx-static /data/nginx-static/director.d /data/registry; do
     mkdir -p "$dir"
     chown vagrant:vagrant "$dir"
 done
@@ -173,8 +187,27 @@ docker service create --replicas=1 \
 # Prune system
 docker system prune --force
 
+export REGISTRY_SERVER_CERT_PATH=/etc/docker/certs.d/localhost:4433
+mkdir -p "$REGISTRY_SERVER_CERT_PATH"
+cp $REGISTRY_CERT_PATH/localhost.crt $REGISTRY_SERVER_CERT_PATH/ca.crt
 
-## Setup PostgreSQL service
+# Set up Docker Registry service
+docker service rm director-registry || true
+docker service create --replicas=1 \
+    --mount type=bind,src=/data/registry,dst=/var/lib/registry \
+    --mount type=bind,src=$REGISTRY_CERT_PATH,dst=/certs \
+    -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
+    -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/localhost.crt \
+    -e REGISTRY_HTTP_TLS_KEY=/certs/localhost.key \
+    --publish published=4433,target=443 \
+    --network director-sites \
+    --name director-registry \
+    registry:2
+
+echo "$REGISTRY_PASSWORD" | docker login localhost:4433 --username $REGISTRY_USER --password-stdin
+
+
+## Set up PostgreSQL service
 docker service rm director-postgres || true
 docker service create --replicas=1 \
     --publish published=5433,target=5432 \
@@ -185,7 +218,7 @@ docker service create --replicas=1 \
     --name director-postgres \
     postgres:latest
 
-## Setup MySQL service
+## Set up MySQL service
 docker service rm director-mysql || true
 docker service create --replicas=1 \
     --publish published=3307,target=3306 \
