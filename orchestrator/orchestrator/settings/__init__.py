@@ -20,6 +20,8 @@ DOCKER_REGISTRY_URL = "localhost:4433"
 
 DOCKER_REGISTRY_AUTH_CONFIG = {"username": "user", "password": "user"}
 
+DOCKER_REGISTRY_TIMEOUT = 20
+
 # Main data directory
 DATA_DIRECTORY = "/data"
 # Where site files are stored
