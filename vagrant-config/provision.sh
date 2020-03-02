@@ -5,12 +5,6 @@
 set -e
 
 cd /home/vagrant/director
-export USER_HOME=/home/vagrant
-export REGISTRY_CERT_PATH=$USER_HOME/certs
-export REGISTRY_USER=user
-export REGISTRY_PASSWORD=user
-
-cd $USER_HOME/director
 
 ## Always show a colored prompt when possible
 sed -i 's/^#\(force_color_prompt=yes\)/\1/' /home/vagrant/.bashrc
@@ -143,14 +137,6 @@ docker service create --replicas=1 \
     --name director-nginx \
     nginx:latest
 
-# Creates self-signed certificates
-# for insecure registry
-mkdir -p "$REGISTRY_CERT_PATH"
-openssl req \
-    -newkey rsa:4096 -nodes -sha256 -keyout $REGISTRY_CERT_PATH/localhost.key \
-    -x509 -days 3650 -out $REGISTRY_CERT_PATH/localhost.crt \
-    -subj "/C=US/ST=DC/L=Washington/CN=localhost"
-chown -R vagrant:vagrant "$REGISTRY_CERT_PATH"
 
 # Prune system
 docker system prune --force
@@ -187,9 +173,25 @@ docker service create --replicas=1 \
 # Prune system
 docker system prune --force
 
-export REGISTRY_SERVER_CERT_PATH=/etc/docker/certs.d/localhost:4433
+
+## Set up registry
+REGISTRY_SERVER_CERT_PATH=/etc/docker/certs.d/localhost:4433
+REGISTRY_CERT_PATH=/etc/director-registry/certs
+# Create self-signed certificates for registry
+if ! [ -d "$REGISTRY_CERT_PATH" ]; then
+    mkdir -p "$REGISTRY_CERT_PATH"
+fi
+if ! [ -f "$REGISTRY_CERT_PATH/localhost.key" ]; then
+    openssl req \
+        -newkey rsa:4096 -nodes -sha256 -keyout $REGISTRY_CERT_PATH/localhost.key \
+        -x509 -days 3650 -out $REGISTRY_CERT_PATH/localhost.crt \
+        -subj "/C=US/ST=DC/L=Washington/CN=localhost"
+fi
+chown -R vagrant:vagrant "$REGISTRY_CERT_PATH"
+
+# Copy registry certs in place
 mkdir -p "$REGISTRY_SERVER_CERT_PATH"
-cp $REGISTRY_CERT_PATH/localhost.crt $REGISTRY_SERVER_CERT_PATH/ca.crt
+cp "$REGISTRY_CERT_PATH"/localhost.crt "$REGISTRY_SERVER_CERT_PATH"/ca.crt
 
 # Set up Docker Registry service
 docker service rm director-registry || true
@@ -204,7 +206,8 @@ docker service create --replicas=1 \
     --name director-registry \
     registry:2
 
-echo "$REGISTRY_PASSWORD" | docker login localhost:4433 --username $REGISTRY_USER --password-stdin
+# Log in
+echo "user" | docker login localhost:4433 --username user --password-stdin
 
 
 ## Set up PostgreSQL service
