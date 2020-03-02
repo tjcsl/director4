@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+import logging
+import logging.handlers
+
 from flask import Flask, request
 
 from . import settings
@@ -18,6 +21,17 @@ app.register_blueprint(nginx_static_blueprint)
 app.register_blueprint(database_blueprint)
 
 app.config.update(settings.FLASK_CONFIG)
+
+if settings.LOG_FILE is not None:
+    file_handler = logging.handlers.RotatingFileHandler(
+        settings.LOG_FILE,
+        maxBytes=settings.LOG_FILE_ROTATE_SIZE,
+        backupCount=settings.LOG_FILE_MAX_BACKUPS,
+    )
+    file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)-8s]: %(message)s"))
+    file_handler.setLevel(settings.LOG_LEVEL)
+
+    app.logger.addHandler(file_handler)
 
 
 @app.route("/ping")

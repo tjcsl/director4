@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+import logging
 from typing import List
 
 DEBUG = True
@@ -42,6 +43,11 @@ FLASK_CONFIG = {
 }
 
 TIMEZONE = "America/New_York"
+
+LOG_LEVEL = logging.INFO
+LOG_FILE = None
+LOG_FILE_ROTATE_SIZE = 10 * 1000 * 1000  # Rotate at 10M
+LOG_FILE_MAX_BACKUPS = 10
 
 try:
     from .secret import *  # noqa
