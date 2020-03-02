@@ -42,4 +42,13 @@
         {% url 'sites:edit_meta' site.id as meta_form_url %}
         {% include "table_form.html" with form=meta_form form_submit_text="Save" form_action=meta_form_url %}
     {% endif %}
+
+    {% if meta_form and type_form %}
+        <hr>
+    {% endif %}
+
+    {% if type_form %}
+        {% url 'sites:edit_type' site.id as type_form_url %}
+        {% include "table_form.html" with form=type_form form_submit_text="Save" form_action=type_form_url %}
+    {% endif %}
 {% endblock %}

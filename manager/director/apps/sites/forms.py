@@ -90,6 +90,13 @@ class DomainForm(forms.Form):
 DomainFormSet = forms.formset_factory(DomainForm)  # type: ignore
 
 
+class SiteTypeForm(forms.Form):
+    type = forms.ChoiceField(
+        choices=Site.SITE_TYPES,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+
+
 # These fields don't need to be applied specially, so we can use a Modelform
 class SiteMetaForm(forms.ModelForm):
     class Meta:

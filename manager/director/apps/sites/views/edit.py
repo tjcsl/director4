@@ -7,7 +7,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .. import operations
-from ..forms import DomainFormSet, SiteMetaForm, SiteNamesForm
+from ..forms import DomainFormSet, SiteMetaForm, SiteNamesForm, SiteTypeForm
 from ..helpers import send_site_updated_message
 from ..models import Domain, Site
 
@@ -23,6 +23,7 @@ def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
             initial=site.domain_set.values("domain"), prefix="domains"
         ),
         "meta_form": SiteMetaForm(instance=site),
+        "type_form": SiteTypeForm({"type": site.type}),
     }
 
     return render(request, "sites/edit.html", context)
@@ -95,5 +96,23 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
         domains_formset = DomainFormSet(initial=site.domain_set.values("domain"), prefix="domains")
 
     context = {"site": site, "names_form": names_form, "domains_formset": domains_formset}
+
+    return render(request, "sites/edit.html", context)
+
+
+@login_required
+def edit_type_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    if request.method == "POST":
+        type_form = SiteTypeForm(request.POST)
+        if type_form.is_valid():
+            operations.change_site_type(site, type_form.cleaned_data["type"])
+
+            return redirect("sites:info", site.id)
+    else:
+        type_form = SiteTypeForm({"type": site.type})
+
+    context = {"site": site, "type_form": type_form}
 
     return render(request, "sites/edit.html", context)

@@ -6,6 +6,7 @@ from typing import List
 from .helpers import send_operation_updated_message
 from .models import DatabaseHost, Operation, Site
 from .tasks import (
+    change_site_type_task,
     create_database_task,
     create_site_task,
     delete_database_task,
@@ -107,5 +108,12 @@ def fix_site(site: Site) -> None:
 def delete_site(site: Site) -> None:
     operation = Operation.objects.create(site=site, type="delete_site")
     delete_site_task.delay(operation.id)
+
+    send_operation_updated_message(site)
+
+
+def change_site_type(site: Site, site_type: str) -> None:
+    operation = Operation.objects.create(site=site, type="change_site_type")
+    change_site_type_task.delay(operation.id, site_type)
 
     send_operation_updated_message(site)

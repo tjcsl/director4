@@ -32,6 +32,7 @@ edit_patterns = [
     path("", views.edit.edit_view, name="edit"),
     path("names/", views.edit.edit_names_view, name="edit_names"),
     path("meta/", views.edit.edit_meta_view, name="edit_meta"),
+    path("type/", views.edit.edit_type_view, name="edit_type"),
 ]
 
 database_patterns = [

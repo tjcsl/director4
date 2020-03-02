@@ -389,6 +389,42 @@ def delete_site_task(operation_id: int) -> None:
 
 
 @shared_task
+def change_site_type_task(operation_id: int, site_type: str) -> None:
+    scope: Dict[str, Any] = {"site_type": site_type}
+
+    site = Site.objects.get(operation__id=operation_id)
+
+    with auto_run_operation_wrapper(operation_id, scope) as wrapper:
+        wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
+
+        @wrapper.add_action("Changing site type in database")
+        def do_write_run_sh_file(
+            site: Site, scope: Dict[str, Any],
+        ) -> Iterator[Union[Tuple[str, str], str]]:
+            yield ("before_state", site.type)
+            yield ("after_state", scope["site_type"])
+
+            site.type = scope["site_type"]
+            site.save()
+
+        # We want to check the NEW type, not the old type!
+        if site_type == "dynamic":
+            wrapper.add_action("Updating Docker service", actions.update_docker_service)
+
+            wrapper.add_action("Removing static Nginx config", actions.remove_static_nginx_config)
+        else:
+            wrapper.add_action(
+                "Updating static Nginx configuration", actions.update_static_nginx_config
+            )
+
+            wrapper.add_action("Removing Docker service", actions.remove_docker_service)
+
+        wrapper.add_action(
+            "Updating appserver configuration", actions.update_appserver_nginx_config
+        )
+
+
+@shared_task
 def fix_site_task(operation_id: int) -> None:
     scope: Dict[str, Any] = {}
 
@@ -402,9 +438,9 @@ def fix_site_task(operation_id: int) -> None:
 
             wrapper.add_action("Regenerating database password", actions.regen_database_password)
 
-        if site.type == "dynamic":
-            wrapper.add_action("Building Docker image", actions.build_docker_image)
+        wrapper.add_action("Building Docker image", actions.build_docker_image)
 
+        if site.type == "dynamic":
             wrapper.add_action("Updating Docker service", actions.update_docker_service)
 
             wrapper.add_action("Removing static Nginx config", actions.remove_static_nginx_config)
@@ -414,8 +450,6 @@ def fix_site_task(operation_id: int) -> None:
             )
 
             wrapper.add_action("Removing Docker service", actions.remove_docker_service)
-
-            wrapper.add_action("Removing Docker image", actions.remove_docker_image)
 
         wrapper.add_action(
             "Updating appserver configuration", actions.update_appserver_nginx_config
