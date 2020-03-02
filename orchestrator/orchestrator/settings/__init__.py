@@ -15,6 +15,10 @@ STATIC_NGINX_SERVICE_NAME = "director-nginx-static"
 
 STATIC_NGINX_CONFIG_DIRECTORY = "/data/nginx-static/director.d"
 
+DOCKER_REGISTRY_URL = "localhost:4433"
+
+DOCKER_REGISTRY_USER = "user"
+
 # Main data directory
 DATA_DIRECTORY = "/data"
 # Where site files are stored

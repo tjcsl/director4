@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 import jinja2
 from docker.client import DockerClient
-from docker.errors import ImageNotFound
+from docker.errors import APIError, ImageNotFound
 
 from .. import settings
 from ..exceptions import OrchestratorActionError
@@ -63,3 +63,19 @@ def remove_docker_image(client: DockerClient, name: str) -> None:
     except ImageNotFound:
         # This is the desired state; don't throw an error
         pass
+
+def push_custom_docker_image(client: DockerClient, image_name: str) -> None:
+    try:
+        img = client.images.get(image_name)
+    except ImageNotFound:
+        raise OrchestratorActionError("Image not found with name: {}".format(image_name))
+    
+    # We need to tag before we push
+    remote_repository = "{}/{}/{}".format(settings.DOCKER_REGISTRY_URL, settings.DOCKER_REGISTRY_USER, image_name)
+    
+    _ = img.tag(remote_repository)
+    # Long-running
+    _ = client.images.push(remote_repository)
+
+def pull_custom_docker_image(client: DockerClient, image_name: str) -> None:
+    pass
