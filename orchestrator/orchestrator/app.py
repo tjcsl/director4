@@ -31,7 +31,7 @@ if settings.LOG_FILE is not None:
     file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)-8s]: %(message)s"))
     file_handler.setLevel(settings.LOG_LEVEL)
 
-    app.logger.addHandler(file_handler)
+    app.logger.addHandler(file_handler)  # pylint: disable=no-member
 
 
 @app.route("/ping")
