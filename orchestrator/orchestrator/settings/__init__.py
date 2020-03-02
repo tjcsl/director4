@@ -11,6 +11,10 @@ NGINX_CONFIG_DIRECTORY = "/etc/nginx/director.d"
 
 NGINX_SERVICE_NAME = "director-nginx"
 
+STATIC_NGINX_SERVICE_NAME = "director-nginx-static"
+
+STATIC_NGINX_CONFIG_DIRECTORY = "/data/nginx-static/director.d"
+
 # Main data directory
 DATA_DIRECTORY = "/data"
 # Where site files are stored

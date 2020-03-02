@@ -44,6 +44,10 @@ def rename_site_task(operation_id: int, new_name: str) -> None:
             yield ("after_state", site.name)
 
         wrapper.add_action(
+            "Updating static Nginx configuration", actions.update_static_nginx_config
+        )
+
+        wrapper.add_action(
             "Updating appserver configuration", actions.update_appserver_nginx_config
         )
 
@@ -105,6 +109,10 @@ def edit_site_names_task(
             "Updating appserver configuration", actions.update_appserver_nginx_config
         )
 
+        wrapper.add_action(
+            "Updating static Nginx configuration", actions.update_static_nginx_config
+        )
+
         if not settings.DEBUG:
             wrapper.add_action(
                 "Updating balancer configuration", actions.update_balancer_nginx_config
@@ -115,12 +123,19 @@ def edit_site_names_task(
 def regen_nginx_config_task(operation_id: int) -> None:
     scope: Dict[str, Any] = {}
 
+    site = Site.objects.get(operation__id=operation_id)
+
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
         wrapper.add_action(
             "Updating appserver configuration", actions.update_appserver_nginx_config
         )
+
+        if site.type == "static":
+            wrapper.add_action(
+                "Updating static Nginx configuration", actions.update_static_nginx_config
+            )
 
         if not settings.DEBUG:
             wrapper.add_action(
@@ -131,6 +146,8 @@ def regen_nginx_config_task(operation_id: int) -> None:
 @shared_task
 def create_database_task(operation_id: int, database_host_id: int) -> None:
     scope: Dict[str, Any] = {"database_host": DatabaseHost.objects.get(id=database_host_id)}
+
+    site = Site.objects.get(operation__id=operation_id)
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
@@ -151,12 +168,15 @@ def create_database_task(operation_id: int, database_host_id: int) -> None:
 
         wrapper.add_action("Creating real database", actions.create_real_site_database)
 
-        wrapper.add_action("Updating Docker service", actions.update_docker_service)
+        if site.type == "dynamic":
+            wrapper.add_action("Updating Docker service", actions.update_docker_service)
 
 
 @shared_task
 def update_resource_limits_task(operation_id: int, cpus: float, mem_limit: str, notes: str) -> None:
     scope: Dict[str, Any] = {"cpus": cpus, "mem_limit": mem_limit, "notes": notes}
+
+    site = Site.objects.get(operation__id=operation_id)
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
@@ -178,7 +198,8 @@ def update_resource_limits_task(operation_id: int, cpus: float, mem_limit: str, 
 
             yield ("after_state", str(site.resource_limits))
 
-        wrapper.add_action("Updating Docker service", actions.update_docker_service)
+        if site.type == "dynamic":
+            wrapper.add_action("Updating Docker service", actions.update_docker_service)
 
 
 @shared_task
@@ -193,7 +214,8 @@ def regen_site_secrets_task(operation_id: int) -> None:
         if site.database is not None:
             wrapper.add_action("Regenerating database password", actions.regen_database_password)
 
-        wrapper.add_action("Updating Docker service", actions.update_docker_service)
+        if site.type == "dynamic":
+            wrapper.add_action("Updating Docker service", actions.update_docker_service)
 
 
 @shared_task
@@ -214,12 +236,15 @@ def delete_database_task(operation_id: int) -> None:
 
 @shared_task
 def restart_service_task(operation_id: int) -> None:
+    site = Site.objects.get(operation__id=operation_id)
+
     scope: Dict[str, Any] = {}
 
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
-        wrapper.add_action("Restarting Docker service", actions.restart_docker_service)
+        if site.type == "dynamic":
+            wrapper.add_action("Restarting Docker service", actions.restart_docker_service)
 
 
 @shared_task
@@ -310,10 +335,17 @@ def update_image_task(
 def create_site_task(operation_id: int) -> None:
     scope: Dict[str, Any] = {}
 
+    site = Site.objects.get(operation__id=operation_id)
+
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
-        wrapper.add_action("Creating Docker service", actions.update_docker_service)
+        if site.type == "dynamic":
+            wrapper.add_action("Creating Docker service", actions.update_docker_service)
+        else:
+            wrapper.add_action(
+                "Updating static Nginx configuration", actions.update_static_nginx_config
+            )
 
         wrapper.add_action(
             "Updating appserver configuration", actions.update_appserver_nginx_config
@@ -337,9 +369,13 @@ def delete_site_task(operation_id: int) -> None:
         if site.database is not None:
             wrapper.add_action("Deleting database", actions.delete_site_database_and_object)
 
+        # These tasks are idempotent, so we can safely run them unconditionally
+        # We are just blindly wiping everything
         wrapper.add_action("Removing Docker service", actions.remove_docker_service)
 
         wrapper.add_action("Removing Docker image", actions.remove_docker_image)
+
+        wrapper.add_action("Removing static Nginx config", actions.remove_static_nginx_config)
 
         wrapper.add_action(
             "Removing appserver Nginx configuration", actions.remove_appserver_nginx_config
@@ -366,9 +402,20 @@ def fix_site_task(operation_id: int) -> None:
 
             wrapper.add_action("Regenerating database password", actions.regen_database_password)
 
-        wrapper.add_action("Building Docker image", actions.build_docker_image)
+        if site.type == "dynamic":
+            wrapper.add_action("Building Docker image", actions.build_docker_image)
 
-        wrapper.add_action("Updating Docker service", actions.update_docker_service)
+            wrapper.add_action("Updating Docker service", actions.update_docker_service)
+
+            wrapper.add_action("Removing static Nginx config", actions.remove_static_nginx_config)
+        else:
+            wrapper.add_action(
+                "Updating static Nginx configuration", actions.update_static_nginx_config
+            )
+
+            wrapper.add_action("Removing Docker service", actions.remove_docker_service)
+
+            wrapper.add_action("Removing Docker image", actions.remove_docker_image)
 
         wrapper.add_action(
             "Updating appserver configuration", actions.update_appserver_nginx_config

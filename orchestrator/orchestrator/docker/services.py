@@ -16,7 +16,13 @@ from .utils import get_swarm_node_id
 
 
 def get_service_by_name(client: DockerClient, service_name: str) -> Optional[Service]:
-    filtered_services = client.services.list(filters={"name": service_name})
+    # The "filters" appear to do an "a in b" check, not an "a == b" check.
+    # We need to confirm that they match
+    filtered_services = [
+        service
+        for service in client.services.list(filters={"name": service_name})
+        if service.name == service_name
+    ]
     if not filtered_services:
         return None
     elif len(filtered_services) == 1:
@@ -146,8 +152,8 @@ def list_service_tasks_for_node(service: Service, node_id: str) -> List[Dict[str
     return cast(List[Dict[str, Any]], service.tasks(filters={"node": node_id}))
 
 
-def reload_nginx_config(client: DockerClient) -> None:
-    service = get_service_by_name(client, settings.NGINX_SERVICE_NAME)
+def _reload_nginx_service_generic(client: DockerClient, name: str) -> None:
+    service = get_service_by_name(client, name)
 
     node_id = get_swarm_node_id(client)
     tasks = list_service_tasks_for_node(service, node_id=node_id)
@@ -175,3 +181,11 @@ def reload_nginx_config(client: DockerClient) -> None:
 
             if exit_code != 0:
                 raise OrchestratorActionError("Error reloading Nginx config")
+
+
+def reload_nginx_config(client: DockerClient) -> None:
+    _reload_nginx_service_generic(client, settings.NGINX_SERVICE_NAME)
+
+
+def reload_static_nginx_config(client: DockerClient) -> None:
+    _reload_nginx_service_generic(client, settings.STATIC_NGINX_SERVICE_NAME)

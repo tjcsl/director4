@@ -114,6 +114,7 @@ class Site(models.Model):
 
         return {
             "name": self.name,
+            "type": self.type,
             "no_redirect_domains": list({split_domain(url) for url in self.list_urls()}),
             "primary_url_base": main_url,
             "database_url": (self.database.db_url if self.database is not None else None),

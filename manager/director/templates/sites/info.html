@@ -20,7 +20,7 @@
                         <b>Type:</b> <span class="site-info" data-key="purpose_display">{{ site.get_purpose_display }}</span> - <span class="site-info" data-key="type_display">{{ site.get_type_display }}</span><br />
                         <b>Description:</b> <span class="site-info" data-key="description">{{ site.description|default:"None" }}</span><br />
                         <b>Users:</b> <span class="site-info" data-key="users">{{ site.users.all|join:", "|default:"None" }}</span><br />
-                        <strong>Process status:</strong> <span class="site-status"><span class="italic">Loading</span></span><br>
+                        <span class="site-status-container"><strong>Process status:</strong> <span class="site-status"><span class="italic">Loading</span></span><br></span>
                         <br>
                     </p>
 
@@ -35,7 +35,9 @@
             </p>
 
             <p>
+                {% if site.type == "dynamic" %}
                 <form style="display:inline-block" method="POST" action="{% url 'sites:restart_service' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-retweet"></i> Restart process</button></form>
+                {% endif %}
                 <form style="display:inline-block" method="POST" action="{% url 'sites:regen_nginx_config' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-sync-alt"></i> Rewrite Configuration</button></form>
                 <form style="display:inline-block" method="POST" action="{% url 'sites:regenerate_secrets' site.id %}">
                     {% csrf_token %}
@@ -60,7 +62,7 @@
             </p>
         </div>
         <div class="col-md-6">
-            {% if site.category != "static" or site.database %}
+            {% if site.type != "static" or site.database %}
             <h4><i class="fa fa-database"></i> Databases</h4>
             <div id="database-info"{% if not site.database %} style="display: none"{% endif %}>
                 <p>This site has a <b>{{ site.database.get_category_display }}</b> database associated with it.</p>
@@ -78,8 +80,8 @@
             <div id="no-database-info"{% if site.database %} style="display: none"{% endif %}>
                 <p>This site has no databases associated with it.</p>
                 <a href="{% url 'sites:create_database' site.id %}" class="btn btn-ion"><i class="fa fa-plus"></i> Add Database</a>
-                {% endif %}
             </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

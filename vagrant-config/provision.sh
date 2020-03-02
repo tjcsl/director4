@@ -148,10 +148,31 @@ for dir in /data /data/db; do
     chown root:root "$dir"
 done
 
-for dir in /data/sites /data/images /data/db/postgres /data/db/mysql; do
+for dir in /data/sites /data/images /data/db/postgres /data/db/mysql /data/nginx-static /data/nginx-static/director.d; do
     mkdir -p "$dir"
     chown vagrant:vagrant "$dir"
 done
+
+
+## Setup static-site-serving Nginx instance
+# Copy config files
+cp vagrant-config/nginx-static.conf /data/nginx-static/nginx.conf
+chown vagrant:vagrant /data/nginx-static/nginx.conf
+
+# Setup Docker Swarm service
+docker service rm director-nginx-static || true
+docker service create --replicas=1 \
+    --mount type=bind,source=/data/nginx-static/nginx.conf,destination=/etc/nginx/nginx.conf \
+    --mount type=bind,source=/data/nginx-static/director.d,destination=/etc/nginx/director.d \
+    --mount type=bind,source=/data/sites,destination=/data/sites \
+    --network director-sites \
+    --name director-nginx-static \
+    nginx:latest
+
+
+# Prune system
+docker system prune --force
+
 
 ## Setup PostgreSQL service
 docker service rm director-postgres || true

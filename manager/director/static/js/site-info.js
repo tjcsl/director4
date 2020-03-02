@@ -148,6 +148,13 @@ $(function() {
             $(".nav-site-name").text(data.site_info.name);
             $("title").text(DIRECTOR_APPLICATION_NAME + " - " + data.site_info.name);
 
+            if(data.site_info.type == "static") {
+                $(".site-status-container").hide();
+            }
+            else {
+                $(".site-status-container").show();
+            }
+
             var operation_div = $("#operation-info");
             if(data.site_info.operation != null) {
                 operation_div.empty();

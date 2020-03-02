@@ -20,7 +20,7 @@ nginx_template = jinja_env.get_template("nginx.conf")
 def update_nginx_config(site_id: int, data: Dict[str, Any]) -> None:
     """Returns None on success or a message on failure."""
     new_data = {}
-    for key in ["name", "no_redirect_domains", "primary_url_base"]:
+    for key in ["name", "no_redirect_domains", "primary_url_base", "type"]:
         if key not in data:
             raise OrchestratorActionError("Missing key {!r}".format(key))
 

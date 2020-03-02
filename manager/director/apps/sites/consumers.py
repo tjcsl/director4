@@ -3,7 +3,7 @@
 
 import asyncio
 import json
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 import websockets
 from channels.db import database_sync_to_async
@@ -46,15 +46,21 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
             self.site.channels_group_name, self.channel_name,
         )
 
-        await self.open_status_websocket()
+        if self.site.type == "dynamic":
+            await self.open_status_websocket()
 
-        if self.status_websocket is not None:
+            if self.status_websocket is not None:
+                self.connected = True
+                await self.accept()
+
+                await self.send_site_info()
+
+                asyncio.get_event_loop().create_task(self.status_websocket_mainloop())
+        else:
             self.connected = True
             await self.accept()
 
             await self.send_site_info()
-
-            asyncio.get_event_loop().create_task(self.status_websocket_mainloop())
 
     async def open_status_websocket(self) -> None:
         assert self.site is not None
@@ -115,14 +121,19 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         await self.send_site_info()
 
     @database_sync_to_async
-    def dump_site_info(self) -> Optional[Dict[str, Any]]:
+    def dump_site_info(self) -> Union[Dict[str, Any], None, bool]:
         if self.site is None:
             return None
+
+        old_type = self.site.type
 
         try:
             self.site.refresh_from_db()
         except Site.DoesNotExist:
             return None
+
+        if self.site.type != old_type:
+            return False
 
         site_info: Dict[str, Any] = {
             "name": self.site.name,
@@ -189,7 +200,12 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
 
     async def send_site_info(self) -> None:
         if self.connected:
-            await self.send_json({"site_info": await self.dump_site_info()})
+            data = await self.dump_site_info()
+
+            if data is False:
+                await self.close()
+            else:
+                await self.send_json({"site_info": data})
 
 
 class SiteTerminalConsumer(AsyncWebsocketConsumer):

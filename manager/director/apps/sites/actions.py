@@ -82,7 +82,7 @@ def update_appserver_nginx_config(
             raise
         else:
             # Everything succeeded!
-            yield "Successfully reloaded confgiration"
+            yield "Successfully reloaded configuration"
 
 
 def remove_appserver_nginx_config(
@@ -101,6 +101,85 @@ def remove_appserver_nginx_config(
 
         appserver_open_http_request(
             i, "/sites/reload-nginx", method="POST", timeout=120,
+        )
+
+    yield "Done"
+
+
+def update_static_nginx_config(
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    appserver = random.choice(scope["pingable_appservers"])
+
+    try:
+        yield "Connecting to appserver {} to update static Nginx config".format(appserver)
+
+        appserver_open_http_request(
+            appserver,
+            "/sites/{}/update-static-nginx".format(site.id),
+            method="POST",
+            data={"data": json.dumps(site.serialize_for_appserver())},
+            timeout=60,
+        )
+    except AppserverProtocolError:
+        # If an error occurs, disable the Nginx config
+        yield "Error updating static Nginx config"
+
+        yield "Disabling site static Nginx config"
+        appserver_open_http_request(
+            appserver, "/sites/{}/disable-static-nginx".format(site.id), method="POST", timeout=120,
+        )
+
+        yield "Re-raising exception"
+        raise
+    else:
+        # Success; try to reload
+        yield "Successfully updated static Nginx config"
+
+        yield "Reloading static Nginx config on all appservers"
+        try:
+            for i in scope["pingable_appservers"]:
+                yield "Reloading static Nginx config on appserver {}".format(i)
+
+                appserver_open_http_request(
+                    i, "/sites/reload-static-nginx", method="POST", timeout=120,
+                )
+        except AppserverProtocolError:
+            # Error reloading; disable config
+            # We're probably fine not reloading Nginx
+            yield "Error reloading static Nginx config"
+
+            yield "Disabling site static Nginx config"
+            appserver_open_http_request(
+                appserver,
+                "/sites/{}/disable-static-nginx".format(site.id),
+                method="POST",
+                timeout=120,
+            )
+
+            yield "Re-raising exception"
+            raise
+        else:
+            # Everything succeeded!
+            yield "Successfully reloaded configuration"
+
+
+def remove_static_nginx_config(
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    appserver = random.choice(scope["pingable_appservers"])
+    yield "Connecting to appserver {} to remove static Nginx config".format(appserver)
+
+    appserver_open_http_request(
+        appserver, "/sites/{}/remove-static-nginx".format(site.id), method="POST", timeout=60,
+    )
+
+    yield "Reloading static Nginx config on all appservers"
+    for i in scope["pingable_appservers"]:
+        yield "Reloading static Nginx config on appserver {}".format(i)
+
+        appserver_open_http_request(
+            i, "/sites/reload-static-nginx", method="POST", timeout=120,
         )
 
     yield "Done"
