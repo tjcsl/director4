@@ -103,7 +103,7 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
     if request.method == "POST":
         form = ImageSelectForm(request.POST)
-        if form.is_valid():
+        if form.is_valid() and form.cleaned_data["image"]:
             operations.update_image(
                 site,
                 form.cleaned_data["image"],
