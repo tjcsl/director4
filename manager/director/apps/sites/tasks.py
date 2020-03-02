@@ -392,8 +392,6 @@ def delete_site_task(operation_id: int) -> None:
 def change_site_type_task(operation_id: int, site_type: str) -> None:
     scope: Dict[str, Any] = {"site_type": site_type}
 
-    site = Site.objects.get(operation__id=operation_id)
-
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
