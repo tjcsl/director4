@@ -7,7 +7,7 @@ from typing import Tuple, Union
 
 from flask import Blueprint, current_app, request
 
-from ..docker.images import remove_docker_image, push_custom_docker_image
+from ..docker.images import push_custom_docker_image, remove_docker_image
 from ..docker.services import (
     remove_director_service,
     restart_director_service,
@@ -96,6 +96,7 @@ def remove_docker_image_page() -> Union[str, Tuple[str, int]]:
         return "Error", 500
     else:
         return "Success"
+
 
 @docker_blueprint.route("/sites/push-docker-image", methods=["POST"])
 def push_docker_image_page() -> Union[str, Tuple[str, int]]:
