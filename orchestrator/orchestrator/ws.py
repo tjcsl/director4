@@ -285,9 +285,108 @@ async def status_handler(
             ping_task.cancel()
             await ping_task
 
-        if not log_task:
+        if not log_task.done():
             log_task.cancel()
             await log_task
+
+    await websock.close()
+
+
+async def multi_status_handler(  # pylint: disable=unused-argument
+    websock: websockets.client.WebSocketClientProtocol, params: Dict[str, Any],
+) -> None:
+    client = create_client()
+
+    try:
+        site_ids = json.loads(await websock.recv())
+    except websockets.exceptions.ConnectionClosed:
+        return
+
+    services: Dict[int, Service] = {}
+    for site_id in site_ids:
+        services[site_id] = get_service_by_name(client, get_director_service_name(site_id))
+
+        if services[site_id] is None:
+            await websock.close()
+            return
+
+    async def ping_loop() -> None:  # type: ignore
+        while True:
+            try:
+                await websock.ping()
+                await asyncio.sleep(30)
+            except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+                break
+
+    async def log_loop(site_id: int, log_follower: DirectorSiteLogFollower) -> None:
+        try:
+            async for line in log_follower.iter_lines():
+                if not line:
+                    break
+
+                if line.startswith("DIRECTOR: "):
+                    services[site_id].reload()
+
+                    asyncio.ensure_future(wait_and_send_status(site_id, 0.0))
+                    asyncio.ensure_future(wait_and_send_status(site_id, 1.0))
+                    asyncio.ensure_future(wait_and_send_status(site_id, 10.0))
+        except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+            pass
+        except docker.errors.NotFound:
+            pass
+
+    async def wait_and_send_status(site_id: int, duration: Union[int, float]) -> None:
+        try:
+            await asyncio.sleep(duration)
+            await websock.send(
+                json.dumps(
+                    {
+                        "site_id": site_id,
+                        "status": serialize_service_status(site_id, services[site_id]),
+                    }
+                )
+            )
+        except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+            pass
+
+    log_followers: Dict[int, DirectorSiteLogFollower] = {}
+
+    for site_id in services:
+        log_followers[site_id] = DirectorSiteLogFollower(client, site_id)
+        await log_followers[site_id].start()
+        asyncio.ensure_future(wait_and_send_status(site_id, 0.0))
+
+    try:
+        ping_task = asyncio.Task(ping_loop())
+        wait_closed_task = asyncio.Task(websock.wait_closed())
+        log_tasks = [
+            asyncio.Task(log_loop(site_id, log_follower))
+            for site_id, log_follower in log_followers.items()
+        ]
+
+        await asyncio.wait(
+            [ping_task, wait_closed_task, *log_tasks, stop_event],  # type: ignore
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+
+        if not wait_closed_task.done():
+            wait_closed_task.cancel()
+            try:
+                await wait_closed_task
+            except asyncio.CancelledError:
+                pass
+
+        if not ping_task.done():
+            ping_task.cancel()
+            await ping_task
+
+        for log_task in log_tasks:
+            if not log_task.done():
+                log_task.cancel()
+                await log_task
+    finally:
+        for log_follower in log_followers.values():
+            await log_follower.stop()
 
     await websock.close()
 
@@ -353,6 +452,7 @@ async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/status/?$"), status_handler),
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/files/monitor/?$"), file_monitor_handler),
         (re.compile(r"^/ws/sites/build-docker-image/?$"), build_image_handler),
+        (re.compile(r"^/ws/sites/multi-status/?$"), multi_status_handler),
     ]
 
     for route_re, handler in routes:
