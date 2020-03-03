@@ -408,6 +408,8 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
         super().__init__(*args, **kwargs)
         self.connected = False
 
+        self.site_ids: List[int] = []
+
         self.monitor_websock: Optional[websockets.client.WebSocketClientProtocol] = None
 
     async def connect(self) -> None:
@@ -472,7 +474,7 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
                 await self.send(text_data=msg)
 
     async def disconnect(self, code: int) -> None:  # pylint: disable=unused-argument
-        self.site = None
+        self.site_ids.clear()
         self.connected = False
 
         if self.monitor_websock is not None:
