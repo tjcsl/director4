@@ -56,7 +56,7 @@
     vertical-align: middle;
     position: relative;
 }
-#sites .site .icon span {
+#sites .site .icon span.site-status {
     display: block;
     width: 14px;
     height: 14px;
@@ -64,11 +64,13 @@
     position: absolute;
     bottom: 6px;
     right: 2px;
+}
+#sites .site .icon span.status-yellow {
     background-color: #FFEB3B;
 }
-#sites .site .icon span.red {
+#sites .site .icon span.status-red {
     background-color: #F44336;
 }
-#sites .site .icon span.green {
+#sites .site .icon span.status-green {
     background-color: #4CAF50;
 }

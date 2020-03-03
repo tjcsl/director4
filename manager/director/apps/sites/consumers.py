@@ -3,6 +3,7 @@
 
 import asyncio
 import json
+import urllib.parse
 from typing import Any, Dict, List, Optional, Union, cast
 
 import websockets
@@ -11,7 +12,11 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer, AsyncWebsocke
 
 from django.conf import settings
 
-from ...utils.appserver import appserver_open_websocket, iter_pingable_appservers
+from ...utils.appserver import (
+    appserver_open_websocket,
+    iter_pingable_appservers,
+    iter_random_pingable_appservers,
+)
 from .models import Database, Site
 
 
@@ -396,6 +401,82 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                     await monitor_websock.send(data)
             except websockets.exceptions.ConnectionClosed:
                 await self.close()
+
+
+class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.connected = False
+
+        self.monitor_websock: Optional[websockets.client.WebSocketClientProtocol] = None
+
+    async def connect(self) -> None:
+        if not self.scope["user"].is_authenticated:
+            await self.close()
+            return
+
+        params = urllib.parse.parse_qs(self.scope["query_string"].decode())
+
+        try:
+            self.site_ids = list(map(int, params.get("site_ids", [""])[0].split(",")))
+        except ValueError:
+            await self.close()
+            return
+
+        for site_id in self.site_ids:
+            try:
+                await get_site_for_user(self.scope["user"], id=site_id)
+            except Site.DoesNotExist:
+                await self.close()
+                return
+
+        self.connected = True
+        await self.accept()
+
+        await self.open_monitor_connection()
+
+        if self.monitor_websock is not None:
+            asyncio.get_event_loop().create_task(self.monitor_mainloop(self.monitor_websock))
+        else:
+            self.connected = False
+            await self.close()
+
+    async def open_monitor_connection(self) -> None:
+        for appserver_num in iter_random_pingable_appservers():
+            try:
+                self.monitor_websock = await asyncio.wait_for(
+                    appserver_open_websocket(appserver_num, "/ws/sites/multi-status/"), timeout=1,
+                )
+            except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
+                pass
+            else:
+                assert self.monitor_websock is not None
+
+                await self.monitor_websock.send(json.dumps(self.site_ids))
+
+                return
+
+    async def monitor_mainloop(
+        self, monitor_websock: websockets.client.WebSocketClientProtocol,
+    ) -> None:
+        while True:
+            try:
+                msg = await monitor_websock.recv()
+            except websockets.exceptions.ConnectionClosed:
+                await self.close()
+                break
+
+            if isinstance(msg, bytes):
+                await self.send(bytes_data=msg)
+            elif isinstance(msg, str):
+                await self.send(text_data=msg)
+
+    async def disconnect(self, code: int) -> None:  # pylint: disable=unused-argument
+        self.site = None
+        self.connected = False
+
+        if self.monitor_websock is not None:
+            await self.monitor_websock.close()
 
 
 @database_sync_to_async

@@ -5,6 +5,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/site-list.css' %}">
+    <script type="text/javascript" src="{% static 'js/site-list.js' %}"></script>
     {% comment %}
     <script type="text/javascript" src="{% static 'js/search.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/sites/tooltip.js' %}"></script>
@@ -33,9 +34,10 @@
     </div>
     <div id="sites">
     {% for site in sites %}
-        <a href="{% url 'sites:info' site.id %}" class="site" id="{{ site.id }}">
+        <a href="{% url 'sites:info' site.id %}" class="site{% if site.type == "dynamic" %} site-dynamic{% endif %}" id="site-{{ site.id }}" data-site-id="{{ site.id }}">
             {% if site.database %}<span data-toggle="tooltip" class="float-right tag tag-primary tag-database">{{ site.database.get_category_display }}</span>{% endif %}
             <i class="icon float-left fa-2x fa-fw {% if site.purpose == 'user' %}fas fa-user{% elif site.purpose == 'activity' %}fas fa-globe{% elif site.purpose == 'legacy' %}far fa-snowflake{% else %}fas fa-cube{% if site.purpose == 'project' %} project{% endif %}{% endif %}">
+                <span class="site-status"></span>
             </i>
             <b class="name">{{ site.name }}</b><span class="sub"><span class="type">{{ site.get_type_display }}</span> - <span class="desc">{{ site.description|default:"No Description" }}</span> - <span class="users">{{ site.users.count }} user{% if site.users.count != 2 %}s{% endif %}</span></span>
         </a>
