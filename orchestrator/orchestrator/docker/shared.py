@@ -20,8 +20,14 @@ def gen_director_shared_params(  # pylint: disable=unused-argument
     if site_data.get("database_url"):
         env["DATABASE_URL"] = site_data["database_url"]
 
+    if site_data["docker_image"]["is_custom"]:
+        image_name = settings.DOCKER_REGISTRY_URL + "/" + site_data["docker_image"]["name"]
+    else:
+        image_name = site_data["docker_image"]["name"]
+
+
     return {
-        "image": settings.DOCKER_REGISTRY_URL + "/" + site_data["docker_image"]["name"],
+        "image": image_name,
         "mounts": [
             Mount(
                 type="bind",
