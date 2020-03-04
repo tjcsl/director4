@@ -66,7 +66,7 @@ def regen_nginx_config_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 def create_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
-        form = SiteCreateForm(request.POST)
+        form = SiteCreateForm(request.POST, user=request.user)
         if form.is_valid():
             site = form.save(commit=False)
 
@@ -78,7 +78,29 @@ def create_view(request: HttpRequest) -> HttpResponse:
 
             return redirect("sites:info", site.id)
     else:
-        form = SiteCreateForm()
+        form = SiteCreateForm(user=request.user)
+
+    context = {"form": form}
+
+    return render(request, "sites/create.html", context)
+
+
+@login_required
+def create_webdocs_view(request: HttpRequest) -> HttpResponse:
+    if request.method == "POST":
+        form = SiteCreateForm(request.POST, user=request.user, initial={"purpose": "user"})
+        if form.is_valid():
+            site = form.save(commit=False)
+
+            site.docker_image = DockerImage.objects.get_default_image()  # type: ignore
+            site.save()
+            form.save_m2m()
+
+            operations.create_site(site)
+
+            return redirect("sites:info", site.id)
+    else:
+        form = SiteCreateForm(user=request.user, initial={"purpose": "user"})
 
     context = {"form": form}
 

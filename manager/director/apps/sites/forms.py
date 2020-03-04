@@ -16,6 +16,22 @@ class SiteCreateForm(forms.ModelForm):
         required=False, queryset=get_user_model().objects.filter(is_service=False)
     )
 
+    def __init__(self, *args: Any, user: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+
+        if not user.is_superuser:
+            try:
+                initial_purpose = self.get_initial_for_field(self.fields["purpose"], "purpose")
+                if initial_purpose is None:
+                    raise KeyError
+            except KeyError:
+                initial_purpose = "project"
+
+            # The template checks this specifically, so we need it to be set
+            self.fields["purpose"].initial = initial_purpose
+
+            self.fields["purpose"].disabled = True
+
     class Meta:
         model = Site
         fields = ["name", "description", "type", "purpose", "users"]
@@ -98,6 +114,12 @@ class SiteTypeForm(forms.Form):
 
 # These fields don't need to be applied specially, so we can use a Modelform
 class SiteMetaForm(forms.ModelForm):
+    def __init__(self, *args: Any, user: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+
+        if not user.is_superuser:
+            self.fields["purpose"].disabled = True
+
     class Meta:
         model = Site
 

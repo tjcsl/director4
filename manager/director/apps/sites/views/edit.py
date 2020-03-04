@@ -22,7 +22,7 @@ def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
         "domains_formset": DomainFormSet(
             initial=site.domain_set.values("domain"), prefix="domains"
         ),
-        "meta_form": SiteMetaForm(instance=site),
+        "meta_form": SiteMetaForm(instance=site, user=request.user),
         "type_form": SiteTypeForm({"type": site.type}),
     }
 
@@ -34,13 +34,13 @@ def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
     if request.method == "POST":
-        meta_form = SiteMetaForm(request.POST, instance=site)
+        meta_form = SiteMetaForm(request.POST, instance=site, user=request.user)
         if meta_form.is_valid():
             meta_form.save()
             send_site_updated_message(site)
             return redirect("sites:info", site.id)
     else:
-        meta_form = SiteMetaForm(instance=site)
+        meta_form = SiteMetaForm(instance=site, user=request.user)
 
     context = {"site": site, "meta_form": meta_form}
 

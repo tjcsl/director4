@@ -13,6 +13,30 @@
 {% endblock %}
 
 {% block main %}
+    <h1>Create New Site</h1>
+    {% if not request.user.is_superuser %}
+        {% if form.fields.purpose.initial == "user" %}
+            <div style="margin-top:15px" class="alert alert-warning">
+                <i class="fa fa-exclamation-triangle"></i> This form is only for the creation of personal websites.
+
+                <ul style="margin-bottom:0">
+                    <li>If you want a project website, you can use the form <a href="{% url 'sites:create' %}">here</a>.</li>
+                    <li>If you want create a website for a club or activity, use the <a href="">site request form</a>.</li>
+                    <li>If you need a website for another purpose, please contact <a href="mailto:{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}">{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}</a>.</li>
+                </ul>
+            </div>
+        {% else %}
+            <div style="margin-top:15px" class="alert alert-warning">
+                <i class="fa fa-exclamation-triangle"></i> This form is only for the creation of personal project websites.
+
+                <ul style="margin-bottom:0">
+                    <li>If you want a personal website, you can use the form <a href="{% url 'sites:create_webdocs' %}">here</a>.</li>
+                    <li>If you want create a website for a club or activity, use the <a href="">site request form</a>.</li>
+                    <li>If you need a website for another purpose, please contact <a href="mailto:{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}">{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}</a>.</li>
+                </ul>
+            </div>
+        {% endif %}
+    {% endif %}
     <form method="POST">
         {% csrf_token %}
         {% for field in form %}

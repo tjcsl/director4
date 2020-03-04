@@ -285,6 +285,8 @@ DIRECTOR_RESOURCES_DEFAULT_CPUS: float = 0.1
 # Memory in bytes
 DIRECTOR_RESOURCES_DEFAULT_MEMORY_LIMIT: int = 100 * 1000 * 1000
 
+DIRECTOR_CONTACT_EMAIL = "director@tjhsst.edu"
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:

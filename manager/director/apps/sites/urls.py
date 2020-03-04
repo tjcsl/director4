@@ -25,7 +25,7 @@ urlpatterns = [
     ),
     path("management/", views.maintenance.management_view, name="management"),
     path("create/", views.sites.create_view, name="create"),
-    path("create/webdocs/", views.sites.dummy_view, name="create_webdocs"),
+    path("create/webdocs/", views.sites.create_webdocs_view, name="create_webdocs"),
 ]
 
 edit_patterns = [
