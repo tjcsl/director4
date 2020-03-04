@@ -30,7 +30,7 @@ def update_static_nginx_config(site_id: int, data: Dict[str, Any]) -> None:
     # Some basic validation
     if (
         not isinstance(new_data["name"], str)
-        or re.search(r"^[a-z][a-z0-9]*(-[a-z0-9]+)*$", new_data["name"]) is None
+        or re.search(r"^[a-z0-9]+(-[a-z0-9]+)*$", new_data["name"]) is None
     ):
         raise OrchestratorActionError("Invalid name")
 
