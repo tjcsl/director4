@@ -188,6 +188,7 @@ docker service create --replicas=1 \
     -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
     -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/localhost.crt \
     -e REGISTRY_HTTP_TLS_KEY=/certs/localhost.key \
+    -e REGISTRY_STORAGE_DELETE_ENABLED=true \
     --publish published=4433,target=443 \
     --network director-sites \
     --name director-registry \
