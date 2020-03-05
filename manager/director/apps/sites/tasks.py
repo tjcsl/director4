@@ -44,10 +44,6 @@ def rename_site_task(operation_id: int, new_name: str) -> None:
             yield ("after_state", site.name)
 
         wrapper.add_action(
-            "Updating static Nginx configuration", actions.update_static_nginx_config
-        )
-
-        wrapper.add_action(
             "Updating appserver configuration", actions.update_appserver_nginx_config
         )
 
@@ -109,10 +105,6 @@ def edit_site_names_task(
             "Updating appserver configuration", actions.update_appserver_nginx_config
         )
 
-        wrapper.add_action(
-            "Updating static Nginx configuration", actions.update_static_nginx_config
-        )
-
         if not settings.DEBUG:
             wrapper.add_action(
                 "Updating balancer configuration", actions.update_balancer_nginx_config
@@ -123,19 +115,12 @@ def edit_site_names_task(
 def regen_nginx_config_task(operation_id: int) -> None:
     scope: Dict[str, Any] = {}
 
-    site = Site.objects.get(operation__id=operation_id)
-
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
         wrapper.add_action(
             "Updating appserver configuration", actions.update_appserver_nginx_config
         )
-
-        if site.type == "static":
-            wrapper.add_action(
-                "Updating static Nginx configuration", actions.update_static_nginx_config
-            )
 
         if not settings.DEBUG:
             wrapper.add_action(
@@ -342,10 +327,6 @@ def create_site_task(operation_id: int) -> None:
 
         if site.type == "dynamic":
             wrapper.add_action("Creating Docker service", actions.update_docker_service)
-        else:
-            wrapper.add_action(
-                "Updating static Nginx configuration", actions.update_static_nginx_config
-            )
 
         wrapper.add_action(
             "Updating appserver configuration", actions.update_appserver_nginx_config
@@ -374,8 +355,6 @@ def delete_site_task(operation_id: int) -> None:
         wrapper.add_action("Removing Docker service", actions.remove_docker_service)
 
         wrapper.add_action("Removing Docker image", actions.remove_docker_image)
-
-        wrapper.add_action("Removing static Nginx config", actions.remove_static_nginx_config)
 
         wrapper.add_action(
             "Removing appserver Nginx configuration", actions.remove_appserver_nginx_config
@@ -408,13 +387,7 @@ def change_site_type_task(operation_id: int, site_type: str) -> None:
         # We want to check the NEW type, not the old type!
         if site_type == "dynamic":
             wrapper.add_action("Updating Docker service", actions.update_docker_service)
-
-            wrapper.add_action("Removing static Nginx config", actions.remove_static_nginx_config)
         else:
-            wrapper.add_action(
-                "Updating static Nginx configuration", actions.update_static_nginx_config
-            )
-
             wrapper.add_action("Removing Docker service", actions.remove_docker_service)
 
         wrapper.add_action(
@@ -440,13 +413,7 @@ def fix_site_task(operation_id: int) -> None:
 
         if site.type == "dynamic":
             wrapper.add_action("Updating Docker service", actions.update_docker_service)
-
-            wrapper.add_action("Removing static Nginx config", actions.remove_static_nginx_config)
         else:
-            wrapper.add_action(
-                "Updating static Nginx configuration", actions.update_static_nginx_config
-            )
-
             wrapper.add_action("Removing Docker service", actions.remove_docker_service)
 
         wrapper.add_action(

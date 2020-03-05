@@ -15,12 +15,6 @@ NGINX_CONFIG_DIRECTORY = "/etc/nginx/director.d"
 # Name of Nginx Docker Swarm service
 NGINX_SERVICE_NAME = "director-nginx"
 
-# Name of Nginx static site Docker Swarm service
-STATIC_NGINX_SERVICE_NAME = "director-nginx-static"
-
-# Location on appservers of Nginx configs for static sites
-STATIC_NGINX_CONFIG_DIRECTORY = "/data/nginx-static/director.d"
-
 # Registry URL
 DOCKER_REGISTRY_URL = "localhost:4433"
 

@@ -10,6 +10,7 @@ import jinja2
 
 from .. import settings
 from ..exceptions import OrchestratorActionError
+from ..files import get_site_directory_path
 
 TEMPLATE_DIRECTORY = os.path.join(os.path.dirname(__file__), "templates")
 
@@ -54,6 +55,7 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> None:
     variables = {
         "settings": settings,
         "id": site_id,
+        "site_dir": get_site_directory_path(site_id),
         **new_data,
     }
 

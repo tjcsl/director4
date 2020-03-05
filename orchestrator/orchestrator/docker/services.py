@@ -152,8 +152,8 @@ def list_service_tasks_for_node(service: Service, node_id: str) -> List[Dict[str
     return cast(List[Dict[str, Any]], service.tasks(filters={"node": node_id}))
 
 
-def _reload_nginx_service_generic(client: DockerClient, name: str) -> None:
-    service = get_service_by_name(client, name)
+def reload_nginx_config(client: DockerClient) -> None:
+    service = get_service_by_name(client, settings.NGINX_SERVICE_NAME)
 
     node_id = get_swarm_node_id(client)
     tasks = list_service_tasks_for_node(service, node_id=node_id)
@@ -181,11 +181,3 @@ def _reload_nginx_service_generic(client: DockerClient, name: str) -> None:
 
             if exit_code != 0:
                 raise OrchestratorActionError("Error reloading Nginx config")
-
-
-def reload_nginx_config(client: DockerClient) -> None:
-    _reload_nginx_service_generic(client, settings.NGINX_SERVICE_NAME)
-
-
-def reload_static_nginx_config(client: DockerClient) -> None:
-    _reload_nginx_service_generic(client, settings.STATIC_NGINX_SERVICE_NAME)
