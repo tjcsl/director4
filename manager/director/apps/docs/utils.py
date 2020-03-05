@@ -120,7 +120,7 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
 
         # And check that the path is still within the directory
         if os.path.commonpath([path, director_dir_clean]) != director_dir_clean:
-            break
+            continue
 
         cache_name = "docs:" + path
 
