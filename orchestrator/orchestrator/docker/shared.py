@@ -25,7 +25,6 @@ def gen_director_shared_params(  # pylint: disable=unused-argument
     else:
         image_name = site_data["docker_image"]["name"]
 
-
     return {
         "image": image_name,
         "mounts": [
