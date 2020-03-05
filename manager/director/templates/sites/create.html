@@ -17,7 +17,7 @@
     {% if not request.user.is_superuser %}
         {% if form.fields.purpose.initial == "user" %}
             <div style="margin-top:15px" class="alert alert-warning">
-                <i class="fa fa-exclamation-triangle"></i> This form is only for the creation of personal websites.
+                <p><i class="fa fa-exclamation-triangle"></i> This form is only for the creation of personal websites.</p>
 
                 <ul style="margin-bottom:0">
                     <li>If you want a project website, you can use the form <a href="{% url 'sites:create' %}">here</a>.</li>
@@ -27,7 +27,7 @@
             </div>
         {% else %}
             <div style="margin-top:15px" class="alert alert-warning">
-                <i class="fa fa-exclamation-triangle"></i> This form is only for the creation of personal project websites.
+                <p><i class="fa fa-exclamation-triangle"></i> This form is only for the creation of personal project websites.</p>
 
                 <ul style="margin-bottom:0">
                     <li>If you want a personal website, you can use the form <a href="{% url 'sites:create_webdocs' %}">here</a>.</li>
