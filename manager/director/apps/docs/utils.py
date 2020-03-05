@@ -115,6 +115,13 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
         if not os.path.exists(path):
             continue
 
+        # Resolve symbolic links
+        path = os.path.realpath(path)
+
+        # And check that the path is still within the directory
+        if os.path.commonpath([path, director_dir_clean]) != director_dir_clean:
+            return {}, None
+
         cache_name = "docs:" + path
 
         cached_meta, cached_text_html, cache_creation_time = cache.get(cache_name, ({}, None, 0))
