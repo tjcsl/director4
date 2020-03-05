@@ -87,6 +87,13 @@ def create_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def create_webdocs_view(request: HttpRequest) -> HttpResponse:
+    if request.user.is_superuser:
+        return redirect("sites:create")
+
+    webdocs_site = Site.objects.filter_for_user(request.user).filter(purpose="user").first()
+    if webdocs_site is not None:
+        return redirect("sites:info", webdocs_site.id)
+
     if request.method == "POST":
         form = SiteCreateForm(request.POST, user=request.user, initial={"purpose": "user"})
         if form.is_valid():

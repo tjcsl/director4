@@ -69,6 +69,9 @@ class User(AbstractBaseUser):
     def get_social_auth(self):
         return self.social_auth.get(provider="ion")
 
+    def has_webdocs(self) -> bool:
+        return self.site_set.filter(purpose="user").exists()
+
     def __str__(self) -> str:
         return self.username
 

@@ -2,6 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import re
+import string
 from typing import Any, Dict
 
 from django import forms
@@ -21,16 +22,32 @@ class SiteCreateForm(forms.ModelForm):
 
         if not user.is_superuser:
             try:
-                initial_purpose = self.get_initial_for_field(self.fields["purpose"], "purpose")
-                if initial_purpose is None:
+                self.initial_purpose = self.get_initial_for_field(self.fields["purpose"], "purpose")
+                if self.initial_purpose is None:
                     raise KeyError
             except KeyError:
-                initial_purpose = "project"
+                self.initial_purpose = "project"
 
             # The template checks this specifically, so we need it to be set
-            self.fields["purpose"].initial = initial_purpose
-
+            self.fields["purpose"].initial = self.initial_purpose
             self.fields["purpose"].disabled = True
+
+            if self.initial_purpose == "user":
+                self.fields["name"].initial = user.username
+                self.fields["name"].disabled = True
+
+                self.fields["users"].initial = [user]
+                self.fields["users"].disabled = True
+        else:
+            self.initial_purpose = None
+
+    def clean(self) -> Dict[str, Any]:
+        cleaned_data = super().clean()
+
+        if cleaned_data["name"][0] in string.digits and cleaned_data.get("purpose", self.initial_purpose) != "user":
+            self.add_error("name", "Project site names cannot start with a number")
+
+        return cleaned_data
 
     class Meta:
         model = Site
@@ -45,8 +62,8 @@ class SiteCreateForm(forms.ModelForm):
         }
 
         help_texts = {
-            "name": "Can only contain lowercase letters, numbers, and dashes. Names cannot start "
-            "with a number, and dashes must go between two non-dash characters. Maximum length of "
+            "name": "Can only contain lowercase letters, numbers, and dashes. Dashes must go "
+            "between two non-dash characters. Maximum length of "
             "32 characters.",
             "type": "If you want to run a custom server, like Node.js or Django, you will need to "
             "set this to Dynamic.",
@@ -68,9 +85,22 @@ class SiteNamesForm(forms.Form):
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
-    @classmethod
-    def build_for_site(cls, site: Site) -> "SiteNamesForm":
-        return SiteNamesForm({"name": site.name})
+    def __init__(self, *args: Any, site: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+
+        self.site = site
+
+        self.fields["name"].initial = site.name
+        if site.purpose == "user":
+            self.fields["name"].disabled = True
+
+    def clean(self) -> Dict[str, Any]:
+        cleaned_data = super().clean()
+
+        if cleaned_data["name"][0] in string.digits and self.site.purpose != "user":
+            self.add_error("name", "Project site names cannot start with a number")
+
+        return cleaned_data
 
 
 class DomainForm(forms.Form):
@@ -119,6 +149,14 @@ class SiteMetaForm(forms.ModelForm):
 
         if not user.is_superuser:
             self.fields["purpose"].disabled = True
+
+    def clean(self) -> Dict[str, Any]:
+        cleaned_data = super().clean()
+
+        if cleaned_data["name"][0] in string.digits and cleaned_data["purpose"] != "user":
+            self.add_error("name", "Project site names cannot start with a number")
+
+        return cleaned_data
 
     class Meta:
         model = Site
