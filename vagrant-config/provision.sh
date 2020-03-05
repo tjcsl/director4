@@ -194,6 +194,9 @@ docker service create --replicas=1 \
     --name director-registry \
     registry:2
 
+# For some reason, provisioning sometimes fails if we don't do this.
+docker service update --force director-registry
+
 # Log in
 echo "user" | docker login localhost:4433 --username user --password-stdin
 
