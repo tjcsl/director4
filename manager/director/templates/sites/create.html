@@ -21,7 +21,7 @@
 
                 <ul style="margin-bottom:0">
                     <li>If you want a project website, you can use the form <a href="{% url 'sites:create' %}">here</a>.</li>
-                    <li>If you want create a website for a club or activity, use the <a href="">site request form</a>.</li>
+                    <li>If you want create a website for a club or activity, use the <a href="{% url 'request:create' %}">site request form</a>.</li>
                     <li>If you need a website for another purpose, please contact <a href="mailto:{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}">{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}</a>.</li>
                 </ul>
             </div>
@@ -31,7 +31,7 @@
 
                 <ul style="margin-bottom:0">
                     <li>If you want a personal website, you can use the form <a href="{% url 'sites:create_webdocs' %}">here</a>.</li>
-                    <li>If you want create a website for a club or activity, use the <a href="">site request form</a>.</li>
+                    <li>If you want create a website for a club or activity, use the <a href="{% url 'request:create' %}">site request form</a>.</li>
                     <li>If you need a website for another purpose, please contact <a href="mailto:{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}">{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}</a>.</li>
                 </ul>
             </div>

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Request site{% endblock %}
+
+{% block head %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#id_teacher").selectize();
+        });
+    </script>
+    <style>
+        #guidelines {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 15px auto;
+            border: 1px solid black;
+            padding: 15px;
+            background-color: white;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <h1>Request New Activity Site</h1>
+
+    <div style="margin-top:15px" class="alert alert-warning">
+        <p><i class="fa fa-exclamation-triangle"></i> This form is only for the creation of club or activity websites.</p>
+
+        <ul style="margin-bottom:0">
+            <li>If you want a personal website, you can use the form <a href="{% url 'sites:create_webdocs' %}">here</a>.</li>
+            <li>If you want a project website, you can use the form <a href="{% url 'sites:create' %}">here</a>.</li>
+            <li>If you need a website for another purpose, please contact <a href="mailto:{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}">{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}</a>.</li>
+        </ul>
+    </div>
+
+    <p>Please fill out the form below if you want a website for your activity. You will be notified about the status of your request via email. <strong>You will need a teacher's approval if you need services for a class or club / group / organization that is recognized by the 8th period office and the TJHSST administration.</strong> This request will be valid until the end of the current school year. Service requests must be submitted before the last day of the school year for requested services to not expire. If you have any questions, please contact <a href="mailto:{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}">{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}</a>.</p>
+
+    <p>
+        <strong>All information about your request will be sent to this email address:</strong> {{ request.user.email }}
+        <br>
+        Please make sure you check it regularly.
+    </p>
+
+    {% include "table_form_header.html" %}
+    {% for form_field in form %}
+        {% if form_field.name != "student_agreement" %}
+            {% include "table_form_row.html" with form_field=form_field only %}
+        {% endif %}
+    {% endfor %}
+    </div>
+    <div id="guidelines">
+        {% include "request/guidelines.html" %}
+    </div>
+    <div class="tbl">
+    {% for form_field in form %}
+        {% if form_field.name == "student_agreement" %}
+            {% include "table_form_row.html" with form_field=form_field only %}
+        {% endif %}
+    {% endfor %}
+    {% include "table_form_footer.html" with form_submit_text="Save" %}
+{% endblock %}

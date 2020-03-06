@@ -1,0 +1,8 @@
+<p>{{ site_request.teacher.full_name }},</p>
+  
+<p>A student, <b>{{ site_request.user.full_name }}</b>, has filed a website request form for <b>{{ site_request.activity }}</b> and marked you as the teacher sponsor.</p>
+
+<p>You can accept this request at <a href="{{ DJANGO_SETTINGS.DIRECTOR_URL }}{% url 'request:approve' %}">{{ DJANGO_SETTINGS.DIRECTOR_URL }}{% url 'request:approve' %}</a>. If you have any questions, please email <a href="mailto:{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}">{{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}</a>.</p>
+
+<p>Thanks,<br>
+The Director Team</p>

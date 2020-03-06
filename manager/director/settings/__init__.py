@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "director.apps.auth",
     "director.apps.users",
     "director.apps.sites",
+    "director.apps.request",
     "director.apps.docs",
 ]
 
@@ -219,6 +220,10 @@ SITE_URL_FORMATS = {
 }
 
 
+# The URL where Director can be accessed.
+DIRECTOR_URL = "https://director.tjhsst.edu"
+
+
 # A list of the hosts each of the appservers are running on (or can be reached
 # on via some kind of proxy).
 # These are host:port combos. They are NOT URLs. This list should also not be
@@ -284,6 +289,22 @@ DIRECTOR_DOCS_CACHE_TIMEOUT = 24 * 60 * 60
 DIRECTOR_RESOURCES_DEFAULT_CPUS: float = 0.1
 # Memory in bytes
 DIRECTOR_RESOURCES_DEFAULT_MEMORY_LIMIT: int = 100 * 1000 * 1000
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "mail.tjhsst.edu"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_SUBJECT_PREFIX = "[Director] "
+EMAIL_FROM = "director-noreply@tjhsst.edu"
+
+# If this is set to True, emails will be sent in debug mode (the default is to just print out the
+# plaintext version). This does NOT affect setups where DEBUG=False (most notably production).
+DEBUG_EMAIL_SEND = False
+
+# Unlike DEBUG_EMAIL_SEND, this is a blanket send/don't send, in both dev environments and
+# production. Another notable difference is that the email is simply discarded, not printed out.
+ENABLE_EMAIL_SEND = True
 
 DIRECTOR_CONTACT_EMAIL = "director@tjhsst.edu"
 

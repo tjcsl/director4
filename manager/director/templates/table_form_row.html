@@ -1,4 +1,4 @@
-<div class="tbl-row{% if form_field_extra_classes %} {{ form_field_extra_classes }}{% endif %}">
+<div class="tbl-row{% if form_field_extra_classes %} {{ form_field_extra_classes }}{% endif %}" style="display: table-row-group">
 {% if form_field %}
     <span class="tbl-cell" style="vertical-align:top;padding:6px 5px 0px 0px; min-width: 150px">{{ form_field.label_tag }}</span>
     <span class="tbl-cell" style="padding-bottom:5px;{% if form_field.field.widget.input_type == "checkbox" or form_field.field.widget.input_type == "radio" %}padding-top:6px;{% endif %}">
@@ -21,7 +21,9 @@
         </a>
     </span>
 {% endif %}
-{% else %}
+{% elif form_field|default:None != None %}
 <span class="tbl-cell" style="vertical-align:baseline;padding-right:5px;">{{ form_item }}</span>
+{% else %}
+<span class="tbl-cell" style="vertical-align:baseline;padding-right:5px;">{% include form_template %}}</span>
 {% endif %}
 </div>
