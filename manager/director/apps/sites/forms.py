@@ -183,7 +183,7 @@ class ImageSelectForm(forms.Form):
         choices=lambda: DockerImage.objects.filter_user_visible()  # type: ignore
         .order_by("friendly_name")
         .values_list("name", "friendly_name"),
-        required=False,
+        required=True,
         widget=forms.widgets.RadioSelect(),
     )
 
