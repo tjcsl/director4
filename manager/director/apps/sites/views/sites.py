@@ -6,6 +6,7 @@ from typing import Optional
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import models
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -19,9 +20,17 @@ from ..models import DockerImage, Site
 def index_view(request: HttpRequest) -> HttpResponse:
     show_all = request.user.is_superuser and bool(request.GET.get("all"))
 
-    sites = list(Site.objects.filter(users=request.user).order_by("name"))
+    sites = list(
+        Site.objects.filter(users=request.user)
+        .order_by("name")
+        .annotate(user_owns_site=models.Value(True, models.BooleanField()))
+    )
     if show_all:
-        sites.extend(Site.objects.exclude(users=request.user).order_by("name"))
+        sites.extend(
+            Site.objects.exclude(users=request.user)
+            .order_by("name")
+            .annotate(user_owns_site=models.Value(False, models.BooleanField()))
+        )
 
     context = {
         "show_all": show_all,

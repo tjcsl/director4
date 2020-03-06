@@ -8,7 +8,7 @@ $(function() {
     });
 
     var site_ids = [];
-    $(".site-dynamic").each(function() {
+    $(".site-dynamic.user-site").each(function() {
         site_ids.push($(this).data("site-id"));
     });
 

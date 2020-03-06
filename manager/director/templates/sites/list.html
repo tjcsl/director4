@@ -34,7 +34,7 @@
     </div>
     <div id="sites">
     {% for site in sites %}
-        <a href="{% url 'sites:info' site.id %}" class="site{% if site.type == "dynamic" %} site-dynamic{% endif %}" id="site-{{ site.id }}" data-site-id="{{ site.id }}">
+        <a href="{% url 'sites:info' site.id %}" class="site{% if site.type == "dynamic" %} site-dynamic{% endif %}{% if site.user_owns_site %} user-site{% endif %}" id="site-{{ site.id }}" data-site-id="{{ site.id }}">
             {% if site.database %}<span data-toggle="tooltip" class="float-right tag tag-primary tag-database">{{ site.database.get_category_display }}</span>{% endif %}
             <i class="icon float-left fa-2x fa-fw {% if site.purpose == 'user' %}fas fa-user{% elif site.purpose == 'activity' %}fas fa-globe{% elif site.purpose == 'legacy' %}far fa-snowflake{% else %}fas fa-cube{% if site.purpose == 'project' %} project{% endif %}{% endif %}">
                 <span class="site-status"></span>
@@ -42,7 +42,7 @@
             <b class="name">{{ site.name }}</b><span class="sub"><span class="type">{{ site.get_type_display }}</span> - <span class="desc">{{ site.description|default:"No Description" }}</span> - <span class="users">{{ site.users.count }} user{% if site.users.count != 2 %}s{% endif %}</span></span>
         </a>
     {% endfor %}
-    {% if sites.count == 0 and other_sites.count == 0 %}
+    {% if sites.count == 0 %}
     <div id="empty">You don't have any sites! Click <a href="{% url 'sites:create' %}">here</a> to create a new site.</div>
     {% endif %}
     </div>
