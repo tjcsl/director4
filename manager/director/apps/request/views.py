@@ -10,6 +10,7 @@ from django.shortcuts import redirect, render
 from ...utils.emails import send_email
 from .forms import SiteRequestForm
 
+
 @login_required
 def approve_view(request: HttpRequest) -> HttpResponse:
     return HttpResponse("")

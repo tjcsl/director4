@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from typing import Any, Collection, Mapping
+from typing import Any, Mapping, Sequence
 
-from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
 
@@ -13,7 +13,7 @@ def send_email(
     html_template: str,
     context: Mapping[str, Any],
     subject: str,
-    emails: Collection[str],
+    emails: Sequence[str],
 ) -> EmailMultiAlternatives:
     text_plain = get_template(text_template).render(context)
     text_html = get_template(html_template).render(context)
