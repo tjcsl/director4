@@ -1,5 +1,5 @@
 {{ site_request.teacher.full_name }},
-  
+
 A student, {{ site_request.user.full_name }}, has filed a website request form for {{ site_request.activity }} and marked you as the teacher sponsor.
 
 You can accept this request at {{ DJANGO_SETTINGS.DIRECTOR_URL }}{% url 'request:approve' %}. If you have any questions, please email {{ DJANGO_SETTINGS.DIRECTOR_CONTACT_EMAIL }}.
