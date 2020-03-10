@@ -173,6 +173,7 @@ if ! [ -f "$REGISTRY_CERT_PATH/localhost.key" ]; then
         -newkey rsa:4096 -nodes -sha256 -keyout $REGISTRY_CERT_PATH/localhost.key \
         -x509 -days 3650 -out $REGISTRY_CERT_PATH/localhost.crt \
         -subj "/C=US/ST=DC/L=Washington/CN=localhost"
+        -addext subjectAltName=DNS:localhost
 fi
 chown -R vagrant:vagrant "$REGISTRY_CERT_PATH"
 
