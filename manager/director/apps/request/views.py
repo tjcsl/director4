@@ -20,14 +20,22 @@ def approve_teacher_view(request: HttpRequest) -> HttpResponse:
 
     if request.method == "POST":
         try:
-            site_request = SiteRequest.objects.get(id=request.POST.get("request", None), teacher=request.user)
+            site_request = SiteRequest.objects.get(
+                id=request.POST.get("request", None), teacher=request.user
+            )
         except SiteRequest.DoesNotExist:
-            messages.error(request, "Either that site request does not exist or you do not have permission to approve it.")
+            messages.error(
+                request,
+                "Either that site request does not exist or you do not have permission to approve "
+                "it.",
+            )
         else:
             action = request.POST.get("action", None)
             if action == "accept":
                 if not request.POST.get("agreement", False):
-                    messages.error(request, "Please check the agreement box to approve this site request!")
+                    messages.error(
+                        request, "Please check the agreement box to approve this site request!"
+                    )
                 else:
                     site_request.teacher_approval = True
                     site_request.save()
@@ -40,7 +48,10 @@ def approve_teacher_view(request: HttpRequest) -> HttpResponse:
                         emails=[settings.DIRECTOR_CONTACT_EMAIL],
                     )
 
-                    messages.success(request, "Your approval has been added and the site will be created shortly.")
+                    messages.success(
+                        request,
+                        "Your approval has been added and the site will be created shortly.",
+                    )
             elif action == "reject":
                 site_request.teacher_approval = False
                 site_request.save()
@@ -49,7 +60,9 @@ def approve_teacher_view(request: HttpRequest) -> HttpResponse:
         return redirect("request:approve_teacher")
 
     context = {
-        "site_requests": SiteRequest.objects.filter(teacher=request.user).order_by("-teacher_approval", "-id"),
+        "site_requests": SiteRequest.objects.filter(teacher=request.user).order_by(
+            "-teacher_approval", "-id"
+        ),
     }
 
     return render(request, "request/approve-teacher.html", context)
@@ -63,9 +76,14 @@ def approve_admin_view(request: HttpRequest) -> HttpResponse:
 
     if request.method == "POST":
         try:
-            site_request = SiteRequest.objects.get(id=request.POST.get("request", None), teacher_approval=True)
+            site_request = SiteRequest.objects.get(
+                id=request.POST.get("request", None), teacher_approval=True
+            )
         except SiteRequest.DoesNotExist:
-            messages.error(request, "Either that site request does not exist or it has not been approved by a teacher.")
+            messages.error(
+                request,
+                "Either that site request does not exist or it has not been approved by a teacher.",
+            )
         else:
             admin_comments = request.POST.get("admin_comments", "")
             private_admin_comments = request.POST.get("private_admin_comments", "")

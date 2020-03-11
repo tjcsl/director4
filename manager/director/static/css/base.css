@@ -151,3 +151,15 @@ ul.errorlist {
 .help-text {
     font-size: 80%;
 }
+
+.nav-warn {
+    background-color: #E65100;
+    padding: 3px 5px;
+    margin-right: 5px;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+body a.nav-warn:hover {
+    color: white;
+}

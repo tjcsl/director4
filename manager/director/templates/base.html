@@ -77,6 +77,14 @@
             {% endblock %}
         </ul>
         <div class="nav navbar-nav ml-auto float-right">
+            <div class="nav-item">
+            {% if show_teacher_site_request_button %}
+            <a class="nav-warn" href="{% url 'request:approve_teacher' %}">Site Requests</a>
+            {% endif %}
+            {% if show_admin_site_request_button %}
+            <a class="nav-warn" href="{% url 'request:approve_admin' %}">{% if show_teacher_site_request_button %}Admin {% endif %}Site Requests</a>
+            {% endif %}
+            </div>
             {% if request.user.is_authenticated %}
             <div class="nav-item dropdown" id="user-dropdown">
                 <button class="dropdown-toggle" data-toggle="dropdown"><i class="fas fa-user"></i> <span class="d-none d-sm-inline">{{ request.user.full_name }}</span></button>
