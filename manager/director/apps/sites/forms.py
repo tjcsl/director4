@@ -156,7 +156,7 @@ class SiteMetaForm(forms.ModelForm):
     def clean(self) -> Dict[str, Any]:
         cleaned_data = super().clean()
 
-        if cleaned_data["name"][0] in string.digits and cleaned_data["purpose"] != "user":
+        if self.instance.name[0] in string.digits and cleaned_data["purpose"] != "user":
             self.add_error("name", "Project site names cannot start with a number")
 
         return cleaned_data
