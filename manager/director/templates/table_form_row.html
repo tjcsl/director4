@@ -21,7 +21,7 @@
         </a>
     </span>
 {% endif %}
-{% elif form_field|default:None != None %}
+{% elif form_item|default:None != None %}
 <span class="tbl-cell" style="vertical-align:baseline;padding-right:5px;">{{ form_item }}</span>
 {% else %}
 <span class="tbl-cell" style="vertical-align:baseline;padding-right:5px;">{% include form_template %}}</span>
