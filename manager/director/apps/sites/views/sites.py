@@ -11,7 +11,6 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from ....utils.emails import send_email
 from .. import operations
 from ..forms import ImageSelectForm, SiteCreateForm
 from ..helpers import send_new_site_email

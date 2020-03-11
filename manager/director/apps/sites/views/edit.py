@@ -42,7 +42,9 @@ def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
             meta_form.save()
             send_site_updated_message(site)
 
-            for user in site.users.filter(is_service=False).exclude(id__in=[request.user.id, *old_uids]):
+            for user in site.users.filter(is_service=False).exclude(
+                id__in=[request.user.id, *old_uids]
+            ):
                 send_new_site_email(user=user, site=site)
 
             return redirect("sites:info", site.id)

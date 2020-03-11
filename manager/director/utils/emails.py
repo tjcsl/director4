@@ -36,12 +36,7 @@ def send_email(
 
 
 @shared_task
-def _raw_send_email(
-    subject: str,
-    text_html: str,
-    text_plain: str,
-    emails: Sequence[str],
-) -> None:
+def _raw_send_email(subject: str, text_html: str, text_plain: str, emails: Sequence[str]) -> None:
     msg = EmailMultiAlternatives(
         subject=settings.EMAIL_SUBJECT_PREFIX + subject,
         body=text_plain,
