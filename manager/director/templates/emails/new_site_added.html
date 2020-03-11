@@ -1,0 +1,8 @@
+<p>Hi {{ user.full_name }},</p>
+
+<p>You have just been added to a new website: {{ site.name }}. To view this website, visit <a href="{{ site.main_url }}">{{ site.main_url }}</a>.</p>
+
+<p>To view and manage websites that you have access to, please visit <a href="{{ DJANGO_SETTINGS.DIRECTOR_URL }}">{{ DJANGO_SETTINGS.DIRECTOR_URL }}</a>.</p>
+
+<p>Thanks,<br>
+The Director Team</p>

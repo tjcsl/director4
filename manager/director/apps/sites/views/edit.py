@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .. import operations
 from ..forms import DomainFormSet, SiteMetaForm, SiteNamesForm, SiteTypeForm
-from ..helpers import send_site_updated_message
+from ..helpers import send_new_site_email, send_site_updated_message
 from ..models import Domain, Site
 
 
@@ -36,8 +36,15 @@ def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
     if request.method == "POST":
         meta_form = SiteMetaForm(request.POST, instance=site, user=request.user)
         if meta_form.is_valid():
+            # Get the list so we can see who was added later
+            old_uids = list(site.users.values_list("id", flat=True))
+
             meta_form.save()
             send_site_updated_message(site)
+
+            for user in site.users.filter(is_service=False).exclude(id__in=[request.user.id, *old_uids]):
+                send_new_site_email(user=user, site=site)
+
             return redirect("sites:info", site.id)
     else:
         meta_form = SiteMetaForm(instance=site, user=request.user)

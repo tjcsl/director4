@@ -1,0 +1,8 @@
+Hi {{ user.full_name }},
+
+You have just been added to a new website: {{ site.name }}. To view this website, visit {{ site.main_url }}.
+
+To view and manage websites that you have access to, please visit {{ DJANGO_SETTINGS.DIRECTOR_URL }}.
+
+Thanks,
+The Director Team

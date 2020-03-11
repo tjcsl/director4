@@ -7,6 +7,9 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
+from django.conf import settings
+
+from ...utils.emails import send_email
 from .models import Action, Operation, Site
 
 ActionCallback = Callable[[Site, Dict[str, Any]], Iterator[Union[Tuple[str, str], str]]]
@@ -167,4 +170,14 @@ def send_operation_updated_message(site: Site) -> None:
 def send_site_updated_message(site: Site) -> None:
     async_to_sync(get_channel_layer().group_send)(
         site.channels_group_name, {"type": "site.updated"},
+    )
+
+
+def send_new_site_email(*, user: Any, site: Site) -> None:
+    send_email(
+        text_template="emails/new_site_added.txt",
+        html_template="emails/new_site_added.html",
+        context={"site": site, "DJANGO_SETTINGS": settings},
+        subject="You've been added to a new website!",
+        emails=[user.email],
     )
