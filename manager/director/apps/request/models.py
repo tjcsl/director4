@@ -19,6 +19,11 @@ class SiteRequest(models.Model):
     teacher_approval = models.BooleanField(null=True, default=None)
     admin_approval = models.BooleanField(null=True, default=None)
 
+    # WILL be shown to users.
+    admin_comments = models.TextField(null=False, blank=True)
+    # Will NOT be shown to users
+    private_admin_comments = models.TextField(null=False, blank=True)
+
     activity = models.CharField(max_length=32, null=False, blank=False)
     extra_information = models.TextField(null=False, blank=True)
 

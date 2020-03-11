@@ -1,0 +1,3 @@
+A student, {{ site_request.user.full_name }}, has filed a website request form for {{ site_request.activity }} and obtained approval from {{ site_request.teacher.full_name }}.
+
+You can process this request at {{ DJANGO_SETTINGS.DIRECTOR_URL }}{% url 'request:approve_admin' %}.

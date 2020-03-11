@@ -1,0 +1,3 @@
+<p>A student, <b>{{ site_request.user.full_name }}</b>, has filed a website request form for <b>{{ site_request.activity }}</b> and obtained approval from <b>{{ site_request.teacher.full_name }}</b>.</p>
+
+<p>You can process this request at <a href="{{ DJANGO_SETTINGS.DIRECTOR_URL }}{% url 'request:approve_admin' %}">{{ DJANGO_SETTINGS.DIRECTOR_URL }}{% url 'request:approve_admin' %}</a>.</p>

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Approve site requests{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/site-request.css' %}">
+{% endblock %}
+
+{% block main %}
+    <div class="submitted">
+        {% for sr in site_requests %}
+        <div class="site-request">
+            <span class="activity">{{ sr.activity }}</span> - {{ sr.request_date }}<br>
+            Requested by {{ sr.user.full_name }}<br>
+            Approval requested from {{ sr.teacher.full_name }}<br>
+
+            {{ sr.extra_information|default:"No Extra Information" }}<br>
+
+            <i class="fas fa-{% if sr.teacher_approval is None %}question{% elif sr.teacher_approval %}check{% else %}times{% endif %}"></i> Approved - <i class="fa fa-{% if sr.admin_approval is None %}question{% elif sr.admin_approval %}check{% else %}times{% endif %}"></i> Processed<br>
+
+            {% if sr.teacher_approval %}
+
+            {% if sr.admin_approval == True %}
+            {% if sr.admin_comments %}
+            Administrative comments: {{ sr.admin_comments }}<br>
+            {% endif %}
+            {% if sr.private_admin_comments %}
+            Private administrative comments: {{ sr.private_admin_comments }}<br>
+            {% endif %}
+
+            {% else %}
+            <form method="POST" class="approval">
+                {% csrf_token %}
+                <input type="hidden" name="request" value="{{ sr.id }}" />
+
+                <label for="admin_comments_{{ sr.id }}">Administrative comments:</label> <input type="text" class="admin_comments" name="admin_comments" id="admin_comments_{{ sr.id }}" value="{{ sr.admin_comments }}"><br>
+                <label for="private_admin_comments_{{ sr.id }}">Private administrative comments:</label> <input type="text" class="private_admin_comments" name="private_admin_comments" id="private_admin_comments_{{ sr.id }}" value="{{ sr.private_admin_comments }}"><br>
+
+                <button type="submit" class="btn btn-ion" name="action" value="accept"><i class="fa fa-check"></i> Approve</button>
+                <button type="submit" class="btn btn-ion" name="action" value="reject"><i class="fa fa-times"></i> Reject</button>
+            </form>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% empty %}
+            <div>No sites to approve! <i class="fa fa-smile-o"></i></div>
+        {% endfor %}
+    </div>
+{% endblock %}

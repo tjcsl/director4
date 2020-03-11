@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Approve site request{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/site-request.css' %}">
+{% endblock %}
+
+{% block main %}
+    <div class="submitted">
+        {% for sr in site_requests %}
+        <div class="site-request">
+            <span class="activity">{{ sr.activity }}</span> - {{ sr.request_date }}<br>
+            Requested by {{ sr.user.full_name }}<br>
+            {{ sr.extra_information|default:"No Extra Information" }}<br>
+            <i class="fas fa-{% if sr.teacher_approval is None %}question{% elif sr.teacher_approval %}check{% else %}times{% endif %}"></i> Approved - <i class="fa fa-{% if sr.admin_approval is None %}question{% elif sr.admin_approval %}check{% else %}times{% endif %}"></i> Processed<br>
+
+            {% if sr.admin_comments %}
+            Administrative comments: {{ sr.admin_comments }}<br>
+            {% endif %}
+
+            {% if sr.teacher_approval is None %}
+            <form method="POST" class="approval">
+                {% csrf_token %}
+                <input type="hidden" name="request" value="{{ sr.id }}">
+                <input type="checkbox" name="agreement" id="agreement">
+                <label for="agreement" style="display: inline">
+                    I am aware of the <a href="#" data-toggle="modal" data-target="#guidelines-modal">Guidelines for Web Pages</a> and have reviewed this with the above student. This student is responsible and can be trusted with the requested services of the Computer Systems Lab.
+                </label>
+                <br>
+                <button type="submit" class="btn btn-ion" name="action" value="accept"><i class="fa fa-check"></i> Approve</button>
+                <button type="submit" class="btn btn-ion" name="action" value="reject"><i class="fa fa-times"></i> Reject</button>
+            </form>
+            {% endif %}
+        </div>
+        {% empty %}
+            <div>No sites to approve! <i class="fa fa-smile-o"></i></div>
+        {% endfor %}
+    </div>
+
+    <div id="guidelines-modal" class="modal fade">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Website Guidelines</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% include "request/guidelines.html" %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

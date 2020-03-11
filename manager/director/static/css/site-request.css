@@ -1,0 +1,59 @@
+.alert.alert-warning {
+    margin-top: 1rem;
+}
+.nav-links {
+    text-align: center;
+}
+#guidelines {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 15px auto;
+    border: 1px solid black;
+    padding: 15px;
+    background-color: white;
+}
+#teacher-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+#teacher-list li {
+    cursor: pointer;
+}
+.submitted {
+    margin-top: 15px;
+}
+.submitted .fa-check {
+    color: #4CAF50;
+}
+.submitted .fa-times {
+    color: #F44336;
+}
+.submitted .fa-question {
+    color: #FFEB3B;
+}
+.submitted .site-request {
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.07);
+    margin-bottom: 15px;
+}
+.submitted .activity {
+    font-weight: bold;
+}
+.submitted .approval {
+    background-color: #eee;
+    margin: 5px 0px;
+    padding: 10px;
+}
+.submitted .approval .fa {
+    color: #484848;
+}
+#select-teacher-load {
+    display: none;
+    color: #aaa;
+}
+
+.admin_comments, .private_admin_comments {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

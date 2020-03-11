@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Approve site request{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/site-request.css' %}">
+{% endblock %}
+
+{% block main %}
+    <div class="submitted">
+        {% for sr in site_requests %}
+        <div class="site-request">
+            <span class="activity">{{ sr.activity }}</span> - {{ sr.request_date }}<br>
+            Requested by {{ sr.user.full_name }}<br>
+            {{ sr.extra_information|default:"No Extra Information" }}<br>
+            <i class="fas fa-{% if sr.teacher_approval is None %}question{% elif sr.teacher_approval %}check{% else %}times{% endif %}"></i> Approved - <i class="fa fa-{% if sr.admin_approval is None %}question{% elif sr.admin_approval %}check{% else %}times{% endif %}"></i> Processed<br>
+
+            {% if sr.admin_comments %}
+            Administrative comments: {{ sr.admin_comments }}<br>
+            {% endif %}
+        </div>
+        {% empty %}
+            <div>You have not submitted any site requests.</div>
+        {% endfor %}
+    </div>
+{% endblock %}

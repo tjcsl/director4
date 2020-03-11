@@ -9,5 +9,7 @@ app_name = "request"
 
 urlpatterns = [
     path("", views.create_view, name="create"),
-    path("approve", views.approve_view, name="approve"),
+    path("approve/teacher/", views.approve_teacher_view, name="approve_teacher"),
+    path("approve/admin/", views.approve_admin_view, name="approve_admin"),
+    path("status/", views.status_view, name="status"),
 ]

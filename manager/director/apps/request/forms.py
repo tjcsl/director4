@@ -31,8 +31,8 @@ class SiteRequestForm(forms.ModelForm):
 
         help_texts = {
             "activity": "The name of the activity on behalf of which you are requesting the site.",
-            "extra_information": "Is there any additional information you want the teacher or the "
-            "Syadmins to know?",
+            "extra_information": "Please enter any additional information you want the teacher or "
+            "the Syadmins to know.",
         }
 
         widgets = {
