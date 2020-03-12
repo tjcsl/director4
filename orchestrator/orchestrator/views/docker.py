@@ -8,6 +8,7 @@ from typing import Tuple, Union
 from flask import Blueprint, current_app, request
 
 from ..docker.images import remove_docker_image
+from ..docker.registry import remove_registry_image
 from ..docker.services import (
     remove_director_service,
     restart_director_service,
@@ -88,6 +89,26 @@ def remove_docker_image_page() -> Union[str, Tuple[str, int]]:
 
     try:
         remove_docker_image(create_client(), request.args["name"])
+    except OrchestratorActionError as ex:
+        current_app.logger.error("%s", traceback.format_exc())
+        return str(ex), 500
+    except BaseException:  # pylint: disable=broad-except
+        current_app.logger.error("%s", traceback.format_exc())
+        return "Error", 500
+    else:
+        return "Success"
+
+
+@docker_blueprint.route("/sites/remove-registry-image", methods=["POST"])
+def remove_registry_image_page() -> Union[str, Tuple[str, int]]:
+    """Removes the given Docker image with the given name
+    from the Docker registry."""
+
+    if "name" not in request.args:
+        return "Error", 400
+
+    try:
+        remove_registry_image(request.args["name"])
     except OrchestratorActionError as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
