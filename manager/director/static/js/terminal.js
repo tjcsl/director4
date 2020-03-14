@@ -27,11 +27,6 @@ function setupTerminal(uri, wrapper, options) {
     var term = new Terminal({cursorBlink: true});
     var fitAddon = new FitAddon.FitAddon();
     term.loadAddon(fitAddon);
-    term.open(container.get(0), true);
-    if(options.autoFocus) {
-        term.focus();
-    }
-    fitAddon.fit();
 
     term.onData(function(data) {
         if(ws != null && connected && dataReceived) {
@@ -57,7 +52,18 @@ function setupTerminal(uri, wrapper, options) {
         }
     }
 
+    var termOpen = false;
+
     function openWS() {
+        if(!termOpen) {
+            termOpen = true;
+            term.open(container.get(0), true);
+            if(options.autoFocus) {
+                term.focus();
+            }
+            fitAddon.fit();
+        }
+
         term.reset();
         term.clear();
         term.setOption("disableStdin", true);
@@ -164,5 +170,5 @@ function setupTerminal(uri, wrapper, options) {
         titleCallback("Terminal");
     }
 
-    openWS();
+    setTimeout(openWS);
 }
