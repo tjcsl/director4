@@ -86,14 +86,10 @@ function FilesPane(container, uri, callbacks) {
     }
 
     this.followPath = function(path) {
-        var parts = path.split("/").filter((s) => s.length);
+        var parts = path.split("/").filter((s) => s.length && s != ".");
         var currentElem = container;
 
         while(parts.length) {
-            if(parts[0] == ".") {
-                parts.splice(0, 1);
-            }
-
             if(currentElem != container && !currentElem.hasClass("type-folder")) {
                 return null;
             }
