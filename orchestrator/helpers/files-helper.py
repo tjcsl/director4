@@ -5,6 +5,7 @@ import importlib
 import importlib.util
 import json
 import os
+import resource
 import select
 import shutil
 import stat
@@ -406,6 +407,8 @@ def main(argv: List[str]) -> None:
     if len(argv) < 2:
         print("Please specify a command", file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
+
+    resource.setrlimit(resource.RLIMIT_AS, (200 * 1024 * 1024, 200 * 1024 * 1024))
 
     commands = {
         "setup": (setup_cmd, [1]),
