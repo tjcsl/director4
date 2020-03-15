@@ -128,7 +128,36 @@ function FilesPane(container, uri, callbacks) {
             return;
         }
 
-        parentElem.children(".children").append(makeItem(info));
+        var newItem = makeItem(info);
+        var newItemSortOrder = getItemTypeSortOrder(newItem);
+
+        var beforeItem = null;
+        var afterItem = null;
+        parentElem.children(".children").children().each(function() {
+            var currentItemSortOrder = getItemTypeSortOrder($(this));
+
+            if(currentItemSortOrder > newItemSortOrder) {
+                beforeItem = $(this);
+                return false;
+            }
+            else if(currentItemSortOrder == newItemSortOrder) {
+                var name = $(this).children(".info-row").children(".item-name").text();
+                if(name > newInfo.basename) {
+                    beforeItem = $(this);
+                    return false;
+                }
+            }
+        });
+
+        if(beforeItem != null) {
+            newItem.insertBefore(beforeItem);
+        }
+        else if(afterItem != null) {
+            newItem.insertAfter(afterItem);
+        }
+        else {
+            parentElem.children(".children").append(newItem);
+        }
 
         if(prevOpenFolders.includes(info.fname)) {
             self.toggleDir(info.fname);
@@ -136,6 +165,15 @@ function FilesPane(container, uri, callbacks) {
             prevOpenFolders = prevOpenFolders.filter(x => (x != info.fname));
         }
     };
+
+    function getItemTypeSortOrder(elem) {
+        if(elem.hasClass("type-folder")) {
+            return 0;
+        }
+        else {
+            return 1;
+        }
+    }
 
     this.updateItem = function(info) {
         var newInfo = new ItemInfo(info);
