@@ -275,14 +275,6 @@ function FilesPane(container, uri, callbacks) {
         }
     }
 
-    /*this.addItem({fname: "c", filetype: "dir"});
-    this.addItem({fname: "c/d", filetype: "file"});
-
-    this.addItem({fname: "c/e", filetype: "dir"});
-    this.addItem({fname: "c/e/f", filetype: "file"});
-
-    this.toggleDir("c");*/
-
     openWS();
 }
 
