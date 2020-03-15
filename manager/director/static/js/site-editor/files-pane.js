@@ -258,8 +258,14 @@ function FilesPane(container, uri, callbacks) {
             if(elem.hasClass("type-folder")) {
                 self.toggleDir(elem);
             }
-            else {
+            else if(elem.hasClass("type-file")) {
                 openFileCallback(self.getElemPath(elem));
+            }
+            else {
+                Messenger().error({
+                    message: "You can only edit files",
+                    hideAfter: 2,
+                });
             }
         });
 
