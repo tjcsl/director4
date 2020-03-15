@@ -416,16 +416,6 @@ function FilesPane(container, uri, callbacks) {
     makeDropable(rootDropContainer);
 }
 
-function splitPath(path) {
-    var lastSlashIndex = path.lastIndexOf("/");
-    if(lastSlashIndex == -1) {
-        return ["", path];
-    }
-    else {
-        return [path.slice(0, lastSlashIndex), path.slice(lastSlashIndex + 1)];
-    }
-}
-
 
 function ItemInfo(info) {
     this.mode = info.mode;
@@ -460,7 +450,7 @@ function ItemInfo(info) {
             break;
 
         case "file":
-            if(info.fname.match(/\.(jpeg|jpg|gif|png|ico)$/)) {
+            if(info.fname.match(/\.(jpe?g|gif|png|ico)$/)) {
                 this.faIcon = "far fa-file-image";
             }
             else if(info.fname.match(/\.(mp[34]|swf)$/) != null) {

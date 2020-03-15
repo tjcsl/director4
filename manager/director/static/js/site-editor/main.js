@@ -50,3 +50,16 @@ $(function() {
         layout.updateSize();
     });
 });
+
+
+// Utility functions that may be used by multiple parts
+
+function splitPath(path) {
+    var lastSlashIndex = path.lastIndexOf("/");
+    if(lastSlashIndex == -1) {
+        return ["", path];
+    }
+    else {
+        return [path.slice(0, lastSlashIndex), path.slice(lastSlashIndex + 1)];
+    }
+}
