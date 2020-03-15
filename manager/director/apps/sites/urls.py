@@ -42,7 +42,7 @@ database_patterns = [
 ]
 
 file_patterns = [
-    path("", views.sites.dummy_view, name="editor"),
+    path("", views.files.editor_view, name="editor"),
     path("get/", views.files.get_file_view, name="get_file"),
     path("write/", views.files.write_file_view, name="write_file"),
     path("rm/", views.files.remove_file_view, name="remove_file"),

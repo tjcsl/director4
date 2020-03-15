@@ -6,7 +6,7 @@ from typing import Generator, Union
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, StreamingHttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET, require_POST
 
 from ....utils.appserver import (
@@ -15,6 +15,18 @@ from ....utils.appserver import (
     iter_random_pingable_appservers,
 )
 from ..models import Site
+
+
+@require_GET
+@login_required
+def editor_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    context = {
+        "site": site,
+    }
+
+    return render(request, "sites/editor.html", context)
 
 
 @require_GET

@@ -1,0 +1,37 @@
+.files-pane.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.files-pane .type-folder > .info-row {
+}
+
+.files-pane .type-file > .info-row {
+}
+
+.files-pane .type-link > .info-row {
+    color: lightblue;
+}
+
+.files-pane .type-special > .info-row {
+    color: blue;
+}
+
+.files-pane .type-file.executable > .info-row {
+    color: green;
+}
+
+.files-pane .item-name {
+    padding-left: 5px;
+}
+
+.files-pane .children {
+    margin-left: 20px;
+}
+.files-pane > .children {
+    margin-left: 2px;
+}
+
+.files-pane .type-folder:not(.open) > .children {
+    display: none;
+}
