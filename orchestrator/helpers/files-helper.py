@@ -351,10 +351,13 @@ def monitor_cmd(site_directory: str) -> None:
                                 print(json.dumps(event_info), flush=True)
                     elif operation == b"-":
                         # Remove watch
-                        if fname in wds_by_fname:
-                            watch_desc = wds_by_fname.pop(fname)
-                            fnames_by_wd.pop(watch_desc, None)
-                            inotify.rm_watch(watch_desc)
+                        for wd, wd_fname in list(fnames_by_wd.items()):
+                            # Remove for the directory itself, as well as all subdirectories
+                            if os.path.commonpath([fname, wd_fname]) == fname:
+                                inotify.rm_watch(wd)
+
+                                fnames_by_wd.pop(wd, None)
+                                wds_by_fname.pop(wd_fname, None)
                     elif operation == b"q":
                         # Quit
                         sys.exit(0)
