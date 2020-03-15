@@ -363,13 +363,19 @@ class SiteFilesMonitor:
         if self.proc is None:
             raise Exception("SiteFilesMonitor.start() was not called")
 
-        self.proc.terminate()
+        try:
+            self.proc.terminate()
+        except ProcessLookupError:
+            pass
 
     def kill(self) -> None:
         if self.proc is None:
             raise Exception("SiteFilesMonitor.start() was not called")
 
-        self.proc.kill()
+        try:
+            self.proc.kill()
+        except ProcessLookupError:
+            pass
 
     async def stop_wait(self, *, timeout: Union[int, float]) -> None:
         self.terminate()
