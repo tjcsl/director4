@@ -335,8 +335,8 @@ def monitor_cmd(site_directory: str) -> None:
                         # Add watch
                         try:
                             watch_desc = inotify.add_watch(fname or ".", directory_watch_flags)
-                        except OSError:
-                            pass
+                        except OSError as ex:
+                            print(json.dumps({"event": "error", "fname": fname, "error": str(ex)}), flush=True)
                         else:
                             wds_by_fname[fname] = watch_desc
                             fnames_by_wd[watch_desc] = fname
