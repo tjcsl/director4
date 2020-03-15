@@ -166,6 +166,10 @@ def rename_cmd(site_directory: str, oldpath: str, newpath: str) -> None:
 
     chroot_into(site_directory)
 
+    if os.path.exists(newpath) or os.path.islink(newpath):
+        print("File already exists", file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
     try:
         os.rename(oldpath, newpath)
     except OSError as ex:
