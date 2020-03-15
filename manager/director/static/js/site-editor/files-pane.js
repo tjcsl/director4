@@ -6,6 +6,8 @@ function FilesPane(container, uri, callbacks) {
 
     container.append($("<div>").addClass("children"));
 
+    var rootDropContainer = $("<div>").css("height", "100vh").appendTo(container);
+
     var openFileCallback = callbacks.openFile || function(fname) {};
 
     var ws = null;
@@ -84,8 +86,12 @@ function FilesPane(container, uri, callbacks) {
         }
     }, 30 * 1000);
 
-    function getOpenFolderNames() {
-        return container.find(".type-folder.open").map((i, e) => self.getElemPath($(e))).get();
+    function getOpenFolderNames(elem) {
+        var items = (elem || container).find(".type-folder.open").map((i, e) => self.getElemPath($(e))).get();
+        if(elem && elem.hasClass("type-folder") && elem.hasClass("open")) {
+            items.push(self.getElemPath(elem));
+        }
+        return items;
     }
 
     // Given the /-separated "path" of a specific file/folder/special file, finds the container
@@ -137,6 +143,13 @@ function FilesPane(container, uri, callbacks) {
     // /-separated "path" of that file.
     // This is the inverse of followPath().
     this.getElemPath = function(elem) {
+        if(elem.parent(".info-row").length) {
+            elem = elem.parent();
+        }
+        if(elem.hasClass("info-row")) {
+            elem = elem.parent();
+        }
+
         // We get all the parent .type-folder elements up until the root .files-pane.
         // Then we find their .info-row direct children (the .info-rows hold the main information)
         // Then we find their .item-name direct children (the .item-names hold the actual name).
@@ -144,7 +157,10 @@ function FilesPane(container, uri, callbacks) {
         // This is a jQuery object, so we translate it to an array.
         // It's from the child going up to the parent, so we reverse it.
         // And then we add the final entry, the element itself, and join it all together.
-        return [...elem.parentsUntil(".files-pane", ".type-folder").children(".info-row").children(".item-name").map((i, elem) => elem.innerText).get().reverse(), elem.children(".info-row").children(".item-name").text()].join("/");
+        return [
+            ...elem.parentsUntil(".files-pane", ".type-folder").children(".info-row").children(".item-name").map((i, elem) => elem.innerText).get().reverse(),
+            elem.children(".info-row").children(".item-name").text(),
+        ].join("/");
     };
 
     this.addItem = function(info) {
@@ -252,9 +268,23 @@ function FilesPane(container, uri, callbacks) {
 
         infoRow.append($("<span>").addClass("item-name").text(newInfo.basename));
 
+        infoRow.prop("draggable", true);
+
         if(newInfo.filetype == "link") {
             infoRow.append($("<span>").addClass("item-dest").text(newInfo.dest || "?"));
         }
+
+        addItemListeners(itemContainer);
+
+        if(info.filetype == "dir") {
+            itemContainer.append($("<div>").addClass("children"));
+        }
+
+        return itemContainer;
+    }
+
+    function addItemListeners(itemContainer) {
+        var infoRow = itemContainer.children(".info-row");
 
         infoRow.dblclick(function(e) {
             var elem = $(e.target).closest(".info-row").parent();
@@ -273,11 +303,76 @@ function FilesPane(container, uri, callbacks) {
             }
         });
 
-        if(info.filetype == "dir") {
-            itemContainer.append($("<div>").addClass("children"));
-        }
+        infoRow.on("dragstart", function(e) {
+            var fname = self.getElemPath($(e.target));
+            e.originalEvent.dataTransfer.setData("source-fname", fname);
+            e.originalEvent.dataTransfer.setData("source-basename", splitPath(fname)[1]);
+        });
 
-        return itemContainer;
+        infoRow.on("drag", function(e) {
+        });
+
+        if(itemContainer.hasClass("type-folder")) {
+            makeDropable(infoRow);
+        }
+    }
+
+    function makeDropable(elem) {
+        elem.on("dragover", function(e) {
+            // Allow dropping
+            e.preventDefault();
+        });
+
+        elem.on("drop", function(e) {
+            // Get the path of the original element
+            var elempath = self.getElemPath($(e.target));
+
+            // Resolve the main container (more reliable than e.target for getting the main container)
+            var elem = self.followPath(elempath);
+
+            // Get the source path
+            var oldpath = e.originalEvent.dataTransfer.getData("source-fname");
+            // And derive the destination path
+            var newpath;
+            if(elempath) {
+                newpath = elempath + "/" + e.originalEvent.dataTransfer.getData("source-basename");
+            }
+            else {
+                newpath = e.originalEvent.dataTransfer.getData("source-basename");
+            }
+
+            var oldelem = self.followPath(oldpath);
+
+            if(!oldpath || !newpath) {
+                return;
+            }
+
+            if(oldelem.hasClass("type-folder") || oldelem.is(rootDropContainer)) {
+                prevOpenFolders.push(
+                    ...getOpenFolderNames(oldelem).map(
+                        (name) => newpath + name.slice(oldpath.length)
+                    )
+                );
+            }
+
+            $.post({
+                url: file_endpoints.rename + "?" + $.param({
+                    oldpath: oldpath,
+                    newpath: newpath,
+                }),
+                dataType: "text",
+            }).done(function() {
+                // Open directories we moved files into;
+                if(!elem.hasClass("open")) {
+                    self.toggleDir(elem);
+                }
+            }).fail(function(data) {
+                Messenger().error({
+                    message: data.responseText || "Error moving file",
+                    hideAfter: 3,
+                });
+            });
+        });
     }
 
     this.toggleDir = function(dirspec) {
@@ -317,6 +412,8 @@ function FilesPane(container, uri, callbacks) {
     }
 
     openWS();
+
+    makeDropable(rootDropContainer);
 }
 
 function splitPath(path) {
