@@ -144,8 +144,8 @@ def remove_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
             params={"path": path},
             timeout=10,
         )
-    except AppserverProtocolError:
-        return HttpResponse(status=500)
+    except AppserverProtocolError as ex:
+        return HttpResponse(str(ex), status=500)
 
     return HttpResponse("Sucess", content_type="text/plain")
 
@@ -173,8 +173,8 @@ def remove_directory_recur_view(request: HttpRequest, site_id: int) -> HttpRespo
             params={"path": path},
             timeout=10,
         )
-    except AppserverProtocolError:
-        return HttpResponse(status=500)
+    except AppserverProtocolError as ex:
+        return HttpResponse(str(ex), status=500)
 
     return HttpResponse("Success", content_type="text/plain")
 
@@ -202,8 +202,8 @@ def make_directory_view(request: HttpRequest, site_id: int) -> HttpResponse:
             params={"path": path, "mode": request.GET.get("mode", "")},
             timeout=10,
         )
-    except AppserverProtocolError:
-        return HttpResponse(status=500)
+    except AppserverProtocolError as ex:
+        return HttpResponse(str(ex), status=500)
 
     return HttpResponse("Success", content_type="text/plain")
 
@@ -234,8 +234,8 @@ def chmod_view(request: HttpRequest, site_id: int) -> HttpResponse:
             params={"path": path, "mode": mode},
             timeout=10,
         )
-    except AppserverProtocolError:
-        return HttpResponse(status=500)
+    except AppserverProtocolError as ex:
+        return HttpResponse(str(ex), status=500)
 
     return HttpResponse("Success", content_type="text/plain")
 
@@ -266,7 +266,7 @@ def rename_view(request: HttpRequest, site_id: int) -> HttpResponse:
             params={"oldpath": oldpath, "newpath": newpath},
             timeout=10,
         )
-    except AppserverProtocolError:
-        return HttpResponse(status=500)
+    except AppserverProtocolError as ex:
+        return HttpResponse(str(ex), status=500)
 
     return HttpResponse("Success", content_type="text/plain")
