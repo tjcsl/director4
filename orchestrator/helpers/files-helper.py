@@ -301,6 +301,15 @@ def monitor_cmd(site_directory: str) -> None:
     wds_by_fname: Dict[str, int] = {}
     fnames_by_wd: Dict[int, str] = {}
 
+    def remove_watch_and_subwatches(fname: str) -> None:
+        for wd, wd_fname in list(fnames_by_wd.items()):
+            # Remove for the directory itself, as well as all subdirectories
+            if os.path.commonpath([fname, wd_fname]) == fname:
+                inotify.rm_watch(wd)
+
+                fnames_by_wd.pop(wd, None)
+                wds_by_fname.pop(wd_fname, None)
+
     while True:
         read_fds = select.select([inotify.fileno(), 0], [], [], 30)[0]
 
@@ -351,13 +360,7 @@ def monitor_cmd(site_directory: str) -> None:
                                 print(json.dumps(event_info), flush=True)
                     elif operation == b"-":
                         # Remove watch
-                        for wd, wd_fname in list(fnames_by_wd.items()):
-                            # Remove for the directory itself, as well as all subdirectories
-                            if os.path.commonpath([fname, wd_fname]) == fname:
-                                inotify.rm_watch(wd)
-
-                                fnames_by_wd.pop(wd, None)
-                                wds_by_fname.pop(wd_fname, None)
+                        remove_watch_and_subwatches(fname)
                     elif operation == b"q":
                         # Quit
                         sys.exit(0)
@@ -371,13 +374,22 @@ def monitor_cmd(site_directory: str) -> None:
 
                     fname = os.path.join(fnames_by_wd[event.wd], event.name)
 
-                    if any(
-                        event.mask & flag for flag in (
-                            inotify_simple.flags.MOVE_SELF,  # Directory moved
-                            inotify_simple.flags.DELETE_SELF,  # Directory deleted
-                            inotify_simple.flags.MOVED_FROM,  # Subfile moved somewhere else
-                            inotify_simple.flags.DELETE,  # Subfile deleted
-                        )
+                    if (
+                        event.mask & inotify_simple.flags.MOVE_SELF  # Directory moved
+                        or event.mask & inotify_simple.flags.DELETE_SELF  # Directory deleted
+                    ):
+                        # Remove this watch and all subwatches
+                        # We need to do this because now that this directory is being moved we
+                        # don't know where it's going to go, so we can't continue to watch it.
+                        remove_watch_and_subwatches(fnames_by_wd[event.wd])
+
+                        event_info = {
+                            "fname": fname,
+                            "event": "delete",
+                        }
+                    elif (
+                        event.mask & inotify_simple.flags.MOVED_FROM  # Subfile moved somewhere else
+                        or event.mask & inotify_simple.flags.DELETE  # Subfile deleted
                     ):
                         event_info = {
                             "fname": fname,
