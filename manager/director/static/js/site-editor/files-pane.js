@@ -319,7 +319,7 @@ function FilesPane(container, uri, callbacks) {
 
     function makeDropable(elem) {
         elem.on("dragover", function(e) {
-            // Allow dropping
+            // Signals that it's safe to drop onto this element
             e.preventDefault();
         });
 
@@ -343,10 +343,13 @@ function FilesPane(container, uri, callbacks) {
 
             var oldelem = self.followPath(oldpath);
 
+            // Something went wrong; bail out.
             if(!oldpath || !newpath) {
                 return;
             }
 
+            // If this folder was open, or if any folders under it were open,
+            // keep them open.
             if(oldelem.hasClass("type-folder") || oldelem.is(rootDropContainer)) {
                 prevOpenFolders.push(
                     ...getOpenFolderNames(oldelem).map(
@@ -360,7 +363,6 @@ function FilesPane(container, uri, callbacks) {
                     oldpath: oldpath,
                     newpath: newpath,
                 }),
-                dataType: "text",
             }).done(function() {
                 // Open directories we moved files into;
                 if(!elem.hasClass("open")) {
