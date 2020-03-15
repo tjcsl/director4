@@ -129,7 +129,7 @@ function FilesPane(container, uri, callbacks) {
         }
         Messenger().error({
             message: data.error || "Error opening directory",
-            hideAfter: 3,
+            hideAfter: 2,
         });
     };
 
