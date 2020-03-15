@@ -205,7 +205,10 @@ def remove_docker_image(  # pylint: disable=unused-argument
         yield "Removing Docker image from registry on appserver {}".format(i)
 
         appserver_open_http_request(
-            i, "/sites/remove-registry-image", params={"name": site.docker_image.name}, method="POST",
+            i,
+            "/sites/remove-registry-image",
+            params={"name": site.docker_image.name},
+            method="POST",
         )
 
 
