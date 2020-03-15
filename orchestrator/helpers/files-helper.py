@@ -62,7 +62,13 @@ def construct_scandir_file_dicts(dirpath: str) -> List[Dict[str, Optional[str]]]
             "fname": fname,
             "filetype": "unknown",
             "dest": None,
+            "mode": None,
         }
+
+        try:
+            item["mode"] = entry.stat(follow_symlinks=False).st_mode
+        except OSError:
+            pass
 
         try:
             if entry.is_symlink():
@@ -90,6 +96,7 @@ def construct_file_event_dict(fname: str) -> Dict[str, Optional[str]]:
         "fname": fname,
         "filetype": "unknown",
         "dest": None,
+        "mode": None,
     }
 
     try:
@@ -97,6 +104,8 @@ def construct_file_event_dict(fname: str) -> Dict[str, Optional[str]]:
     except OSError:
         pass
     else:
+        event_info["mode"] = file_stat.st_mode
+
         if stat.S_ISLNK(file_stat.st_mode):
             event_info["filetype"] = "link"
             try:
