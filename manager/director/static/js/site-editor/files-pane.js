@@ -85,6 +85,9 @@ function FilesPane(container, uri, callbacks) {
         return container.find(".type-folder.open").map((i, e) => self.getElemPath($(e))).get();
     }
 
+    // Given the /-separated "path" of a specific file/folder/special file, finds the container
+    // element corresponding to that file.
+    // This is the inverse of getElemPath().
     this.followPath = function(path) {
         var parts = path.split("/").filter((s) => s.length && s != ".");
         var currentElem = container;
@@ -112,6 +115,9 @@ function FilesPane(container, uri, callbacks) {
         return currentElem;
     };
 
+    // Given the container element for a specific file/directory/special file, returns the
+    // /-separated "path" of that file.
+    // This is the inverse of followPath().
     this.getElemPath = function(elem) {
         // We get all the parent .type-folder elements up until the root .files-pane.
         // Then we find their .info-row direct children (the .info-rows hold the main information)
@@ -200,6 +206,17 @@ function FilesPane(container, uri, callbacks) {
     };
 
     function makeItem(info) {
+        // Structure (* indicates "varies"):
+        // <div class="type-* (optional classes: content-* executable)">
+        //  <div class="info-row">
+        //      <i class="far fa-*"></i>
+        //      <span class="item-name">(name)</span>
+        //  </div>
+        //  (If a folder, then its children appear here:)
+        //  <div class="children">
+        //      ...
+        //  </div>
+        // </div>
         var newInfo = new ItemInfo(info);
 
         var itemContainer = $("<div>");
