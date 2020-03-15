@@ -56,7 +56,7 @@ def update_mode(path: str, mode_str: str) -> None:
 
 def construct_scandir_file_dicts(dirpath: str) -> List[Dict[str, Optional[str]]]:
     items = []
-    for entry in os.scandir(dirpath):
+    for entry in os.scandir(dirpath or "."):
         fname = os.path.join(dirpath, entry.name)
         item = {
             "fname": fname,
@@ -323,7 +323,7 @@ def monitor_cmd(site_directory: str) -> None:
 
                     operation = bytes((line[0],))
                     try:
-                        fname = line[1:].decode()
+                        fname = line[1:].decode().strip("\r\n")
                     except UnicodeDecodeError:
                         print("Invalid input", file=sys.stderr)
                         sys.exit(SPECIAL_EXIT_CODE)
@@ -331,7 +331,7 @@ def monitor_cmd(site_directory: str) -> None:
                     if operation == b"+":
                         # Add watch
                         try:
-                            watch_desc = inotify.add_watch(fname, directory_watch_flags)
+                            watch_desc = inotify.add_watch(fname or ".", directory_watch_flags)
                         except OSError:
                             pass
                         else:
