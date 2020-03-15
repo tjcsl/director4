@@ -62,7 +62,10 @@ function FilesPane(container, uri, callbacks) {
                 break;
             case "update":
                 self.updateItem(data);
-                break
+                break;
+            case "error":
+                self.handleError(data);
+                break;
         }
     }
 
@@ -113,6 +116,21 @@ function FilesPane(container, uri, callbacks) {
         }
 
         return currentElem;
+    };
+
+    this.handleError = function(data) {
+        var elem = this.followPath(data.fname);
+        if(elem == null) {
+            return;
+        }
+
+        if(elem.hasClass("type-folder")) {
+            elem.children(".children").text("<Error opening directory>");
+        }
+        Messenger().error({
+            message: data.error || "Error opening directory",
+            hideAfter: 3,
+        });
     };
 
     // Given the container element for a specific file/directory/special file, returns the
