@@ -51,7 +51,9 @@ function FilesPane(container, uri, callbacks) {
                 break;
             case "delete":
                 var elem = self.followPath(fileEv.fname);
-                elem.remove();
+                if(elem != null) {
+                    elem.remove();
+                }
                 break;
             case "update":
                 self.updateItem(fileEv);
