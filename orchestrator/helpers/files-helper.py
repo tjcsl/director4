@@ -287,6 +287,8 @@ def monitor_cmd(site_directory: str) -> None:
         | inotify_simple.flags.MOVE_SELF
         # Directory deleted
         | inotify_simple.flags.DELETE_SELF
+        # Attributes changed
+        | inotify_simple.flags.ATTRIB
         # Don't follow symlinks
         | inotify_simple.flags.DONT_FOLLOW
         # Raise an error if it's not a directory
@@ -381,6 +383,9 @@ def monitor_cmd(site_directory: str) -> None:
                     }:
                         event_info = construct_file_event_dict(fname)
                         event_info["event"] = "create"
+                    elif event.mask == inotify_simple.flags.ATTRIB:  # Attributes changed
+                        event_info = construct_file_event_dict(fname)
+                        event_info["event"] = "update"
                     else:
                         # We only watch for specific events, but there are some
                         # that get triggered anyway.
