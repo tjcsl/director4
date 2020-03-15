@@ -22,6 +22,7 @@ function FilesPane(container, uri, callbacks) {
     var prevOpenFolders = []
     function wsOpened() {
         ws.send(JSON.stringify({action: "add", path: ""}));
+        ws.send(JSON.stringify({heartbeat: 1}));
     }
 
     function wsMessage(e) {
@@ -43,20 +44,24 @@ function FilesPane(container, uri, callbacks) {
             isOpen = true;
         }
 
-        var fileEv = JSON.parse(e.data);
+        var data = JSON.parse(e.data);
 
-        switch(fileEv.event) {
+        if(data.heartbeat != null) {
+            return;
+        }
+
+        switch(data.event) {
             case "create":
-                self.addItem(fileEv);
+                self.addItem(data);
                 break;
             case "delete":
-                var elem = self.followPath(fileEv.fname);
+                var elem = self.followPath(data.fname);
                 if(elem != null) {
                     elem.remove();
                 }
                 break;
             case "update":
-                self.updateItem(fileEv);
+                self.updateItem(data);
                 break
         }
     }
@@ -65,9 +70,16 @@ function FilesPane(container, uri, callbacks) {
         container.addClass("disabled");
 
         isOpen = false;
+        ws = null;
 
         setTimeout(openWS, 3000);
     }
+
+    setInterval(function() {
+        if(isOpen && ws != null) {
+            ws.send(JSON.stringify({heartbeat: 1}));
+        }
+    }, 30 * 1000);
 
     function getOpenFolderNames() {
         return container.find(".type-folder.open").map((i, e) => self.getElemPath($(e))).get();
