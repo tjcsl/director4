@@ -45,6 +45,10 @@
     padding-left: 5px;
 }
 
+.files-pane .item-dest::before {
+    content: " -> ";
+}
+
 .files-pane .type-folder .children {
     margin-left: 15px;
 }

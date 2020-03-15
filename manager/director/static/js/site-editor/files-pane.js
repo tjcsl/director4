@@ -252,6 +252,10 @@ function FilesPane(container, uri, callbacks) {
 
         infoRow.append($("<span>").addClass("item-name").text(newInfo.basename));
 
+        if(newInfo.filetype == "link") {
+            infoRow.append($("<span>").addClass("item-dest").text(newInfo.dest || "?"));
+        }
+
         infoRow.dblclick(function(e) {
             var elem = $(e.target).closest(".info-row").parent();
 
@@ -330,6 +334,7 @@ function ItemInfo(info) {
     this.mode = info.mode;
     this.filetype = info.filetype;
     this.fname = info.fname;
+    this.dest = info.dest;
 
     var parts = splitPath(info.fname);
     this.parentPath = parts[0];
