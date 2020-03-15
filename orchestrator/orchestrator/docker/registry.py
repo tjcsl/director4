@@ -88,7 +88,8 @@ def delete_registry_manifest(image_name: str) -> None:
             is_manifest_unknown_error = False
 
         if is_manifest_unknown_error:
-            raise OrchestratorActionError("Manifest unknown")
+            # The manifest did not exist, in which case we have nothing to do
+            return
 
         raise OrchestratorActionError(
             "Error {} while trying to connect to registry".format(status_code)
@@ -110,8 +111,10 @@ def delete_registry_manifest(image_name: str) -> None:
     status_code, content, resp_headers = make_registry_request(
         "/{}/manifests/{}".format(image_name, digest), method="DELETE"
     )
-    # 202 - accepted here is success
-    if status_code != 202:
+
+    # 202 is success
+    # 404 Not Found means the manifest did not exist, in which case we have nothing to do
+    if status_code not in (202, 404):
         raise OrchestratorActionError(
             "Error {} while trying to connect to registry".format(status_code)
         )
