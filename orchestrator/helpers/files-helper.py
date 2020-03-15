@@ -368,23 +368,25 @@ def monitor_cmd(site_directory: str) -> None:
 
                     fname = os.path.join(fnames_by_wd[event.wd], event.name)
 
-                    if event.mask in {
-                        inotify_simple.flags.MOVE_SELF,  # Directory moved
-                        inotify_simple.flags.DELETE_SELF,  # Directory deleted
-                        inotify_simple.flags.MOVED_FROM,  # Subfile moved somewhere else
-                        inotify_simple.flags.DELETE,  # Subfile deleted
-                    }:
+                    if any(
+                        event.mask & flag for flag in (
+                            inotify_simple.flags.MOVE_SELF,  # Directory moved
+                            inotify_simple.flags.DELETE_SELF,  # Directory deleted
+                            inotify_simple.flags.MOVED_FROM,  # Subfile moved somewhere else
+                            inotify_simple.flags.DELETE,  # Subfile deleted
+                        )
+                    ):
                         event_info = {
                             "fname": fname,
                             "event": "delete",
                         }
-                    elif event.mask in {
-                        inotify_simple.flags.CREATE,  # Subfile created
-                        inotify_simple.flags.MOVED_TO,  # Subfile moved here
-                    }:
+                    elif (
+                        event.mask & inotify_simple.flags.CREATE  # Subfile created
+                        or event.mask & inotify_simple.flags.MOVED_TO,  # Subfile moved here
+                    ):
                         event_info = construct_file_event_dict(fname)
                         event_info["event"] = "create"
-                    elif event.mask == inotify_simple.flags.ATTRIB:  # Attributes changed
+                    elif event.mask & inotify_simple.flags.ATTRIB:  # Attributes changed
                         event_info = construct_file_event_dict(fname)
                         event_info["event"] = "update"
                     else:
