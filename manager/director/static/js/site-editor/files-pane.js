@@ -427,6 +427,9 @@ function FilesPane(container, uri, callbacks) {
                         case "rename":
                             renameItem(elem);
                             break;
+                        case "delete":
+                            deleteFolderRecursively(elem);
+                            break;
                         case "newfile":
                             newFile(elem);
                             break;
@@ -437,6 +440,7 @@ function FilesPane(container, uri, callbacks) {
                 },
                 items: {
                     "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
+                    "delete": {name: "Delete", icon: "far fa-trash-alt"},
                     "sep2": "---------",
                     "newfile": {name: "New file", icon: "fas fa-file"},
                     "newfolder": {name: "New folder", icon: "fas fa-folder"},
@@ -619,6 +623,42 @@ function FilesPane(container, uri, callbacks) {
                 }).fail(function(data) {
                     Messenger().error({
                         message: data.responseText || "Error removing file",
+                        hideAfter: 3,
+                    });
+                });
+            }
+        );
+    }
+
+    function deleteFolderRecursively(elem) {
+        if(!elem.hasClass("open")) {
+            self.toggleDir(elem);
+        }
+
+        var path = self.getElemPath(elem);
+
+        makeEntryModalDialog(
+            "Are you sure you want to delete this folder and ALL of its contents?",
+            [
+                "Are you sure you want to delete ",
+                $("<code>").append(path),
+                " and all of its contents? This action is PERMANENT and cannot be undone.",
+                "<br>",
+                "To confirm, please enter the name of the folder (",
+                $("<code>").append(splitPath(path)[1]),
+                ") below:",
+            ],
+            "",
+            function(text) {
+                if(!text || text != splitPath(path)[1]) {
+                    return;
+                }
+
+                $.post({
+                    url: file_endpoints.rmdir_recur + "?" + $.param({path: path}),
+                }).fail(function(data) {
+                    Messenger().error({
+                        message: data.responseText || "Error removing folder",
                         hideAfter: 3,
                     });
                 });
