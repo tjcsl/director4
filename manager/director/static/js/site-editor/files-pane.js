@@ -523,6 +523,9 @@ function FilesPane(container, uri, callbacks) {
             return {
                 callback: function(key, options) {
                     switch(key) {
+                        case "download":
+                            downloadFile(elem);
+                            break;
                         case "rename":
                             renameItem(elem);
                             break;
@@ -536,6 +539,7 @@ function FilesPane(container, uri, callbacks) {
                 },
                 items: {
                     "show-log": {name: "Show as Log", icon: "fas fa-chart-line"},
+                    "download": {name: "Download", icon: "fas fa-download"},
                     "toggle-exec": {name: (elem.hasClass("executable") ? "Unset executable" : "Set executable"), icon: "fas fa-chart-line"},
                     "sep1": "---------",
                     "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
@@ -571,6 +575,20 @@ function FilesPane(container, uri, callbacks) {
             };
         },
     });
+
+    function downloadFile(elem) {
+        var path = self.getElemPath(elem);
+
+        var frame = $("<iframe>");
+        frame.css("display", "none");
+        frame.on("load", function() {
+            $(this).remove();
+        });
+
+        frame.attr("src", file_endpoints.get + "?" + $.param({path: path}));
+
+        frame.appendTo($("body"));
+    }
 
     // Given an item, shows the rename dialog and renames the file
     function renameItem(elem) {
