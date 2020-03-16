@@ -14,7 +14,11 @@
                 var has_run_sh = $("input[name='image']:checked").closest(".image-radio-container").hasClass("has-run-script-template");
                 $("#id_write_run_sh_file").prop("disabled", !has_run_sh);
 
-                run_sh_pre.text(images[$("input[name='image']:checked").val()].run_script_template);
+                var selected_image = $("input[name='image']:checked").val();
+                if(selected_image) {
+                    run_sh_pre.text(images[selected_image].run_script_template);
+                }
+
                 if(has_run_sh) {
                     run_sh_explanation.show();
                 }
