@@ -810,8 +810,9 @@ function ItemInfo(info) {
             else if(info.fname.match(/\.(zip|rar|gz|tar|7z|bz2|xz|tgz)$/) != null) {
                 this.faIcon = "far fa-file-archive";
             }
-
-            this.faIcon = "far fa-file";
+            else {
+                this.faIcon = "far fa-file";
+            }
             break;
 
         default:
