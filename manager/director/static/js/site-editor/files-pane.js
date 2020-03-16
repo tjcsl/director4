@@ -398,12 +398,16 @@ function FilesPane(container, uri, callbacks) {
                         case "newfile":
                             newFile(elem);
                             break;
+                        case "newfolder":
+                            newFolder(elem);
+                            break;
                     }
                 },
                 items: {
                     "show-log": {name: "Show Log", icon: "fas fa-chart-line"},
                     "sep1": "---------",
                     "newfile": {name: "New file", icon: "fas fa-file"},
+                    "newfolder": {name: "New folder", icon: "fas fa-folder"},
                 },
             };
         },
@@ -426,12 +430,16 @@ function FilesPane(container, uri, callbacks) {
                         case "newfile":
                             newFile(elem);
                             break;
+                        case "newfolder":
+                            newFolder(elem);
+                            break;
                     }
                 },
                 items: {
                     "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
                     "sep2": "---------",
                     "newfile": {name: "New file", icon: "fas fa-file"},
+                    "newfolder": {name: "New folder", icon: "fas fa-folder"},
                 },
             };
         },
@@ -546,6 +554,38 @@ function FilesPane(container, uri, callbacks) {
                 }).fail(function(data) {
                     Messenger().error({
                         message: data.responseText || "Error creating file",
+                        hideAfter: 3,
+                    });
+                });
+            },
+        );
+    }
+
+    function newFolder(elem) {
+        var modal_div = makeEntryModalDialog(
+            "New Folder",
+            $("<div>").append(
+                "Please enter the name for your new folder:",
+                "<br>",
+            ),
+            "",
+            function(name) {
+                if(!name) {
+                    return;
+                }
+
+                var path = joinPaths([self.getElemPath(elem), name]);
+
+                $.post({
+                    url: file_endpoints.mkdir + "?" + $.param({path: path}),
+                }).done(function() {
+                    // Open directories we created subdirectories in:
+                    if(elem.hasClass("type-folder") && !elem.hasClass("open")) {
+                        self.toggleDir(elem);
+                    }
+                }).fail(function(data) {
+                    Messenger().error({
+                        message: data.responseText || "Error creating folder",
                         hideAfter: 3,
                     });
                 });
