@@ -6,6 +6,7 @@ function FilesPane(container, uri, callbacks) {
 
     container.append($("<div>").addClass("children"));
 
+    // This takes up a lot of space at the bottom of the pane. If people drop a file here, it will end up in the site's root directory.
     var rootDropContainer = $("<div>").addClass("root-drop-container").appendTo(container);
 
     var openFileCallback = callbacks.openFile || function(fname) {};
@@ -25,7 +26,11 @@ function FilesPane(container, uri, callbacks) {
 
     var prevOpenFolders = []
     function wsOpened() {
+        // Immediately request that we start watching the root directory (obviously)
         ws.send(JSON.stringify({action: "add", path: ""}));
+        // And send a heartbeat
+        // Even if the root directory has nothing in it, this should give us a response.
+        // Then wsMessage() will know we've really got a connection
         ws.send(JSON.stringify({heartbeat: 1}));
     }
 
@@ -34,6 +39,7 @@ function FilesPane(container, uri, callbacks) {
             // We don't want to do this as soon as it's opened because
             // the connection may be immediately closed for various reasons
             // on the backend.
+            // So we wait until we first get a message to set everything up.
 
             prevOpenFolders = getOpenFolderNames();
 
@@ -81,15 +87,18 @@ function FilesPane(container, uri, callbacks) {
         isOpen = false;
         ws = null;
 
+        // Try to reopen
         setTimeout(openWS, 3000);
     }
 
+    // Send heartbeats every 30 seconds to keep the connection alive
     setInterval(function() {
         if(isOpen && ws != null) {
             ws.send(JSON.stringify({heartbeat: 1}));
         }
     }, 30 * 1000);
 
+    // Finds the full paths of all expanded folders, either in the given element or in the entire pane
     function getOpenFolderNames(elem) {
         var items = (elem || container).find(".type-folder.open").map((i, e) => self.getElemPath($(e))).get();
         if(elem && elem.hasClass("type-folder") && elem.hasClass("open")) {
@@ -167,20 +176,29 @@ function FilesPane(container, uri, callbacks) {
         ].join("/");
     };
 
+    // Given the "information" specification for a file/folder/symlink/special file,
+    // creates the item and adds it to the correct place in the tree
     this.addItem = function(info) {
+        // Is there something with the same name? If so, remove it.
+        // Events may be duplicated or delayed, so we need this.
         var prevItem = self.followPath(info.fname);
         if(prevItem != null) {
             prevItem.remove();
         }
 
+        // ItemInfo computes extra useful information
         var newInfo = new ItemInfo(info);
 
+        // Get the parent element. If it doesn't exist, abort.
         var parentElem = this.followPath(newInfo.parentPath);
         if(parentElem == null) {
             return;
         }
 
+        // Invoke makeItem() to make the actual item container
         var newItem = makeItem(info);
+
+        // Now try to figure out where we should put it.
         var newItemSortOrder = getItemTypeSortOrder(newItem);
 
         var beforeItem = null;
@@ -188,18 +206,25 @@ function FilesPane(container, uri, callbacks) {
             var currentItemSortOrder = getItemTypeSortOrder($(this));
 
             if(currentItemSortOrder > newItemSortOrder) {
+                // The current item comes later in the sort order than the item
+                // we're adding, so we should insert it before this.
                 beforeItem = $(this);
                 return false;
             }
             else if(currentItemSortOrder == newItemSortOrder) {
+                // The current item and the item we're adding are at the same point in
+                // the sort order. Let's compare the names.
                 var name = $(this).children(".info-row").children(".item-name").text();
                 if(name > newInfo.basename) {
+                    // The current item's name should be sorted after the item we're
+                    // adding. So we insert the new item before the current item.
                     beforeItem = $(this);
                     return false;
                 }
             }
         });
 
+        // Add it to the proper place
         if(beforeItem != null) {
             newItem.insertBefore(beforeItem);
         }
@@ -207,13 +232,20 @@ function FilesPane(container, uri, callbacks) {
             parentElem.children(".children").append(newItem);
         }
 
+        // prevOpenFolders is a mechanism by which various parts of the application can indicate
+        // that a folder "used to be" open and it should be reopened as soon as it's seen.
+        // So we check that.
         if(prevOpenFolders.includes(info.fname)) {
             self.toggleDir(info.fname);
 
+            // And now remove it so it doesn't mess things up later.
             prevOpenFolders = prevOpenFolders.filter(x => (x != info.fname));
         }
     };
 
+    // The value this function returns is used to sort items.
+    // It is checked before the names are compared, so this can be used to group
+    // different types of items (files, folders, etc.)
     function getItemTypeSortOrder(elem) {
         if(elem.hasClass("type-folder")) {
             return 0;
@@ -223,6 +255,8 @@ function FilesPane(container, uri, callbacks) {
         }
     }
 
+    // Information about an item has changed.
+    // This only really happens when file attributes change, so we just check the mode.
     this.updateItem = function(info) {
         var newInfo = new ItemInfo(info);
 
@@ -274,6 +308,7 @@ function FilesPane(container, uri, callbacks) {
 
         infoRow.prop("draggable", true);
 
+        // For symlinks, show the destination
         if(newInfo.filetype == "link") {
             infoRow.append($("<span>").addClass("item-dest").text(newInfo.dest || "?"));
         }
@@ -294,9 +329,11 @@ function FilesPane(container, uri, callbacks) {
             var elem = $(e.target).closest(".info-row").parent();
 
             if(elem.hasClass("type-folder")) {
+                // Expand directories on double-click
                 self.toggleDir(elem);
             }
             else if(elem.hasClass("type-file")) {
+                // Open files on double-click
                 openFileCallback(self.getElemPath(elem));
             }
             else {
@@ -316,6 +353,7 @@ function FilesPane(container, uri, callbacks) {
         infoRow.on("drag", function(e) {
         });
 
+        // Allow dropping things on directories
         if(itemContainer.hasClass("type-folder")) {
             makeDropable(infoRow);
         }
@@ -374,6 +412,7 @@ function FilesPane(container, uri, callbacks) {
                 );
             }
 
+            // Rename the file
             $.post({
                 url: file_endpoints.rename + "?" + $.param({
                     oldpath: oldpath,
@@ -513,6 +552,7 @@ function FilesPane(container, uri, callbacks) {
         },
     });
 
+    // Given an item, shows the rename dialog and renames the file
     function renameItem(elem) {
         var oldpath = self.getElemPath(elem);
         var oldname = elem.children(".info-row").children(".item-name").text();
@@ -548,6 +588,7 @@ function FilesPane(container, uri, callbacks) {
         );
     }
 
+    // Shows the "new file" dialog and creates the file in the given element
     function newFile(elem) {
         makeEntryModalDialog(
             "New File",
@@ -580,6 +621,7 @@ function FilesPane(container, uri, callbacks) {
         );
     }
 
+    // Shows the "new file" dialog and creates the file in the given element
     function newFolder(elem) {
         makeEntryModalDialog(
             "New Folder",
@@ -612,6 +654,7 @@ function FilesPane(container, uri, callbacks) {
         );
     }
 
+    // Shows the "delete file" dialog and deletes the given file
     function deleteFile(elem) {
         var path = self.getElemPath(elem);
 
@@ -639,6 +682,7 @@ function FilesPane(container, uri, callbacks) {
         );
     }
 
+    // Shows the "delete folder" dialog and deletes the given folder and all contents
     function deleteFolderRecursively(elem) {
         self.openDir(elem);
 
@@ -673,6 +717,7 @@ function FilesPane(container, uri, callbacks) {
         );
     }
 
+    // Toggles a file's executable bits
     function toggleFileExecutable(elem) {
         var path = self.getElemPath(elem);
         var mode = (elem.hasClass("executable") ? "-x" : "+x");
@@ -687,6 +732,7 @@ function FilesPane(container, uri, callbacks) {
         });
     }
 
+    // Given either a path or an element, gets the corresponding element
     function dirspecToElem(dirspec) {
         if(typeof dirspec == "string") {
             return self.followPath(dirspec);
@@ -696,6 +742,7 @@ function FilesPane(container, uri, callbacks) {
         }
     }
 
+    // Expands (opens) the given directory
     this.openDir = function(dirspec) {
         var elem = dirspecToElem(dirspec);
         if(!elem.hasClass("open")) {
@@ -703,6 +750,7 @@ function FilesPane(container, uri, callbacks) {
         }
     };
 
+    // Collapses (closes) the given directory
     this.closeDir = function(dirspec) {
         var elem = dirspecToElem(dirspec);
         if(elem.hasClass("open")) {
@@ -710,6 +758,7 @@ function FilesPane(container, uri, callbacks) {
         }
     };
 
+    // Toggles the directory's "open" status
     this.toggleDir = function(dirspec) {
         var elem = dirspecToElem(dirspec);
 
@@ -740,10 +789,12 @@ function FilesPane(container, uri, callbacks) {
         }
     };
 
+    // Hide all hidden files
     this.hideHiddenFiles = function() {
         customStylesheet.append(".files-pane .hidden{display: none;}");
     };
 
+    // Show all hidden files
     this.showHiddenFiles = function() {
         customStylesheet.append(".files-pane .hidden{display: initial;}");
     };
@@ -757,17 +808,21 @@ function FilesPane(container, uri, callbacks) {
 
 
 function ItemInfo(info) {
+    // Copy parameters
     this.mode = info.mode;
     this.filetype = info.filetype;
     this.fname = info.fname;
     this.dest = info.dest;
 
+    // Split the path and get the parts
     var parts = splitPath(info.fname);
     this.parentPath = parts[0];
     this.basename = parts[1];
 
+    // Are any of the executable bits set?
     this.isExecutable = info.mode != null && (info.mode & 0o111) != 0;
 
+    // Classes
     this.typeClass = {
         "dir": "type-folder",
         "file": "type-file",
@@ -783,6 +838,7 @@ function ItemInfo(info) {
         this.contentClass = "content-video";
     }
 
+    // Find the best icon
     switch(info.filetype) {
         case "dir":
             this.faIcon = "far fa-folder";
