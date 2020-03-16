@@ -193,6 +193,23 @@ def mkdir_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None)
         sys.exit(SPECIAL_EXIT_CODE)
 
 
+def create_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None) -> None:
+    if relpath.startswith("/"):
+        print("Invalid path", file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+
+    chroot_into(site_directory)
+
+    try:
+        # This combination of flags will make the call fail if the file already exists.
+        fd = os.open(relpath, os.O_RDWR | os.O_CREAT | os.O_EXCL, get_new_mode(0o644, mode_str))
+    except OSError as ex:
+        print(ex, file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
+    else:
+        os.close(fd)
+
+
 def rm_cmd(site_directory: str, relpath: str) -> None:
     if relpath.startswith("/"):
         print("Invalid path", file=sys.stderr)
@@ -450,6 +467,7 @@ def main(argv: List[str]) -> None:
         "mkdir": (mkdir_cmd, [2, 3]),
         "chmod": (chmod_cmd, [3]),
         "rename": (rename_cmd, [3]),
+        "create": (create_cmd, [2, 3]),
     }
 
     if argv[1] in commands:
