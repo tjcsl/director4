@@ -30,6 +30,14 @@ $(function() {
         }],
     };
 
+    if(site_info.has_database) {
+        layout_config.content[0].content[1].content[1].content.push({
+            type: "component",
+            componentName: "database-shell",
+            isClosable: false,
+        });
+    }
+
     var layout = new GoldenLayout(layout_config, $("#editor-container"));
 
 
@@ -63,6 +71,13 @@ $(function() {
                 },
             },
         );
+    });
+
+    layout.registerComponent("database-shell", function(container, componentState) {
+        container.setTitle("<span class='fas fa-database'></span> SQL");
+
+        container.getElement().html($("#database-shell-template").html());
+        setupSQLConsole(db_shell_endpoint, container.getElement().children(".sql-console-wrapper"));
     });
 
 

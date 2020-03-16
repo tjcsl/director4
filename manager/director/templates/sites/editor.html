@@ -25,6 +25,9 @@
     <link rel="stylesheet" href="{% static 'css/terminal.css' %}" type="text/css" />
     <script type="text/javascript" src="{% static 'js/terminal.js' %}"></script>
 
+    <link rel="stylesheet" href="{% static 'css/database-shell.css' %}">
+    <script src="{% static 'js/database-shell.js' %}"></script>
+
     <link rel="stylesheet" type="text/css" href="{% static 'css/site-editor/main.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'css/site-editor/files-pane.css' %}" />
 
@@ -34,6 +37,10 @@
     <script type="text/javascript">
         var user_name = "{{ request.user.username }}";
         var site_name = "{{ site.name }}";
+
+        var site_info = {
+            has_database: {{ site.has_database|yesno:"true,false" }},
+        };
 
         var file_endpoints = {
             "get": "{% url 'sites:get_file' site.id %}",
@@ -45,13 +52,27 @@
             "rename": "{% url 'sites:rename' site.id %}",
         };
 
+        var db_shell_endpoint = "{% url 'sites:database_shell' site.id %}";
+
         var ws_endpoints = {
             "terminal": location.protocol.replace("http", "ws") + "//" + location.host + "/sites/{{ site.id }}/terminal/",
             "file_monitor": location.protocol.replace("http", "ws") + "//" + location.host + "/sites/{{ site.id }}/files/monitor/",
         };
     </script>
+
+    <style>
+        .sql-console-wrapper {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 {% endblock %}
 
 {% block main %}
     <div id="editor-container"></div>
+    <div id="database-shell-template" style="display: none">
+        {% if site.has_database %}
+        {% include "sites/databases/shell_embed.html" %}
+        {% endif %}
+    </div>
 {% endblock %}
