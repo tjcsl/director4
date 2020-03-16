@@ -34,6 +34,8 @@ $(function() {
 
 
     layout.registerComponent("files", function(container, componentState) {
+        container.setTitle("<span class='fas fa-folder-open'></span> Files");
+
         filesPane = new FilesPane(
             container.getElement(),
             ws_endpoints.file_monitor,
