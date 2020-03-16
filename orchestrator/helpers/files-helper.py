@@ -186,9 +186,11 @@ def mkdir_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None)
 
     chroot_into(site_directory)
 
-    os.makedirs(relpath, mode=0o755, exist_ok=True)
-    if mode_str is not None and mode_str != "":
-        update_mode(relpath, mode_str)
+    try:
+        os.makedirs(relpath, mode=get_new_mode(0o755, mode_str), exist_ok=False)
+    except OSError as ex:
+        print(ex, file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
 
 
 def rm_cmd(site_directory: str, relpath: str) -> None:
