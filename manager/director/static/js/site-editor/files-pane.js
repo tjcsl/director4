@@ -521,7 +521,9 @@ function FilesPane(container, uri, callbacks) {
         makeEntryModalDialog(
             "Rename " + (elem.hasClass("type-folder") ? "Folder" : "File"),
             $("<div>").append(
-                "Please enter the new name for " + oldname + ":",
+                "Please enter the new name for ",
+                $("<code>").text(oldname),
+                ":",
                 "<br>",
             ),
             oldname,
