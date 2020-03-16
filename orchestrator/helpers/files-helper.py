@@ -309,7 +309,10 @@ def monitor_cmd(site_directory: str) -> None:
         for wd, wd_fname in list(fnames_by_wd.items()):
             # Remove for the directory itself, as well as all subdirectories
             if os.path.commonpath([fname, wd_fname]) == fname:
-                inotify.rm_watch(wd)
+                try:
+                    inotify.rm_watch(wd)
+                except OSError:
+                    pass
 
                 fnames_by_wd.pop(wd, None)
                 wds_by_fname.pop(wd_fname, None)
