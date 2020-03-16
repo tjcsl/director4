@@ -567,8 +567,7 @@ function FilesPane(container, uri, callbacks) {
                 var path = joinPaths([self.getElemPath(elem), name]);
 
                 $.post({
-                    url: file_endpoints.write + "?" + $.param({path: path}),
-                    data: {contents: ""},
+                    url: file_endpoints.create + "?" + $.param({path: path}),
                 }).done(function() {
                     // Open directories we created files in:
                     if(elem.hasClass("type-folder")) {

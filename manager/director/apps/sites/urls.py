@@ -44,6 +44,7 @@ database_patterns = [
 file_patterns = [
     path("", views.files.editor_view, name="editor"),
     path("get/", views.files.get_file_view, name="get_file"),
+    path("create/", views.files.create_file_view, name="create_file"),
     path("write/", views.files.write_file_view, name="write_file"),
     path("rm/", views.files.remove_file_view, name="remove_file"),
     path("rmdir-recur/", views.files.remove_directory_recur_view, name="remove_directory_recur"),

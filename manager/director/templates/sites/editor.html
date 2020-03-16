@@ -45,6 +45,7 @@
         var file_endpoints = {
             "get": "{% url 'sites:get_file' site.id %}",
             "write": "{% url 'sites:write_file' site.id %}",
+            "create": "{% url 'sites:create_file' site.id %}",
             "remove": "{% url 'sites:remove_file' site.id %}",
             "rmdir_recur": "{% url 'sites:remove_directory_recur' site.id %}",
             "mkdir": "{% url 'sites:mkdir' site.id %}",
