@@ -187,7 +187,9 @@ def make_directory_view(request: HttpRequest, site_id: int) -> HttpResponse:
     if "path" not in request.GET:
         return HttpResponse(status=400)
 
-    path = request.GET["path"]
+    params = {"path": request.GET["path"]}
+    if request.GET.get("mode", ""):
+        params["mode"] = request.GET["mode"]
 
     try:
         appserver = next(iter_random_pingable_appservers(timeout=0.5))
@@ -199,7 +201,7 @@ def make_directory_view(request: HttpRequest, site_id: int) -> HttpResponse:
             appserver,
             "/sites/{}/files/mkdir".format(site.id),
             method="POST",
-            params={"path": path, "mode": request.GET.get("mode", "")},
+            params=params,
             timeout=10,
         )
     except AppserverProtocolError as ex:
