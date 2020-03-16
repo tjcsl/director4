@@ -358,6 +358,11 @@ function FilesPane(container, uri, callbacks) {
                 return;
             }
 
+            // If we'd be moving to the same directory, or moving to ourselves, or to a subdirectory of ourselves, bail out.
+            if((newpath + "/").startsWith(oldpath + "/")) {
+                return;
+            }
+
             // If this folder was open, or if any folders under it were open,
             // keep them open.
             if(oldelem.hasClass("type-folder") || oldelem.is(rootDropContainer)) {
