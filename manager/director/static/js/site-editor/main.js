@@ -17,10 +17,14 @@ $(function() {
                     content: [],
                 }, {
                     type: "stack",
-                    id: "terminal",
+                    id: "terminals",
                     height: 30,
                     isClosable: false,
-                    content: [],
+                    content: [{
+                        type: "component",
+                        componentName: "terminal",
+                        isClosable: false,
+                    }],
                 }],
             }],
         }],
@@ -42,6 +46,21 @@ $(function() {
     });
 
     layout.registerComponent("file", function(container, componentState) {
+    });
+
+    layout.registerComponent("terminal", function(container, componentState) {
+        container.setTitle("Terminal");
+
+        setupTerminal(
+            ws_endpoints.terminal,
+            container.getElement(),
+            {
+                autoFocus: false,
+                onTitle: function(title) {
+                    container.setTitle(title);
+                },
+            },
+        );
     });
 
 
