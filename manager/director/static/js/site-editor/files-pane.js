@@ -6,7 +6,7 @@ function FilesPane(container, uri, callbacks) {
 
     container.append($("<div>").addClass("children"));
 
-    var rootDropContainer = $("<div>").addClass("root-drop-container").css("height", "100vh").appendTo(container);
+    var rootDropContainer = $("<div>").addClass("root-drop-container").appendTo(container);
 
     var openFileCallback = callbacks.openFile || function(fname) {};
 

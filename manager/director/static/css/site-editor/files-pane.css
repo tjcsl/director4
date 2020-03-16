@@ -7,6 +7,10 @@
     opacity: 0.5;
 }
 
+.files-pane .root-drop-container {
+    height: 100vh;
+}
+
 .files-pane .type-folder > .info-row {
 }
 
