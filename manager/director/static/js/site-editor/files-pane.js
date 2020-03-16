@@ -363,14 +363,26 @@ function FilesPane(container, uri, callbacks) {
     }
 
     function makeDropable(elem) {
+        var dragOpenTimeoutId = null;
         elem.on("dragover", function(e) {
             elem.parent().addClass("dragover");
             // Signals that it's safe to drop onto this element
             e.preventDefault();
+
+            if(elem.parent().hasClass("type-folder") &&dragOpenTimeoutId == null) {
+                dragOpenTimeoutId = setTimeout(function() {
+                    self.openDir(elem.parent());
+                }, 1500);
+            }
         });
 
         elem.on("dragleave", function(e) {
             elem.parent().removeClass("dragover");
+
+            if(dragOpenTimeoutId != null) {
+                clearTimeout(dragOpenTimeoutId);
+                dragOpenTimeoutId = null;
+            }
         });
 
         elem.on("drop", function(e) {
@@ -381,6 +393,11 @@ function FilesPane(container, uri, callbacks) {
             var elem = self.followPath(elempath);
 
             elem.removeClass("dragover");
+
+            if(dragOpenTimeoutId != null) {
+                clearTimeout(dragOpenTimeoutId);
+                dragOpenTimeoutId = null;
+            }
 
             var dataTransfer = e.originalEvent.dataTransfer;
             if(dataTransfer && dataTransfer.files.length) {
