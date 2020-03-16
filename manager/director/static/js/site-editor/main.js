@@ -68,11 +68,11 @@ function splitPath(path) {
 // They are not at all generalizable.
 
 function joinPaths(paths) {
-    return paths.map((p) => rTrimChars(p, "/")).join("/");
+    return paths.map((p) => rTrimChars(p, "/")).filter((s) => s).join("/");
 }
 
 function rTrimChars(s, chars) {
-    while(chars.includes(s.slice(-1))) {
+    while(s.length && chars.includes(s.slice(-1))) {
         s = s.slice(0, -1);
     }
     return s;
