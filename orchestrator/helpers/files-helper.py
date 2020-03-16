@@ -154,7 +154,11 @@ def chmod_cmd(site_directory: str, relpath: str, mode_str: str) -> None:
 
     chroot_into(site_directory)
 
-    update_mode(relpath, mode_str)
+    try:
+        update_mode(relpath, mode_str)
+    except OSError as ex:
+        print(ex, file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
 
 
 def rename_cmd(site_directory: str, oldpath: str, newpath: str) -> None:
@@ -217,8 +221,12 @@ def rm_cmd(site_directory: str, relpath: str) -> None:
 
     chroot_into(site_directory)
 
-    if os.path.exists(relpath) or os.path.islink(relpath):
-        os.remove(relpath)
+    try:
+        if os.path.exists(relpath) or os.path.islink(relpath):
+            os.remove(relpath)
+    except OSError as ex:
+        print(ex, file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
 
 
 def rmdir_recur_cmd(site_directory: str, relpath: str) -> None:
@@ -228,8 +236,12 @@ def rmdir_recur_cmd(site_directory: str, relpath: str) -> None:
 
     chroot_into(site_directory)
 
-    if os.path.isdir(relpath):
-        shutil.rmtree(relpath)
+    try:
+        if os.path.isdir(relpath):
+            shutil.rmtree(relpath)
+    except OSError as ex:
+        print(ex, file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
 
 
 def get_cmd(site_directory: str, relpath: str, max_size_str: str) -> None:
@@ -445,7 +457,8 @@ def remove_all_site_files_dangerous_cmd(site_directory: str) -> None:
     try:
         shutil.rmtree(site_directory)
     except OSError as ex:
-        print("Error: {}".format(ex), file=sys.stderr)
+        print(ex, file=sys.stderr)
+        sys.exit(SPECIAL_EXIT_CODE)
 
 
 def main(argv: List[str]) -> None:
