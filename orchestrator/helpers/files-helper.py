@@ -29,8 +29,10 @@ def chroot_into(directory: str) -> None:
 
 
 # Later, this function may support more complicated strings
-def get_new_mode(old_mode: int, mode_str: str) -> int:
-    if set(mode_str) < set("01234567"):
+def get_new_mode(old_mode: int, mode_str: Optional[str]) -> int:
+    if not mode_str:
+        return old_mode
+    elif set(mode_str) < set("01234567"):
         return int(mode_str, base=8)
     elif mode_str.startswith(("+", "-")) and set(mode_str[1:]) < set("rwx"):
         mode_masks = {
