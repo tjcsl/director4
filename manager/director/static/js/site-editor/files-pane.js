@@ -6,7 +6,7 @@ function FilesPane(container, uri, callbacks) {
 
     container.append($("<div>").addClass("children"));
 
-    var rootDropContainer = $("<div>").css("height", "100vh").appendTo(container);
+    var rootDropContainer = $("<div>").addClass("root-drop-container").css("height", "100vh").appendTo(container);
 
     var openFileCallback = callbacks.openFile || function(fname) {};
 
@@ -385,6 +385,172 @@ function FilesPane(container, uri, callbacks) {
                 });
             });
         });
+    }
+
+    $.contextMenu({
+        selector: ".files-pane .root-drop-container",
+        build: function(triggerElem, e) {
+            var elem = container;
+
+            return {
+                callback: function(key, options) {
+                    switch(key) {
+                        case "newfile":
+                            newFile(elem);
+                            break;
+                    }
+                },
+                items: {
+                    "show-log": {name: "Show Log", icon: "fas fa-chart-line"},
+                    "sep1": "---------",
+                    "newfile": {name: "New file", icon: "fas fa-file"},
+                },
+            };
+        },
+    });
+
+    $.contextMenu({
+        selector: ".files-pane .type-folder",
+        build: function(triggerElem, e) {
+            var elem = self.followPath(self.getElemPath(triggerElem));
+            if(elem == null) {
+                return;
+            }
+
+            return {
+                callback: function(key, options) {
+                    switch(key) {
+                        case "rename":
+                            renameItem(elem);
+                            break;
+                        case "newfile":
+                            newFile(elem);
+                            break;
+                    }
+                },
+                items: {
+                    "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
+                    "sep2": "---------",
+                    "newfile": {name: "New file", icon: "fas fa-file"},
+                },
+            };
+        },
+    });
+
+    $.contextMenu({
+        selector: ".files-pane .type-file",
+        build: function(triggerElem, e) {
+            var elem = self.followPath(self.getElemPath(triggerElem));
+            if(elem == null) {
+                return;
+            }
+
+            return {
+                callback: function(key, options) {
+                    switch(key) {
+                        case "rename":
+                            renameItem(elem);
+                            break;
+                    }
+                },
+                items: {
+                    "show-log": {name: "Show as Log", icon: "fas fa-chart-line"},
+                    "sep1": "---------",
+                    "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
+                },
+            };
+        },
+    });
+
+    $.contextMenu({
+        selector: ".files-pane .type-link, .files-pane .type-special",
+        build: function(triggerElem, e) {
+            var elem = self.followPath(self.getElemPath(triggerElem));
+            if(elem == null) {
+                return;
+            }
+
+            return {
+                callback: function(key, options) {
+                    switch(key) {
+                        case "rename":
+                            renameItem(elem);
+                            break;
+                    }
+                },
+                items: {
+                    "show-log": (elem.hasClass("type-file") ? {name: "Show as Log", icon: "fas fa-chart-line"} : undefined),
+                    "sep1": "---------",
+                    "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
+                },
+            };
+        },
+    });
+
+    function renameItem(elem) {
+        var oldpath = self.getElemPath(elem);
+        var oldname = elem.children(".info-row").children(".item-name").text();
+
+        var modal_div = makeEntryModalDialog(
+            "Rename " + (elem.hasClass("type-folder") ? "Folder" : "File"),
+            $("<div>").append(
+                "Please enter the new name for " + oldname + ":",
+                "<br>",
+            ),
+            oldname,
+            function(newname) {
+                if(!newname) {
+                    return;
+                }
+
+                var newpath = joinPaths([splitPath(oldpath)[0], newname]);
+
+                $.post({
+                    url: file_endpoints.rename + "?" + $.param({
+                        oldpath: oldpath,
+                        newpath: newpath,
+                    }),
+                }).fail(function(data) {
+                    Messenger().error({
+                        message: data.responseText || "Error renaming file",
+                        hideAfter: 3,
+                    });
+                });
+            }
+        );
+    }
+
+    function newFile(elem) {
+        var modal_div = makeEntryModalDialog(
+            "New File",
+            $("<div>").append(
+                "Please enter the name for your new file:",
+                "<br>",
+            ),
+            "",
+            function(name) {
+                if(!name) {
+                    return;
+                }
+
+                var path = joinPaths([self.getElemPath(elem), name]);
+
+                $.post({
+                    url: file_endpoints.write + "?" + $.param({path: path}),
+                    data: {contents: ""},
+                }).done(function() {
+                    // Open directories we created files in:
+                    if(elem.hasClass("type-folder") && !elem.hasClass("open")) {
+                        self.toggleDir(elem);
+                    }
+                }).fail(function(data) {
+                    Messenger().error({
+                        message: data.responseText || "Error creating file",
+                        hideAfter: 3,
+                    });
+                });
+            },
+        );
     }
 
     this.toggleDir = function(dirspec) {
