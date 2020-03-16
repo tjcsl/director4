@@ -196,7 +196,7 @@ def rm_cmd(site_directory: str, relpath: str) -> None:
 
     chroot_into(site_directory)
 
-    if os.path.exists(relpath):
+    if os.path.exists(relpath) or os.path.islink(relpath):
         os.remove(relpath)
 
 
