@@ -12,6 +12,17 @@
             setupSQLConsole("{% url 'sites:database_shell' site.id %}", $(".sql-console-wrapper"));
         });
     </script>
+
+    <style>
+        #content {
+            padding: 0;
+        }
+
+        .sql-console-wrapper {
+            width: 100%;
+            height: calc(100vh - 40px);
+        }
+    </style>
 {% endblock %}
 
 {% block main %}
