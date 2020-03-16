@@ -224,6 +224,26 @@ def write_site_file(
             raise SiteFilesException("Internal error")
 
 
+def create_site_file(site_id: int, relpath: str, *, mode_str: Optional[str] = None) -> None:
+    site_dir = get_site_directory_path(site_id)
+
+    args = ["create", site_dir, relpath]
+    if mode_str is not None:
+        args.append(mode_str)
+
+    proc = run_helper_script_prog(
+        args, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+
+    _, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+            raise SiteFilesException(stderr.decode().strip())
+        else:
+            raise SiteFilesException("Internal error")
+
+
 def remove_all_site_files_dangerous(site_id: int) -> None:
     site_dir = get_site_directory_path(site_id)
     proc = run_helper_script_prog(

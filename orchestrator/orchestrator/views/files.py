@@ -10,6 +10,7 @@ from .. import settings
 from ..files import (
     SiteFilesException,
     chmod_path,
+    create_site_file,
     make_site_directory,
     remove_all_site_files_dangerous,
     remove_site_directory_recur,
@@ -72,6 +73,27 @@ def write_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
             request.args["path"],
             iter_chunks(request.stream, settings.FILE_STREAM_BUFSIZE),
             mode_str=request.args.get("mode", None),
+        )
+    except SiteFilesException as ex:
+        current_app.logger.error("%s", traceback.format_exc())
+        return str(ex), 500
+    except BaseException:  # pylint: disable=broad-except
+        current_app.logger.error("%s", traceback.format_exc())
+        return "Error", 500
+    else:
+        return "Success"
+
+
+@files.route("/sites/<int:site_id>/files/create", methods=["POST"])
+def create_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
+    """Create a file in a site's directory"""
+
+    if "path" not in request.args:
+        return "path parameter not passed", 400
+
+    try:
+        create_site_file(
+            site_id, request.args["path"], mode_str=request.args.get("mode", None),
         )
     except SiteFilesException as ex:
         current_app.logger.error("%s", traceback.format_exc())
