@@ -459,12 +459,16 @@ function FilesPane(container, uri, callbacks) {
                         case "rename":
                             renameItem(elem);
                             break;
+                        case "delete":
+                            deleteFile(elem);
+                            break;
                     }
                 },
                 items: {
                     "show-log": {name: "Show as Log", icon: "fas fa-chart-line"},
                     "sep1": "---------",
                     "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
+                    "delete": {name: "Delete", icon: "far fa-trash-alt"},
                 },
             };
         },
@@ -484,12 +488,16 @@ function FilesPane(container, uri, callbacks) {
                         case "rename":
                             renameItem(elem);
                             break;
+                        case "delete":
+                            deleteFile(elem);
+                            break;
                     }
                 },
                 items: {
                     "show-log": (elem.hasClass("type-file") ? {name: "Show as Log", icon: "fas fa-chart-line"} : undefined),
                     "sep1": "---------",
                     "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
+                    "delete": {name: "Delete", icon: "far fa-trash-alt"},
                 },
             };
         },
@@ -590,6 +598,33 @@ function FilesPane(container, uri, callbacks) {
                     });
                 });
             },
+        );
+    }
+
+    function deleteFile(elem) {
+        var path = self.getElemPath(elem);
+
+        makeYesNoModalDialog(
+            "Are you sure you want to delete this file?",
+            [
+                "Are you sure you want to delete ",
+                $("<code>").append(path),
+                "?",
+            ],
+            function(result) {
+                if(!result) {
+                    return;
+                }
+
+                $.post({
+                    url: file_endpoints.remove + "?" + $.param({path: path}),
+                }).fail(function(data) {
+                    Messenger().error({
+                        message: data.responseText || "Error removing file",
+                        hideAfter: 3,
+                    });
+                });
+            }
         );
     }
 
