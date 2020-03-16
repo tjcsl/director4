@@ -494,8 +494,6 @@ function FilesPane(container, uri, callbacks) {
                     }
                 },
                 items: {
-                    "show-log": (elem.hasClass("type-file") ? {name: "Show as Log", icon: "fas fa-chart-line"} : undefined),
-                    "sep1": "---------",
                     "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
                     "delete": {name: "Delete", icon: "far fa-trash-alt"},
                 },
