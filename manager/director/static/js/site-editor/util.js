@@ -29,7 +29,7 @@ function rTrimChars(s, chars) {
 }
 
 function makeModalDialog(options, callback) {
-    var modal_div = $("<div>").addClass("modal").attr("role", "dialog");
+    var modal_div = $("<div>").addClass("modal").attr("role", "dialog").attr("tabindex", -1);
 
     var modal_dialog = $("<div>").addClass("modal-dialog").appendTo(modal_div);
     var modal_content = $("<div>").addClass("modal-content").appendTo(modal_dialog);
