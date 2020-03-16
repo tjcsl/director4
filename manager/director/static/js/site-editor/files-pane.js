@@ -184,7 +184,6 @@ function FilesPane(container, uri, callbacks) {
         var newItemSortOrder = getItemTypeSortOrder(newItem);
 
         var beforeItem = null;
-        var afterItem = null;
         parentElem.children(".children").children().each(function() {
             var currentItemSortOrder = getItemTypeSortOrder($(this));
 
@@ -203,9 +202,6 @@ function FilesPane(container, uri, callbacks) {
 
         if(beforeItem != null) {
             newItem.insertBefore(beforeItem);
-        }
-        else if(afterItem != null) {
-            newItem.insertAfter(afterItem);
         }
         else {
             parentElem.children(".children").append(newItem);
