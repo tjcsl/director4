@@ -323,13 +323,13 @@ function FilesPane(container, uri, callbacks) {
 
     function makeDropable(elem) {
         elem.on("dragover", function(e) {
-            elem.addClass("dragover");
+            elem.parent().addClass("dragover");
             // Signals that it's safe to drop onto this element
             e.preventDefault();
         });
 
         elem.on("dragleave", function(e) {
-            elem.removeClass("dragover");
+            elem.parent().removeClass("dragover");
         });
 
         elem.on("drop", function(e) {
@@ -339,8 +339,7 @@ function FilesPane(container, uri, callbacks) {
             // Resolve the main container (more reliable than e.target for getting the main container)
             var elem = self.followPath(elempath);
 
-            $(e.target).removeClass("dragover");
-            elem.children(".info-row").removeClass("dragover");
+            elem.removeClass("dragover");
 
             // Get the source path
             var oldpath = e.originalEvent.dataTransfer.getData("source-fname");

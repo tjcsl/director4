@@ -42,7 +42,7 @@
     opacity: 60%;
 }
 
-.files-pane .dragover {
+.files-pane.dragover, .files-pane .dragover {
     background-color: #ddd;
     border: 1px solid #888;
 }
