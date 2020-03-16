@@ -14,6 +14,8 @@ function FilesPane(container, uri, callbacks) {
     var isOpen = false;
     var firstOpen = true;
 
+    var customStylesheet = $("<style>").appendTo("head");
+
     function openWS() {
         ws = new WebSocket(uri);
         ws.onopen = wsOpened;
@@ -265,6 +267,10 @@ function FilesPane(container, uri, callbacks) {
         var infoRow = $("<div>");
         infoRow.addClass("info-row");
         itemContainer.append(infoRow);
+
+        if(newInfo.basename.startsWith(".")) {
+            itemContainer.addClass("hidden");
+        }
 
         infoRow.append($("<i>").addClass(newInfo.faIcon));
 
@@ -736,11 +742,21 @@ function FilesPane(container, uri, callbacks) {
 
             ws.send(JSON.stringify({action: "add", path: path}));
         }
-    }
+    };
+
+    this.hideHiddenFiles = function() {
+        customStylesheet.append(".files-pane .hidden{display: none;}");
+    };
+
+    this.showHiddenFiles = function() {
+        customStylesheet.append(".files-pane .hidden{display: initial;}");
+    };
 
     openWS();
 
     makeDropable(rootDropContainer);
+
+    this.hideHiddenFiles();
 }
 
 

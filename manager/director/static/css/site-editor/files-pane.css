@@ -34,6 +34,10 @@
     width: fit-content;
 }
 
+.files-pane .hidden > .info-row {
+    opacity: 60%;
+}
+
 .files-pane .dragover {
     background-color: #ddd;
     border: 1px solid #888;
