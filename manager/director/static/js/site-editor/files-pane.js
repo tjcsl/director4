@@ -466,10 +466,14 @@ function FilesPane(container, uri, callbacks) {
                         case "delete":
                             deleteFile(elem);
                             break;
+                        case "toggle-exec":
+                            toggleFileExecutable(elem);
+                            break;
                     }
                 },
                 items: {
                     "show-log": {name: "Show as Log", icon: "fas fa-chart-line"},
+                    "toggle-exec": {name: (elem.hasClass("executable") ? "Unset executable" : "Set executable"), icon: "fas fa-chart-line"},
                     "sep1": "---------",
                     "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
                     "delete": {name: "Delete", icon: "far fa-trash-alt"},
@@ -664,6 +668,20 @@ function FilesPane(container, uri, callbacks) {
                 });
             }
         );
+    }
+
+    function toggleFileExecutable(elem) {
+        var path = self.getElemPath(elem);
+        var mode = (elem.hasClass("executable") ? "-x" : "+x");
+
+        $.post({
+            url: file_endpoints.chmod + "?" + $.param({path: path, mode:mode}),
+        }).fail(function(data) {
+            Messenger().error({
+                message: data.responseText || "Error setting executable bits",
+                hideAfter: 3,
+            });
+        });
     }
 
     this.toggleDir = function(dirspec) {
