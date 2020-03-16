@@ -891,6 +891,13 @@ function FilesPane(container, uri, callbacks) {
 
     makeDropable(rootDropContainer);
 
+    // If the user is trying to drag a file onto the pane to upload it
+    // and they miss the folder, intercept the event and stop the browser
+    // from automatically opening the file.
+    $(container).on("dragover drop", function(e) {
+        return false;
+    });
+
     this.hideHiddenFiles();
 }
 
