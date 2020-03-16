@@ -11,6 +11,10 @@
     height: 100vh;
 }
 
+.files-pane .type-folder {
+    min-width: fit-content;
+}
+
 .files-pane .type-folder > .info-row {
 }
 
