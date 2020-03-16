@@ -9,6 +9,8 @@ function FilesPane(container, uri, callbacks) {
     // This takes up a lot of space at the bottom of the pane. If people drop a file here, it will end up in the site's root directory.
     var rootDropContainer = $("<div>").addClass("root-drop-container").appendTo(container);
 
+    var fileUploaderInput = $("<input>").attr("type", "file").prop("multiple", true).css("display", "none");
+
     var openFileCallback = callbacks.openFile || function(fname) {};
 
     var ws = null;
@@ -439,6 +441,10 @@ function FilesPane(container, uri, callbacks) {
             return {
                 callback: function(key, options) {
                     switch(key) {
+                        case "upload":
+                            fileUploaderInput.data("parent_fname", "");
+                            fileUploaderInput.trigger("click");
+                            break;
                         case "newfile":
                             newFile(elem);
                             break;
@@ -450,6 +456,7 @@ function FilesPane(container, uri, callbacks) {
                 items: {
                     "show-log": {name: "Show Log", icon: "fas fa-chart-line"},
                     "sep1": "---------",
+                    "upload": {name: "Upload", icon: "fas fa-upload"},
                     "newfile": {name: "New file", icon: "fas fa-file"},
                     "newfolder": {name: "New folder", icon: "fas fa-folder"},
                 },
@@ -474,6 +481,10 @@ function FilesPane(container, uri, callbacks) {
                         case "delete":
                             deleteFolderRecursively(elem);
                             break;
+                        case "upload":
+                            fileUploaderInput.data("parent_fname", self.getElemPath(elem));
+                            fileUploaderInput.trigger("click");
+                            break;
                         case "newfile":
                             newFile(elem);
                             break;
@@ -486,6 +497,7 @@ function FilesPane(container, uri, callbacks) {
                     "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
                     "delete": {name: "Delete", icon: "far fa-trash-alt"},
                     "sep2": "---------",
+                    "upload": {name: "Upload", icon: "fas fa-upload"},
                     "newfile": {name: "New file", icon: "fas fa-file"},
                     "newfolder": {name: "New folder", icon: "fas fa-folder"},
                 },
@@ -588,6 +600,52 @@ function FilesPane(container, uri, callbacks) {
             }
         );
     }
+
+    fileUploaderInput.change(function() {
+        var files = fileUploaderInput.get(0).files;
+        if(!files.length) {
+            return;
+        }
+
+        var formData = new FormData();
+        for(var i = 0; i < files.length; i++) {
+            formData.append("files[]", files[i], files[i].name);
+        }
+
+        var msg_obj = Messenger().info({
+            message: (files.length == 1 ? "Uploading 1 file..." : "Uploading " + files.length + " files..."),
+            hideAfter: false,
+        });
+
+        var numFiles = files.length;
+
+        var basepath = fileUploaderInput.data("parent_fname");
+
+        $.post({
+            url: file_endpoints.write + "?" + $.param({basepath: basepath}),
+            data: formData,
+            processData: false,
+            contentType: false,
+        }).then(function(data) {
+            if(basepath != "") {
+                self.openDir(basepath);
+            }
+
+            msg_obj.update({
+                type: "success",
+                message: (numFiles == 1 ? "Uploaded 1 file successfully" : "Uploaded " + numFiles + " files successfully"),
+                hideAfter: 5,
+            });
+        }).fail(function(data) {
+            msg_obj.update({
+                type: "error",
+                message: "Error uploading file: " + (data.responseText || "Unknown error"),
+                hideAfter: 5,
+            });
+        });
+
+        fileUploaderInput.val("");
+    });
 
     // Shows the "new file" dialog and creates the file in the given element
     function newFile(elem) {
