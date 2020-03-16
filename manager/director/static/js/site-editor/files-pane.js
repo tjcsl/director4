@@ -57,6 +57,8 @@ function FilesPane(container, uri, callbacks) {
                 self.addItem(data);
                 break;
             case "delete":
+                ws.send(JSON.stringify({action: "remove", path: data.fname}));
+
                 var elem = self.followPath(data.fname);
                 if(elem != null) {
                     elem.remove();
