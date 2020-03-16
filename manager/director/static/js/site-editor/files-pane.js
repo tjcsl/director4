@@ -380,9 +380,7 @@ function FilesPane(container, uri, callbacks) {
                 }),
             }).done(function() {
                 // Open directories we moved files into;
-                if(!elem.hasClass("open")) {
-                    self.toggleDir(elem);
-                }
+                self.openDir(elem);
             }).fail(function(data) {
                 Messenger().error({
                     message: data.responseText || "Error moving file",
@@ -567,8 +565,8 @@ function FilesPane(container, uri, callbacks) {
                     data: {contents: ""},
                 }).done(function() {
                     // Open directories we created files in:
-                    if(elem.hasClass("type-folder") && !elem.hasClass("open")) {
-                        self.toggleDir(elem);
+                    if(elem.hasClass("type-folder")) {
+                        self.openDir(elem);
                     }
                 }).fail(function(data) {
                     Messenger().error({
@@ -599,8 +597,8 @@ function FilesPane(container, uri, callbacks) {
                     url: file_endpoints.mkdir + "?" + $.param({path: path}),
                 }).done(function() {
                     // Open directories we created subdirectories in:
-                    if(elem.hasClass("type-folder") && !elem.hasClass("open")) {
-                        self.toggleDir(elem);
+                    if(elem.hasClass("type-folder")) {
+                        self.openDir(elem);
                     }
                 }).fail(function(data) {
                     Messenger().error({
@@ -640,9 +638,7 @@ function FilesPane(container, uri, callbacks) {
     }
 
     function deleteFolderRecursively(elem) {
-        if(!elem.hasClass("open")) {
-            self.toggleDir(elem);
-        }
+        self.openDir(elem);
 
         var path = self.getElemPath(elem);
 
@@ -689,14 +685,31 @@ function FilesPane(container, uri, callbacks) {
         });
     }
 
-    this.toggleDir = function(dirspec) {
-        var elem;
+    function dirspecToElem(dirspec) {
         if(typeof dirspec == "string") {
-            elem = this.followPath(dirspec);
+            return self.followPath(dirspec);
         }
         else {
-            elem = dirspec;
+            return dirspec;
         }
+    }
+
+    this.openDir = function(dirspec) {
+        var elem = dirspecToElem(dirspec);
+        if(!elem.hasClass("open")) {
+            this.toggleDir(elem);
+        }
+    };
+
+    this.closeDir = function(dirspec) {
+        var elem = dirspecToElem(dirspec);
+        if(elem.hasClass("open")) {
+            this.toggleDir(elem);
+        }
+    };
+
+    this.toggleDir = function(dirspec) {
+        var elem = dirspecToElem(dirspec);
 
         var path = this.getElemPath(elem);
 
