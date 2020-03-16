@@ -499,7 +499,7 @@ function FilesPane(container, uri, callbacks) {
         var oldpath = self.getElemPath(elem);
         var oldname = elem.children(".info-row").children(".item-name").text();
 
-        var modal_div = makeEntryModalDialog(
+        makeEntryModalDialog(
             "Rename " + (elem.hasClass("type-folder") ? "Folder" : "File"),
             $("<div>").append(
                 "Please enter the new name for " + oldname + ":",
@@ -529,7 +529,7 @@ function FilesPane(container, uri, callbacks) {
     }
 
     function newFile(elem) {
-        var modal_div = makeEntryModalDialog(
+        makeEntryModalDialog(
             "New File",
             $("<div>").append(
                 "Please enter the name for your new file:",
@@ -562,7 +562,7 @@ function FilesPane(container, uri, callbacks) {
     }
 
     function newFolder(elem) {
-        var modal_div = makeEntryModalDialog(
+        makeEntryModalDialog(
             "New Folder",
             $("<div>").append(
                 "Please enter the name for your new folder:",
