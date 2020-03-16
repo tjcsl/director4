@@ -32,9 +32,8 @@
 .files-pane .info-row {
     cursor: pointer;
     white-space: nowrap;
-    margin-left: -10000px;
-    padding-left: 10005px;
-    min-width: calc(10000px + 100%);
+    padding-left: 5px;
+    min-width: calc(100%);
     width: fit-content;
 }
 
