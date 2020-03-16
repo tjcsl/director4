@@ -28,8 +28,9 @@
 .files-pane .info-row {
     cursor: pointer;
     white-space: nowrap;
-    padding-left: 5px;
-    min-width: 100%;
+    margin-left: -10000px;
+    padding-left: 10005px;
+    min-width: calc(10000px + 100%);
     width: fit-content;
 }
 
@@ -63,4 +64,13 @@
 
 .files-pane .type-folder:not(.open) > .children {
     display: none;
+}
+
+/* If we don't do this, the layout resize bar has a higher z-index and it shows up on top */
+.context-menu-list {
+    z-index: 9999 !important;
+    /*border-radius: 0;*/
+}
+#context-menu-layer {
+    z-index: 9998 !important;
 }
