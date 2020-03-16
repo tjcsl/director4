@@ -49,7 +49,7 @@ $(function() {
     });
 
     layout.registerComponent("terminal", function(container, componentState) {
-        container.setTitle("Terminal");
+        container.setTitle("<span class='fas fa-terminal'></span> Terminal");
 
         setupTerminal(
             ws_endpoints.terminal,
@@ -57,7 +57,7 @@ $(function() {
             {
                 autoFocus: false,
                 onTitle: function(title) {
-                    container.setTitle(title);
+                    container.setTitle("<span class='fas fa-terminal'></span> " + escapeHTML(title));
                 },
             },
         );
@@ -72,6 +72,10 @@ $(function() {
 
 
 // Utility functions that may be used by multiple parts
+
+function escapeHTML(text) {
+    return $("<div>").text(text).html();
+}
 
 function splitPath(path) {
     var lastSlashIndex = path.lastIndexOf("/");
