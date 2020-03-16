@@ -71,6 +71,16 @@ $(function() {
                 },
             },
         );
+
+        "open resize show".split(" ").forEach(function(event_name) {
+            container.on(event_name, function() {
+                // If we trigger the event immediately, the resize changes haven't propagated yet.
+                // So we schedule it to run very soon.
+                setTimeout(function() {
+                    container.getElement().trigger("terminal:resize");
+                }, 0);
+            });
+        });
     });
 
     layout.registerComponent("database-shell", function(container, componentState) {
