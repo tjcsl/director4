@@ -24,7 +24,7 @@ function FilesPane(container, uri, callbacks) {
         ws.onclose = wsClosed;
     }
 
-    var prevOpenFolders = []
+    var prevOpenFolders = [];
     function wsOpened() {
         // Immediately request that we start watching the root directory (obviously)
         ws.send(JSON.stringify({action: "add", path: ""}));
@@ -215,6 +215,7 @@ function FilesPane(container, uri, callbacks) {
                 // The current item and the item we're adding are at the same point in
                 // the sort order. Let's compare the names.
                 var name = $(this).children(".info-row").children(".item-name").text();
+
                 if(name > newInfo.basename) {
                     // The current item's name should be sorted after the item we're
                     // adding. So we insert the new item before the current item.
@@ -830,12 +831,14 @@ function ItemInfo(info) {
         "other": "type-special",
     }[info.filetype];
 
-    this.contentClass = "";
     if(info.fname.match(/\.(jpe?g|gif|png|ico)$/) != null) {
         this.contentClass = "content-image";
     }
     else if(info.fname.match(/\.(mp[34]|pdf|swf)$/) != null) {
         this.contentClass = "content-video";
+    }
+    else {
+        this.contentClass = "";
     }
 
     // Find the best icon
@@ -869,6 +872,7 @@ function ItemInfo(info) {
             else {
                 this.faIcon = "far fa-file";
             }
+
             break;
 
         default:
