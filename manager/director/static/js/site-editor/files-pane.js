@@ -382,54 +382,61 @@ function FilesPane(container, uri, callbacks) {
 
             elem.removeClass("dragover");
 
-            // Get the source path
-            var oldpath = e.originalEvent.dataTransfer.getData("source-fname");
-            // And derive the destination path
-            var newpath;
-            if(elempath) {
-                newpath = elempath + "/" + e.originalEvent.dataTransfer.getData("source-basename");
+            var dataTransfer = e.originalEvent.dataTransfer;
+            if(dataTransfer && dataTransfer.files.length) {
+                e.preventDefault();
+                uploadFiles(elempath, dataTransfer.files);
             }
             else {
-                newpath = e.originalEvent.dataTransfer.getData("source-basename");
-            }
+                // Get the source path
+                var oldpath = dataTransfer.getData("source-fname");
+                // And derive the destination path
+                var newpath;
+                if(elempath) {
+                    newpath = elempath + "/" + dataTransfer.getData("source-basename");
+                }
+                else {
+                    newpath = dataTransfer.getData("source-basename");
+                }
 
-            var oldelem = self.followPath(oldpath);
+                var oldelem = self.followPath(oldpath);
 
-            // Something went wrong; bail out.
-            if(!oldpath || !newpath) {
-                return;
-            }
+                // Something went wrong; bail out.
+                if(!oldpath || !newpath) {
+                    return;
+                }
 
-            // If we'd be moving to the same directory, or moving to ourselves, or to a subdirectory of ourselves, bail out.
-            if((newpath + "/").startsWith(oldpath + "/")) {
-                return;
-            }
+                // If we'd be moving to the same directory, or moving to ourselves, or to a subdirectory of ourselves, bail out.
+                if((newpath + "/").startsWith(oldpath + "/")) {
+                    return;
+                }
 
-            // If this folder was open, or if any folders under it were open,
-            // keep them open.
-            if(oldelem.hasClass("type-folder") || oldelem.is(rootDropContainer)) {
-                prevOpenFolders.push(
-                    ...getOpenFolderNames(oldelem).map(
-                        (name) => newpath + name.slice(oldpath.length)
-                    )
-                );
-            }
+                // If this folder was open, or if any folders under it were open,
+                // keep them open.
+                if(oldelem.hasClass("type-folder") || oldelem.is(rootDropContainer)) {
+                    prevOpenFolders.push(
+                        ...getOpenFolderNames(oldelem).map(
+                            (name) => newpath + name.slice(oldpath.length)
+                        )
+                    );
+                }
 
-            // Rename the file
-            $.post({
-                url: file_endpoints.rename + "?" + $.param({
-                    oldpath: oldpath,
-                    newpath: newpath,
-                }),
-            }).done(function() {
-                // Open directories we moved files into;
-                self.openDir(elem);
-            }).fail(function(data) {
-                Messenger().error({
-                    message: data.responseText || "Error moving file",
-                    hideAfter: 3,
+                // Rename the file
+                $.post({
+                    url: file_endpoints.rename + "?" + $.param({
+                        oldpath: oldpath,
+                        newpath: newpath,
+                    }),
+                }).done(function() {
+                    // Open directories we moved files into;
+                    self.openDir(elem);
+                }).fail(function(data) {
+                    Messenger().error({
+                        message: data.responseText || "Error moving file",
+                        hideAfter: 3,
+                    });
                 });
-            });
+            }
         });
     }
 
@@ -607,6 +614,14 @@ function FilesPane(container, uri, callbacks) {
             return;
         }
 
+        var basepath = fileUploaderInput.data("parent_fname");
+
+        uploadFiles(basepath, files);
+
+        fileUploaderInput.val("");
+    });
+
+    function uploadFiles(basepath, files) {
         var formData = new FormData();
         for(var i = 0; i < files.length; i++) {
             formData.append("files[]", files[i], files[i].name);
@@ -618,8 +633,6 @@ function FilesPane(container, uri, callbacks) {
         });
 
         var numFiles = files.length;
-
-        var basepath = fileUploaderInput.data("parent_fname");
 
         $.post({
             url: file_endpoints.write + "?" + $.param({basepath: basepath}),
@@ -643,9 +656,7 @@ function FilesPane(container, uri, callbacks) {
                 hideAfter: 5,
             });
         });
-
-        fileUploaderInput.val("");
-    });
+    }
 
     // Shows the "new file" dialog and creates the file in the given element
     function newFile(elem) {
