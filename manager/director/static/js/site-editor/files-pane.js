@@ -557,7 +557,6 @@ function FilesPane(container, uri, callbacks) {
                     }
                 },
                 items: {
-                    "show-log": {name: "Show as Log", icon: "fas fa-chart-line"},
                     "download": {name: "Download", icon: "fas fa-download"},
                     "toggle-exec": {name: (elem.hasClass("executable") ? "Unset executable" : "Set executable"), icon: "fas fa-chart-line"},
                     "sep1": "---------",
