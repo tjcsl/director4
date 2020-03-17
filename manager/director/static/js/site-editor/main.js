@@ -1,5 +1,3 @@
-var filesPane;
-
 $(function() {
     var layout_config = {
         content: [{
@@ -31,6 +29,27 @@ $(function() {
         }],
     };
 
+    var components = [];
+    function addComponent(container, obj) {
+        components.push(obj);
+        obj.updateSettings(settings);
+
+        container.on("destroy", function() {
+            var i = components.indexOf(obj);
+            if(i != -1) {
+                components.splice(i, 1);
+            }
+        });
+    }
+
+    function updateSettings() {
+        components.forEach(function(obj) {
+            obj.updateSettings(settings);
+        });
+    }
+
+    var settings = {};
+
     if(site_info.has_database) {
         layout_config.content[0].content[1].content[1].content.push({
             type: "component",
@@ -45,12 +64,21 @@ $(function() {
     layout.registerComponent("files", function(container, componentState) {
         container.setTitle("<span class='fas fa-folder-open'></span> Files");
 
-        filesPane = new FilesPane(
+        addComponent(container, new FilesPane(
             container.getElement(),
             ws_endpoints.file_monitor,
             {
                 openFile: function(fname) {
-                    console.log(fname);
+                    var filesContainer = layout.root.getItemsById("files")[0];
+                    if(fname) {
+                        filesContainer.addChild({
+                            type: "component",
+                            componentName: "editfile",
+                            componentState: {
+                                fname: fname,
+                            },
+                        });
+                    }
                 },
                 openLogs: function(fname) {
                     var filesContainer = layout.root.getItemsById("files")[0];
@@ -62,16 +90,16 @@ $(function() {
                     }
                 },
             },
-        );
+        ));
     });
 
-    layout.registerComponent("file", function(container, componentState) {
+    layout.registerComponent("media", function(container, componentState) {
     });
 
     layout.registerComponent("log", function(container, componentState) {
         container.setTitle("<span class='fas fa-chart-line'></span> Process Log");
 
-        new SiteLogsFollower(container.getElement(), ws_endpoints.site_logs);
+        addComponent(container, new SiteLogsFollower(container.getElement(), ws_endpoints.site_logs));
     });
 
     layout.registerComponent("terminal", function(container, componentState) {

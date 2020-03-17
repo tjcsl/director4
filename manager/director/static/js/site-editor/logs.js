@@ -51,4 +51,7 @@ function SiteLogsFollower(container, uri) {
             container.prop("scrollTop", container.prop("scrollHeight"));
         }
     });
+
+    this.updateSettings = function(settings) {
+    };
 }

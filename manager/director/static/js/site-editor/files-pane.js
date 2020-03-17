@@ -899,6 +899,15 @@ function FilesPane(container, uri, callbacks) {
         }
     };
 
+    this.updateSettings = function(settings) {
+        if(settings["show-hidden"]) {
+            this.showHiddenFiles();
+        }
+        else {
+            this.hideHiddenFiles();
+        }
+    };
+
     // Hide all hidden files
     this.hideHiddenFiles = function() {
         customStylesheet.append(".files-pane .hidden{display: none;}");
@@ -919,8 +928,6 @@ function FilesPane(container, uri, callbacks) {
     $(itemsContainer).on("dragover drop", function(e) {
         return false;
     });
-
-    this.hideHiddenFiles();
 }
 
 
