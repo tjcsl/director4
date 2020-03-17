@@ -26,26 +26,24 @@ class DirectorSiteLogFollower:
         # The process will be restarted this often
         self.proc_life_timeout = 90.0
 
-    async def start(self, *, since_time: Union[int, float, None] = None) -> None:
+    async def start(
+        self, *, since_time: Union[int, float, None] = None, last_n: Optional[int] = None
+    ) -> None:
         if self.service is None:
             self.stopped = True
             return
 
-        if since_time is None:
-            since_time = time.time()
+        args = ["docker", "service", "logs", "--follow", "--raw"]
+
+        if since_time is not None:
+            args.extend(("--since", str(since_time)))
+        else:
+            args.extend(("--tail", str(last_n if last_n is not None else 0)))
+
+        args.append(self.service.id)
 
         self.proc = await asyncio.create_subprocess_exec(
-            "docker",
-            "service",
-            "logs",
-            "--follow",
-            "--since",
-            str(since_time),
-            "--raw",
-            self.service.id,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            *args, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         )
 
         self.proc_start_time = time.time()
@@ -98,7 +96,10 @@ class DirectorSiteLogFollower:
 
         assert self.proc is not None
 
-        self.proc.terminate()
+        try:
+            self.proc.terminate()
+        except ProcessLookupError:
+            pass
 
         self.stopped = True
 
@@ -109,8 +110,6 @@ class DirectorSiteLogFollower:
             await self.proc.wait()
 
     async def __aenter__(self) -> "DirectorSiteLogFollower":
-        await self.start()
-
         return self
 
     async def __aexit__(  # type: ignore  # pylint: disable=invalid-name

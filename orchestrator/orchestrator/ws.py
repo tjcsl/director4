@@ -11,6 +11,7 @@ import re
 import signal
 import ssl
 import sys
+import time
 from typing import Any, Dict, List, Optional, Union
 
 import docker
@@ -263,6 +264,8 @@ async def status_handler(
             pass
 
     async with DirectorSiteLogFollower(client, site_id) as log_follower:
+        await log_follower.start(since_time=time.time())
+
         try:
             await websock.send(json.dumps(serialize_service_status(site_id, service)))
         except websockets.exceptions.ConnectionClosed:
@@ -284,6 +287,64 @@ async def status_handler(
         if not ping_task.done():
             ping_task.cancel()
             await ping_task
+
+        if not log_task.done():
+            log_task.cancel()
+            await log_task
+
+    await websock.close()
+
+
+async def logs_handler(
+    websock: websockets.client.WebSocketClientProtocol, params: Dict[str, Any],
+) -> None:
+    client = create_client()
+
+    site_id = int(params["site_id"])
+
+    service: Service = get_service_by_name(client, get_director_service_name(site_id))
+
+    if service is None:
+        await websock.close()
+        return
+
+    async def echo_loop() -> None:
+        while True:
+            try:
+                msg = json.loads(await websock.recv())
+            except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+                break
+
+            if isinstance(msg, dict) and "heartbeat" in msg:
+                try:
+                    await websock.send(json.dumps(msg))
+                except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+                    break
+
+    async def log_loop(log_follower: DirectorSiteLogFollower) -> None:
+        try:
+            async for line in log_follower.iter_lines():
+                if not line:
+                    break
+
+                await websock.send(json.dumps({"line": line}))
+        except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+            pass
+
+    async with DirectorSiteLogFollower(client, site_id) as log_follower:
+        await log_follower.start(last_n=10)
+
+        echo_task = asyncio.Task(echo_loop())
+        log_task = asyncio.Task(log_loop(log_follower))
+
+        await asyncio.wait(
+            [echo_task, log_task, stop_event],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+
+        if not echo_task.done():
+            echo_task.cancel()
+            await echo_task
 
         if not log_task.done():
             log_task.cancel()
@@ -353,7 +414,7 @@ async def multi_status_handler(  # pylint: disable=unused-argument
 
     for site_id in services:
         log_followers[site_id] = DirectorSiteLogFollower(client, site_id)
-        await log_followers[site_id].start()
+        await log_followers[site_id].start(since_time=time.time())
         asyncio.ensure_future(wait_and_send_status(site_id, 0.0))
 
     try:
@@ -451,6 +512,7 @@ async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/terminal/?$"), terminal_handler),
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/status/?$"), status_handler),
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/files/monitor/?$"), file_monitor_handler),
+        (re.compile(r"^/ws/sites/(?P<site_id>\d+)/logs/?$"), logs_handler),
         (re.compile(r"^/ws/sites/build-docker-image/?$"), build_image_handler),
         (re.compile(r"^/ws/sites/multi-status/?$"), multi_status_handler),
     ]
