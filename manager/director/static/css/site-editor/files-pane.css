@@ -1,14 +1,27 @@
 .files-pane {
     overflow-x: auto;
+    overflow-y: auto;
 }
 
-.files-pane.disabled {
+.files-pane > .items {
+    min-width: fit-content;
+    min-height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid transparent;
+}
+
+.files-pane > .items.disabled {
     pointer-events: none;
     opacity: 0.5;
 }
 
 .files-pane .root-drop-container {
-    height: 100vh;
+    flex: 1 1;
+    min-height: 30px;
+    width: 100%;
 }
 
 .files-pane .type-folder, .files-pane > .children {
@@ -45,7 +58,7 @@
     opacity: 60%;
 }
 
-.files-pane.dragover, .files-pane .dragover {
+.files-pane .dragover {
     background-color: #ddd;
     border: 1px solid #888;
 }
@@ -69,7 +82,7 @@
 .files-pane .type-folder .children {
     margin-left: 15px;
 }
-.files-pane > .children {
+.files-pane > .items > .children {
     margin-left: -2px;
 }
 

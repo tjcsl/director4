@@ -4,10 +4,12 @@ function FilesPane(container, uri, callbacks) {
 
     container.addClass("files-pane");
 
-    container.append($("<div>").addClass("children"));
+    var itemsContainer = $("<div>").addClass("items").appendTo(container);
+
+    itemsContainer.append($("<div>").addClass("children"));
 
     // This takes up a lot of space at the bottom of the pane. If people drop a file here, it will end up in the site's root directory.
-    var rootDropContainer = $("<div>").addClass("root-drop-container").appendTo(container);
+    var rootDropContainer = $("<div>").addClass("root-drop-container").appendTo(itemsContainer);
 
     var fileUploaderInput = $("<input>").attr("type", "file").prop("multiple", true).css("display", "none");
 
@@ -50,8 +52,8 @@ function FilesPane(container, uri, callbacks) {
                 prevOpenFolders = ["public"];
             }
 
-            container.children(".children").empty();
-            container.removeClass("disabled");
+            itemsContainer.children(".children").empty();
+            itemsContainer.removeClass("disabled");
 
             isOpen = true;
         }
@@ -102,7 +104,7 @@ function FilesPane(container, uri, callbacks) {
 
     // Finds the full paths of all expanded folders, either in the given element or in the entire pane
     function getOpenFolderNames(elem) {
-        var items = (elem || container).find(".type-folder.open").map((i, e) => self.getElemPath($(e))).get();
+        var items = (elem || itemsContainer).find(".type-folder.open").map((i, e) => self.getElemPath($(e))).get();
         if(elem && elem.hasClass("type-folder") && elem.hasClass("open")) {
             items.push(self.getElemPath(elem));
         }
@@ -114,10 +116,10 @@ function FilesPane(container, uri, callbacks) {
     // This is the inverse of getElemPath().
     this.followPath = function(path) {
         var parts = path.split("/").filter((s) => s.length && s != ".");
-        var currentElem = container;
+        var currentElem = itemsContainer;
 
         while(parts.length) {
-            if(currentElem != container && !currentElem.hasClass("type-folder")) {
+            if(currentElem != itemsContainer && !currentElem.hasClass("type-folder")) {
                 return null;
             }
 
@@ -460,7 +462,7 @@ function FilesPane(container, uri, callbacks) {
     $.contextMenu({
         selector: ".files-pane .root-drop-container",
         build: function(triggerElem, e) {
-            var elem = container;
+            var elem = itemsContainer;
 
             return {
                 callback: function(key, options) {
@@ -911,7 +913,7 @@ function FilesPane(container, uri, callbacks) {
     // If the user is trying to drag a file onto the pane to upload it
     // and they miss the folder, intercept the event and stop the browser
     // from automatically opening the file.
-    $(container).on("dragover drop", function(e) {
+    $(itemsContainer).on("dragover drop", function(e) {
         return false;
     });
 
