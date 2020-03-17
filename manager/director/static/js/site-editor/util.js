@@ -1,5 +1,9 @@
 // Utility functions that may be used by multiple parts
 
+function undefDefault(val, defaultVal) {
+    return (val !== undefined ? val : defaultVal);
+}
+
 function escapeHTML(text) {
     return $("<div>").text(text).html();
 }
