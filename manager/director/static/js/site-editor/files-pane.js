@@ -14,6 +14,7 @@ function FilesPane(container, uri, callbacks) {
     var fileUploaderInput = $("<input>").attr("type", "file").prop("multiple", true).css("display", "none");
 
     var openFileCallback = callbacks.openFile || function(fname) {};
+    var openLogsCallback = callbacks.openLogs || function(fname) {};
 
     var ws = null;
     var isOpen = false;
@@ -467,6 +468,9 @@ function FilesPane(container, uri, callbacks) {
             return {
                 callback: function(key, options) {
                     switch(key) {
+                        case "show-log":
+                            openLogsCallback(null);
+                            break;
                         case "upload":
                             fileUploaderInput.data("parent_fname", "");
                             fileUploaderInput.trigger("click");

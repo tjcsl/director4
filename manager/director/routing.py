@@ -12,6 +12,7 @@ from django.urls import path
 from director.apps.sites.consumers import (
     MultiSiteStatusConsumer,
     SiteConsumer,
+    SiteLogsConsumer,
     SiteMonitorConsumer,
     SiteTerminalConsumer,
 )
@@ -37,6 +38,7 @@ application = ProtocolTypeRouter(
                     path("sites/<int:site_id>/", SiteConsumer),
                     path("sites/<int:site_id>/terminal/", SiteTerminalConsumer),
                     path("sites/<int:site_id>/files/monitor/", SiteMonitorConsumer),
+                    path("sites/<int:site_id>/logs/", SiteLogsConsumer),
                     path("sites/multi-status/", MultiSiteStatusConsumer),
                     path("<path:path>", WebsocketCloseConsumer),
                 ]

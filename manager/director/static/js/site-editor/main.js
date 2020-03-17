@@ -14,6 +14,7 @@ $(function() {
                 content: [{
                     type: "stack",
                     isClosable: false,
+                    id: "files",
                     content: [],
                 }, {
                     type: "stack",
@@ -51,11 +52,26 @@ $(function() {
                 openFile: function(fname) {
                     console.log(fname);
                 },
+                openLogs: function(fname) {
+                    var filesContainer = layout.root.getItemsById("files")[0];
+                    if(!fname) {
+                        filesContainer.addChild({
+                            type: "component",
+                            componentName: "log",
+                        });
+                    }
+                },
             },
         );
     });
 
     layout.registerComponent("file", function(container, componentState) {
+    });
+
+    layout.registerComponent("log", function(container, componentState) {
+        container.setTitle("<span class='fas fa-chart-line'></span> Process Log");
+
+        new SiteLogsFollower(container.getElement(), ws_endpoints.site_logs);
     });
 
     layout.registerComponent("terminal", function(container, componentState) {

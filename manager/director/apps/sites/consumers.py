@@ -403,6 +403,87 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                 await self.close()
 
 
+class SiteLogsConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+
+        self.site: Optional[Site] = None
+
+        self.logs_websock: Optional[websockets.client.WebSocketClientProtocol] = None
+
+    async def connect(self) -> None:
+        if not self.scope["user"].is_authenticated:
+            await self.close()
+            return
+
+        site_id = int(self.scope["url_route"]["kwargs"]["site_id"])
+        try:
+            self.site = await get_site_for_user(self.scope["user"], id=site_id)
+        except Site.DoesNotExist:
+            await self.close()
+            return
+
+        await self.open_log_connection()
+
+        if self.logs_websock is None:
+            await self.close()
+        else:
+            await self.accept()
+
+            asyncio.get_event_loop().create_task(self.mainloop())
+
+    async def open_log_connection(self):
+        assert self.site is not None
+
+        for i in range(settings.DIRECTOR_NUM_APPSERVERS):
+            try:
+                self.logs_websock = await asyncio.wait_for(
+                    appserver_open_websocket(i, "/ws/sites/{}/logs".format(self.site.id)),
+                    timeout=1,
+                )
+
+                # We successfully connected; break
+                break
+            except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
+                pass  # Connection failure; try the next appserver
+
+    async def mainloop(self) -> None:
+        assert self.logs_websock is not None
+
+        while True:
+            try:
+                msg = await self.logs_websock.recv()
+            except websockets.exceptions.ConnectionClosed:
+                await self.close()
+                break
+
+            if isinstance(msg, bytes):
+                await self.send(bytes_data=msg)
+            elif isinstance(msg, str):
+                await self.send(text_data=msg)
+
+    async def disconnect(self, code: int) -> None:  # pylint: disable=unused-argument
+        self.site = None
+
+        if self.logs_websock is not None:
+            await self.logs_websock.close()
+            self.logs_websock = None
+
+    async def receive(
+        self, text_data: Optional[str] = None, bytes_data: Optional[bytes] = None
+    ) -> None:
+        data = bytes_data if bytes_data is not None else text_data
+
+        if data is None:
+            return
+
+        if self.logs_websock is not None:
+            try:
+                await self.logs_websock.send(data)
+            except websockets.exceptions.ConnectionClosed:
+                await self.close()
+
+
 class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)

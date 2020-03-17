@@ -34,6 +34,7 @@
     <script type="text/javascript" src="{% static 'js/site-editor/main.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/site-editor/util.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/site-editor/files-pane.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/site-editor/logs.js' %}"></script>
 
     <script type="text/javascript">
         var user_name = "{{ request.user.username }}";
@@ -59,6 +60,7 @@
         var ws_endpoints = {
             "terminal": location.protocol.replace("http", "ws") + "//" + location.host + "/sites/{{ site.id }}/terminal/",
             "file_monitor": location.protocol.replace("http", "ws") + "//" + location.host + "/sites/{{ site.id }}/files/monitor/",
+            "site_logs": location.protocol.replace("http", "ws") + "//" + location.host + "/sites/{{ site.id }}/logs/",
         };
     </script>
 
