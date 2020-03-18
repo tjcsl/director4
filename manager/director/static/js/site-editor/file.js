@@ -14,7 +14,7 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
         }
 
         currentStatus = fileStatus;
-        layoutContainer.setTitle("<span class='" + prefixClasses + "'></span> " + escapeHTML(fname));
+        layoutContainer.setTitle("<span class='" + prefixClasses + "'></span> " + escapeHTML(splitPath(fname)[1]));
     }
 
     function saveFile() {
