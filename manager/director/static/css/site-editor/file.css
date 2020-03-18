@@ -1,0 +1,26 @@
+.file-title-icon.file-loading {
+    color: black;
+    animation: spin-continuous 1500ms infinite linear;
+}
+
+.file-title-icon.file-unsaved {
+    color: orange;
+}
+
+.file-title-icon.file-saving {
+    color: orange;
+    animation: spin-continuous 1500ms infinite linear;
+}
+
+.file-title-icon.file-saved {
+    color: green;
+}
+
+@keyframes spin-continuous {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

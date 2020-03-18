@@ -48,7 +48,15 @@ $(function() {
         });
     }
 
-    var settings = {};
+    var settings = {
+        "show-hidden": false,
+        "layout-theme": "light",
+        "editor-theme": "ace/theme/chrome",
+        "editor-keybinding": "",
+        "editor-font-size": 16,
+        "editor-live-autocompletion": true,
+        "terminal-size": 16,
+    };
 
     if(site_info.has_database) {
         layout_config.content[0].content[1].content[1].content.push({
@@ -91,6 +99,10 @@ $(function() {
                 },
             },
         ));
+    });
+
+    layout.registerComponent("editfile", function(container, componentState) {
+        addComponent(container, new FileEditor(container, file_endpoints.get, file_endpoints.write, componentState.fname));
     });
 
     layout.registerComponent("media", function(container, componentState) {
