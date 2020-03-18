@@ -175,7 +175,7 @@ $(function() {
     layout.registerComponent("terminal", function(container, componentState) {
         container.setTitle("<span class='fas fa-terminal'></span> Terminal");
 
-        setupTerminal(
+        addComponent(container, setupTerminal(
             ws_endpoints.terminal,
             container.getElement(),
             {
@@ -184,7 +184,7 @@ $(function() {
                     container.setTitle("<span class='fas fa-terminal'></span> " + escapeHTML(title));
                 },
             },
-        );
+        ));
 
         "open resize show".split(" ").forEach(function(event_name) {
             container.on(event_name, function() {
