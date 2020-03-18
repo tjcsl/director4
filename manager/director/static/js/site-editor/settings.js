@@ -7,6 +7,18 @@ function SettingsPane(container, settings, updateCallback) {
                 light: "Light",
                 dark: "Dark",
             },
+            callback: function() {
+                if(settings["layout-theme"] == "dark") {
+                    if(settings["editor-theme"] == "ace/theme/chrome") {
+                        settings["editor-theme"] = "ace/theme/monokai";
+                    }
+                }
+                else {
+                    if(settings["editor-theme"] == "ace/theme/monokai") {
+                        settings["editor-theme"] = "ace/theme/chrome";
+                    }
+                }
+            },
         },
         "editor-theme": {
             label: "Editor Theme",

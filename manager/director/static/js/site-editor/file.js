@@ -87,7 +87,15 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
     this.updateSettings = function(newSettings) {
         settings = newSettings;
 
-        if(editor != null) {
+        if(editor == null) {
+            if(settings["layout-theme"] == "light") {
+                containerElem.css("background-color", "white");
+            }
+            else {
+                containerElem.css("background-color", "black");
+            }
+        }
+        else {
             editor.setOptions({
                 "fontSize": settings["editor-font-size"] + "px",
                 "showPrintMargin": false,
