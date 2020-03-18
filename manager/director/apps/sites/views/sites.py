@@ -226,6 +226,19 @@ def restart_view(request: HttpRequest, site_id: int) -> HttpResponse:
     return redirect("sites:info", site.id)
 
 
+@require_POST
+@login_required
+def restart_raw_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    if site.has_operation:
+        return HttpResponse("An operation is already being performed on this site", status=500)
+
+    operations.restart_service(site)
+
+    return HttpResponse("")
+
+
 @login_required
 def delete_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)

@@ -63,6 +63,7 @@ site_patterns = [
         "nginx/regenerate-config", views.sites.regen_nginx_config_view, name="regen_nginx_config",
     ),
     path("restart/", views.sites.restart_view, name="restart_service"),
+    path("restart/raw/", views.sites.restart_raw_view, name="restart_service_raw"),
     # Admin-only
     path("resource-limits/", views.maintenance.resource_limits_view, name="resource_limits"),
     path("edit/", include(edit_patterns)),
