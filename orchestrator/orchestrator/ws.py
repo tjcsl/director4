@@ -44,6 +44,16 @@ def create_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLContext]:
     return context
 
 
+async def cancel_remaining_tasks(tasks: List["asyncio.Task[Any]"]) -> None:
+    for task in tasks:
+        if not task.done():
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, concurrent.futures.CancelledError):
+                pass
+
+
 async def terminal_handler(  # pylint: disable=unused-argument
     websock: websockets.client.WebSocketClientProtocol, params: Dict[str, Any],
 ) -> None:
@@ -120,13 +130,7 @@ async def terminal_handler(  # pylint: disable=unused-argument
     await terminal.close()
     await websock.close()
 
-    if not websock_task.done():
-        websock_task.cancel()
-        await websock_task
-
-    if not terminal_task.done():
-        terminal_task.cancel()
-        await terminal_task
+    await cancel_remaining_tasks([websock_task, terminal_task])
 
     client.close()
 
@@ -180,13 +184,7 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
     await websock.close()
     await monitor.stop_wait(timeout=3)
 
-    if not websock_task.done():
-        websock_task.cancel()
-        await websock_task
-
-    if not monitor_task.done():
-        monitor_task.cancel()
-        await monitor_task
+    await cancel_remaining_tasks([websock_task, monitor_task])
 
 
 def serialize_service_status(site_id: int, service: Service) -> Dict[str, Any]:
@@ -280,17 +278,7 @@ async def status_handler(
             return_when=asyncio.FIRST_COMPLETED,
         )
 
-        if not wait_closed_task.done():
-            wait_closed_task.cancel()
-            await wait_closed_task
-
-        if not ping_task.done():
-            ping_task.cancel()
-            await ping_task
-
-        if not log_task.done():
-            log_task.cancel()
-            await log_task
+        await cancel_remaining_tasks([wait_closed_task, ping_task, log_task])
 
     await websock.close()
 
@@ -341,13 +329,7 @@ async def logs_handler(
             [echo_task, log_task, stop_event], return_when=asyncio.FIRST_COMPLETED,
         )
 
-        if not echo_task.done():
-            echo_task.cancel()
-            await echo_task
-
-        if not log_task.done():
-            log_task.cancel()
-            await log_task
+        await cancel_remaining_tasks([echo_task, log_task])
 
     await websock.close()
 
@@ -429,21 +411,7 @@ async def multi_status_handler(  # pylint: disable=unused-argument
             return_when=asyncio.FIRST_COMPLETED,
         )
 
-        if not wait_closed_task.done():
-            wait_closed_task.cancel()
-            try:
-                await wait_closed_task
-            except asyncio.CancelledError:
-                pass
-
-        if not ping_task.done():
-            ping_task.cancel()
-            await ping_task
-
-        for log_task in log_tasks:
-            if not log_task.done():
-                log_task.cancel()
-                await log_task
+        await cancel_remaining_tasks([wait_closed_task, ping_task, *log_tasks])
     finally:
         for log_follower in log_followers.values():
             await log_follower.stop()
