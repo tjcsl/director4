@@ -64,6 +64,8 @@
             "rename": "{% url 'sites:rename' site.id %}",
         };
 
+        var restart_endpoint = "{% url 'sites:restart_service_raw' site.id %}";
+
         var db_shell_endpoint = "{% url 'sites:database_shell' site.id %}";
 
         var ws_endpoints = {

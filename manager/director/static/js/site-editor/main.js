@@ -43,6 +43,8 @@ $(function() {
 
     var components = [];
     function addComponent(container, obj) {
+        obj.triggerSettingsUpdate = updateSettings;
+
         components.push(obj);
         obj.updateSettings(settings);
 
@@ -205,6 +207,34 @@ $(function() {
     });
 
 
+    $(window).keydown(function(e) {
+        if(e.altKey) {
+            switch(e.keyCode) {
+                case 13:  // Alt + Enter
+                    // Restart process
+                    restartProcess();
+                    break;
+                case 84:  // Alt + T
+                    // Open terminal
+                    var terminalsContainer = layout.root.getItemsById("terminals")[0];
+                    terminalsContainer.addChild({
+                        type: "component",
+                        componentName: "terminal",
+                    });
+                    break;
+                case 67:  // Alt + C
+                    // Open SQL console
+                    var terminalsContainer = layout.root.getItemsById("terminals")[0];
+                    terminalsContainer.addChild({
+                        type: "component",
+                        componentName: "database-shell",
+                    });
+                    break;
+            }
+        }
+    });
+
+
     layout.init();
     $(window).resize(function() {
         layout.updateSize();
@@ -213,3 +243,14 @@ $(function() {
 
     updateSettings();
 });
+
+function restartProcess() {
+    $.post({
+        url: restart_endpoint,
+    }).fail(function(data) {
+        Messenger().error({
+            message: "Error restarting process: " + (data.responseText || "Unknown error"),
+            hideAfter: 3,
+        });
+    });
+}

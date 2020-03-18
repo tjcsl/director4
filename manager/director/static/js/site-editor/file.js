@@ -89,6 +89,29 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
         layoutContainer.close();
     });
 
+    containerElem.keydown(function(e) {
+        if(e.ctrlKey) {
+            switch(e.keyCode) {
+                case 189: // Ctrl + Minus
+                    settings["editor-font-size"] = parseInt(settings["editor-font-size"]);
+                    if(settings["editor-font-size"] > 8) {
+                        settings["editor-font-size"] -= 4;
+                        self.triggerSettingsUpdate();
+                    }
+                    e.preventDefault();
+                    break;
+                case 187: // Ctrl + Plus
+                    settings["editor-font-size"] = parseInt(settings["editor-font-size"]);
+                    if(settings["editor-font-size"] < 80) {
+                        settings["editor-font-size"] += 4;
+                        self.triggerSettingsUpdate();
+                    }
+                    e.preventDefault();
+                    break;
+            }
+        }
+    });
+
     var settings = {};
 
     this.updateSettings = function(newSettings) {
