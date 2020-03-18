@@ -1,6 +1,8 @@
 function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
     var self = this;
 
+    var modelist = ace.require("ace/ext/modelist");
+
     var containerElem = layoutContainer.getElement();
 
     var currentStatus;
@@ -53,6 +55,7 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
         editor = ace.edit($("<div>").css({"width": "100%", "height": "100%"}).appendTo(containerElem).get(0));
 
         session = ace.createEditSession(data);
+        session.setMode(modelist.getModeForPath(fname).mode);
         session.getUndoManager().markClean();
         session.on("change", function() {
             updateTitle("unsaved");
