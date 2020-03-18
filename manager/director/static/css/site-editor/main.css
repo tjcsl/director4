@@ -11,3 +11,24 @@ body {
     padding: 0;
     height: calc(100vh - 40px);
 }
+
+body.dark .btn.btn-ion {
+    color: #ddd;
+    box-shadow: none;
+    text-shadow: none;
+    border-color: #111;
+    background: linear-gradient(to bottom, #222 0%, #111 100%);
+}
+
+body.dark .btn.btn-ion:hover {
+    color: #ddd;
+    background: linear-gradient(to bottom, #333 0%, #222 100%);
+}
+
+body.dark .btn.btn-ion:focus {
+    outline: none;
+}
+
+body.dark .btn.btn-ion:active {
+    background: linear-gradient(to bottom, #111 0%, #222 100%);
+}
