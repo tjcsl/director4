@@ -139,7 +139,7 @@ function SettingsPane(container, settings, updateCallback) {
         var settingsOpts = settingsSpec[settingName];
 
         var settingRow = $("<div>").addClass("tbl-row").appendTo(settingsTable);
-        
+
         $("<label>").addClass("tbl-cell").css({
             "padding-right": 5,
         }).text(settingsOpts.label).appendTo(settingRow);

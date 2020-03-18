@@ -338,8 +338,7 @@ async def logs_handler(
         log_task = asyncio.Task(log_loop(log_follower))
 
         await asyncio.wait(
-            [echo_task, log_task, stop_event],
-            return_when=asyncio.FIRST_COMPLETED,
+            [echo_task, log_task, stop_event], return_when=asyncio.FIRST_COMPLETED,
         )
 
         if not echo_task.done():
