@@ -33,6 +33,14 @@ $(function() {
         }],
     };
 
+    if(site_info.has_database) {
+        layout_config.content[0].content[1].content[1].content.push({
+            type: "component",
+            componentName: "database-shell",
+            isClosable: false,
+        });
+    }
+
     var components = [];
     function addComponent(container, obj) {
         components.push(obj);
@@ -64,6 +72,15 @@ $(function() {
         localStorage.setItem("editor-settings-" + site_id, JSON.stringify(settings));
     }
 
+    function resetLayout() {
+        localStorage.removeItem("editor-layout-" + site_id);
+        location.reload();
+    }
+
+    function saveLayout() {
+        localStorage.setItem("editor-layout-" + site_id, JSON.stringify(layout.toConfig()));
+    }
+
     var settings = {
         "show-hidden": false,
         "layout-theme": "light",
@@ -79,18 +96,30 @@ $(function() {
         if(settingsData) {
             $.extend(settings, JSON.parse(settingsData));
         }
-    }
 
-    if(site_info.has_database) {
-        layout_config.content[0].content[1].content[1].content.push({
-            type: "component",
-            componentName: "database-shell",
-            isClosable: false,
-        });
+        var layoutData = localStorage.getItem("editor-layout-" + site_id);
+        if(layoutData) {
+            layout_config = JSON.parse(layoutData);
+
+            Messenger().info({
+                message: "Your editor layout has been restored from your last session.",
+                actions: {
+                    "reset": {
+                        "label": "Reset Layout",
+                        "action": resetLayout,
+                    }
+                },
+                showCloseButton: true,
+                hideAfter: 5,
+            });
+        }
     }
 
     var layout = new GoldenLayout(layout_config, $("#editor-container"));
 
+    layout.on("stateChanged", function() {
+        saveLayout();
+    });
 
     layout.registerComponent("files", function(container, componentState) {
         container.setTitle("<span class='fas fa-folder-open'></span> Files");
@@ -140,7 +169,7 @@ $(function() {
     layout.registerComponent("settings", function(container, componentState) {
         container.setTitle("<span class='fas fa-wrench'></span> Settings");
 
-        addComponent(container, new SettingsPane(container.getElement(), settings, updateSettings));
+        addComponent(container, new SettingsPane(container.getElement(), settings, updateSettings, resetLayout));
     });
 
     layout.registerComponent("terminal", function(container, componentState) {

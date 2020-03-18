@@ -1,4 +1,4 @@
-function SettingsPane(container, settings, updateCallback) {
+function SettingsPane(container, settings, updateCallback, resetLayout) {
     var settingsSpec = {
         "layout-theme": {
             label: "Layout Theme",
@@ -165,6 +165,11 @@ function SettingsPane(container, settings, updateCallback) {
 
         settingsInputs[settingName] = input;
     }
+
+    $("<button>").attr("type", "button").addClass("btn btn-ion").append(
+        $("<i>").addClass("fas fa-undo"),
+        " Reset layout",
+    ).click(resetLayout).appendTo(interior);
 
     this.updateSettings = function() {
         setInputValues();
