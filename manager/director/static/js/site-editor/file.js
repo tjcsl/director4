@@ -72,6 +72,10 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
 
         containerElem.on("director:save", saveFile);
 
+        containerElem.on("director:close", function() {
+            layoutContainer.close();
+        });
+
         containerElem.keydown(function(e) {
             if(((e.which == 115 || e.which == 83) && (e.ctrlKey || e.metaKey)) || e.which == 19) {
                 saveFile();
@@ -108,3 +112,21 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
         }
     };
 }
+
+ace.config.loadModule("ace/keybinding/vim", function() {
+    var VimApi = ace.require("ace/keyboard/vim").CodeMirror.Vim;
+    VimApi.defineEx("write", "w", function(cm) {
+        // save on :write
+        $(cm.ace.container).trigger("director:save");
+    });
+
+    VimApi.defineEx("quit", "q", function(cm) {
+        // close on :quit
+        $(cm.ace.container).trigger("director:close");
+    });
+
+    VimApi.defineEx("wq", "wq", function(cm) {
+        $(cm.ace.container).trigger("director:save");
+        $(cm.ace.container).trigger("director:close");
+    });
+});
