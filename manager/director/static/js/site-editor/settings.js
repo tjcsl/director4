@@ -141,7 +141,7 @@ function SettingsPane(container, settings, updateCallback, resetLayout) {
         var settingRow = $("<div>").addClass("tbl-row").appendTo(settingsTable);
 
         $("<label>").addClass("tbl-cell").css({
-            "padding-right": 5,
+            "padding-right": 10,
         }).text(settingsOpts.label).appendTo(settingRow);
 
         var input;
