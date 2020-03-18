@@ -37,10 +37,12 @@
     <script type="text/javascript" src="{% static 'js/site-editor/files-pane.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/site-editor/logs.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/site-editor/file.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/site-editor/settings.js' %}"></script>
 
     <script type="text/javascript">
         var user_name = "{{ request.user.username }}";
         var site_name = "{{ site.name }}";
+        var site_id = {{ site.id }};
 
         var site_info = {
             has_database: {{ site.has_database|yesno:"true,false" }},

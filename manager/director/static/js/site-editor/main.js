@@ -13,7 +13,11 @@ $(function() {
                     type: "stack",
                     isClosable: false,
                     id: "files",
-                    content: [],
+                    content: [{
+                        type: "component",
+                        componentName: "settings",
+                        isClosable: false,
+                    }],
                 }, {
                     type: "stack",
                     id: "terminals",
@@ -46,6 +50,8 @@ $(function() {
         components.forEach(function(obj) {
             obj.updateSettings(settings);
         });
+
+        localStorage.setItem("editor-settings-" + site_id, JSON.stringify(settings));
     }
 
     var settings = {
@@ -55,8 +61,15 @@ $(function() {
         "editor-keybinding": "",
         "editor-font-size": 16,
         "editor-live-autocompletion": true,
-        "terminal-size": 16,
+        "terminal-font-size": 16,
     };
+
+    if(localStorage != null) {
+        var settingsData = localStorage.getItem("editor-settings-" + site_id);
+        if(settingsData) {
+            $.extend(settings, JSON.parse(settingsData));
+        }
+    }
 
     if(site_info.has_database) {
         layout_config.content[0].content[1].content[1].content.push({
@@ -112,6 +125,12 @@ $(function() {
         container.setTitle("<span class='fas fa-chart-line'></span> Process Log");
 
         addComponent(container, new SiteLogsFollower(container.getElement(), ws_endpoints.site_logs));
+    });
+
+    layout.registerComponent("settings", function(container, componentState) {
+        container.setTitle("<span class='fas fa-wrench'></span> Settings");
+
+        addComponent(container, new SettingsPane(container.getElement(), settings, updateSettings));
     });
 
     layout.registerComponent("terminal", function(container, componentState) {
