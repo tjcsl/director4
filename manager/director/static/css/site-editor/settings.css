@@ -1,0 +1,9 @@
+.settings-pane {
+    color: black;
+    background-color: white;
+}
+
+body.dark .settings-pane, body.dark .settings-pane select {
+    color: #eee;
+    background-color: #222;
+}

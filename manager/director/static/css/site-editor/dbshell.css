@@ -1,0 +1,4 @@
+body.dark .sql-console, body.dark .sql-console pre, body.dark .sql-console .prompt, body.dark .sql-console .input {
+    background-color: #111;
+    color: #ccc;
+}

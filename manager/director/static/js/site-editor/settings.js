@@ -120,8 +120,7 @@ function SettingsPane(container, settings, updateCallback) {
         updateCallback();
     }
 
-    var interior = $("<div>").css({
-        "background-color": "white",
+    var interior = $("<div>").addClass("settings-pane").css({
         "padding": 15,
         "height": "100%",
         "width": "100%",

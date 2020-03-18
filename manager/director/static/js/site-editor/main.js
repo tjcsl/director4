@@ -51,6 +51,16 @@ $(function() {
             obj.updateSettings(settings);
         });
 
+        var light_theme = (settings["layout-theme"] == "light");
+        $("#goldenlayout-light-theme").prop("disabled", !light_theme);
+        $("#goldenlayout-dark-theme").prop("disabled", light_theme);
+        if(light_theme) {
+            $("body").removeClass("dark");
+        }
+        else {
+            $("body").addClass("dark");
+        }
+
         localStorage.setItem("editor-settings-" + site_id, JSON.stringify(settings));
     }
 
@@ -170,4 +180,7 @@ $(function() {
     $(window).resize(function() {
         layout.updateSize();
     });
+
+
+    updateSettings();
 });
