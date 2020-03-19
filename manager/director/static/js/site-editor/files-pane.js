@@ -608,6 +608,7 @@ function FilesPane(container, uri, callbacks) {
         var frame = $("<iframe>");
         frame.css("display", "none");
         frame.on("load", function() {
+            Messenger().error("Error downloading file: " + (this.contentDocument.body.innerText || "Unknown error"));
             $(this).remove();
         });
 
@@ -634,9 +635,12 @@ function FilesPane(container, uri, callbacks) {
 
                 var frame = $("<iframe>");
                 frame.css("display", "none");
+
                 frame.on("load", function() {
+                    Messenger().error("Error downloading folder as zip file: " + (this.contentDocument.body.innerText || "Unknown error"));
                     $(this).remove();
                 });
+
 
                 frame.attr("src", file_endpoints.download_zip + "?" + $.param({path: path}));
 
