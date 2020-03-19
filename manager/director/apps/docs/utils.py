@@ -5,7 +5,7 @@ import os
 import time
 import urllib.parse
 import xml.etree.ElementTree
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Generator, Optional, Set, Tuple
 
 import markdown
 import markdown.extensions.toc
@@ -174,3 +174,48 @@ def get_page_title(page_name: str, metadata: Dict[str, Any]) -> str:
         return page_name.rstrip("/").split("/")[-1]
     else:
         return "index"
+
+
+def iter_page_names() -> Generator[str, None, None]:
+    director_dir_clean = os.path.normpath(settings.DIRECTOR_DOCS_DIR)
+
+    seen_files: Set[str] = set()
+    seen_dirs: Set[str] = set()
+
+    # Some of the optimizations in here are dependent on the traversal order.
+    # Keep topdown=True!
+    for root, dirs, files in os.walk(director_dir_clean, topdown=True):
+        short_root = os.path.relpath(root, director_dir_clean)
+        if short_root == ".":
+            short_root = ""
+
+        seen_files.update(os.path.join(root, fname) for fname in files)
+        seen_dirs.update(os.path.join(root, dname) for dname in dirs)
+
+        for fname in files:
+            if not fname.endswith(".md"):
+                continue
+
+            page_name = os.path.join(short_root, fname[:-3])
+
+            if fname in ("index.md", "README.md"):
+                # Examples paths so far:
+                # - a/index.md
+                # - a/README.md
+
+                # The "not in seen_files" trick here reduces the number of stat() calls,
+                # but it only works because we only check files in the current directory
+                # or parent directories (which we've seen because we're going top down).
+                if root.rstrip("/") + ".md" not in seen_files:
+                    # a.md does not exist
+                    if fname == "index.md":
+                        # a/index.md is second in line. We know a.md does not exist,
+                        # so if they go to /a, they will get this page.
+                        page_name = short_root.rstrip("/")
+                    elif fname == "README.md":
+                        if os.path.join(root, "index.md") not in seen_files:
+                            # Neither a.md nor a/index.md exists. a/README.md is
+                            # the final fallback, so it will be hit on requests to /a.
+                            page_name = short_root.rstrip("/")
+
+            yield page_name

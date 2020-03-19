@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Search{% endblock %}
+
+{% block head %}
+    <style>
+        #search-field {
+            display: inline;
+            width: initial;
+        }
+
+        #search-submit {
+            border-top-left-radius: 0px;
+            border-top-right-radius: 5px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 5px;
+
+            border-width: 0;
+            text-shadow: none;
+            box-shadow: none;
+            background-color: lightgray;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <h1>Search</h1>
+
+    <form method="get" action="{% url 'docs:search' %}">
+        <input type="text" name="q" id="search-field" required value="{{ query }}"><!--
+        --><button type="submit" id="search-submit">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+
+    {% if results is not None %}
+    <h2>Results</h2>
+
+    {% for page_name, title, _ in results %}
+    <div>
+        <a href="{% if page_name %}{% url 'docs:doc_page' page_name %}{% else %}{% url 'docs:index' %}{% endif %}">{{ title }}</a>
+    </div>
+    {% empty %}
+    <p>No results found</p>
+    {% endfor %}
+    {% endif %}
+{% endblock %}
