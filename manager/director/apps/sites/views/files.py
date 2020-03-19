@@ -72,7 +72,9 @@ def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, Str
 
 @require_GET
 @login_required
-def download_zip_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, StreamingHttpResponse]:
+def download_zip_view(
+    request: HttpRequest, site_id: int
+) -> Union[HttpResponse, StreamingHttpResponse]:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
     if "path" not in request.GET:
@@ -105,7 +107,9 @@ def download_zip_view(request: HttpRequest, site_id: int) -> Union[HttpResponse,
             yield chunk
 
     response = StreamingHttpResponse(stream(), content_type="application/zip")
-    response["Content-Disposition"] = "attachment; filename={}".format(os.path.basename(path) + ".zip")
+    response["Content-Disposition"] = "attachment; filename={}".format(
+        os.path.basename(path) + ".zip"
+    )
 
     return response
 

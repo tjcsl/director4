@@ -70,7 +70,7 @@ def _load_vendor_modules(path: str) -> Iterable[Tuple[str, str]]:
 
         if os.path.isfile(fpath) and fname.endswith(".py") and "." not in fname[:-3]:
             with open(fpath) as f_obj:
-                yield (fname[:-3], f_obj.read()) 
+                yield (fname[:-3], f_obj.read())
         elif os.path.isdir(fpath) and "." not in fname:
             for name, text in _load_vendor_modules(fpath):
                 yield (fname + "." + name, text)
