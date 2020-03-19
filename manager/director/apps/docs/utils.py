@@ -165,3 +165,12 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
         return metadata, text_html
 
     return {}, None
+
+
+def get_page_title(page_name: str, metadata: Dict[str, Any]) -> str:
+    if "title" in metadata:
+        return " ".join(metadata["title"])
+    elif page_name:
+        return page_name.rstrip("/").split("/")[-1]
+    else:
+        return "index"
