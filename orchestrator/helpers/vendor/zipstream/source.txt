@@ -1,0 +1,1 @@
+Original source: https://github.com/allanlei/python-zipstream/tree/28bb3f63fce6bd17aeb398c251955c4eb1b2dee5

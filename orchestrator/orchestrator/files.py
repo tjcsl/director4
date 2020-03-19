@@ -15,6 +15,7 @@ from typing import (  # pylint: disable=unused-import
     Iterable,
     List,
     Optional,
+    Tuple,
     TypeVar,
     Union,
     cast,
@@ -24,6 +25,10 @@ from . import settings
 
 HELPER_SCRIPT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "helpers/files-helper.py",
+)
+
+HELPER_SCRIPT_VENDOR_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "helpers/vendor",
 )
 
 HELPER_SPECIAL_EXIT_CODE = 145  # Denotes that the text shown on stderr is safe to show to the user
@@ -52,6 +57,25 @@ def check_run_sh_exists(site_id: int) -> bool:
     )
 
 
+def _load_vendor_modules(path: str) -> Iterable[Tuple[str, str]]:
+    # This is very closely tied to the custom import hooks in helpers/files-helper.py
+    # Don't touch anything here unless you have read both this code and that code carefully
+    # and understand how this whole systemworks.
+
+    for fname in os.listdir(path):
+        if fname[0] == ".":
+            continue
+
+        fpath = os.path.join(path, fname)
+
+        if os.path.isfile(fpath) and fname.endswith(".py") and "." not in fname[:-3]:
+            with open(fpath) as f_obj:
+                yield (fname[:-3], f_obj.read()) 
+        elif os.path.isdir(fpath) and "." not in fname:
+            for name, text in _load_vendor_modules(fpath):
+                yield (fname + "." + name, text)
+
+
 def _run_helper_script_prog(
     callback: Callable[[List[str], Dict[str, Any]], T], args: List[str], kwargs: Dict[str, Any]
 ) -> T:
@@ -76,6 +100,9 @@ def _run_helper_script_prog(
 
     kwargs.setdefault("env", os.environ)
     kwargs["env"]["ORCHESTRATOR_HELPER_PROG"] = text
+
+    for name, text in _load_vendor_modules(HELPER_SCRIPT_VENDOR_PATH):
+        kwargs["env"]["ORCHESTRATOR_HELPER_VENDOR_" + name] = text
 
     return callback(real_args, kwargs)
 
@@ -156,6 +183,58 @@ def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]
     line = proc.stderr.readline().decode().strip()
     if line != "OK":
         raise SiteFilesException(line)
+
+    errors = ""
+
+    selector = selectors.DefaultSelector()
+    selector.register(proc.stdout, selectors.EVENT_READ)
+    selector.register(proc.stderr, selectors.EVENT_READ)
+
+    while proc.poll() is None:
+        ready_files = selector.select(timeout=300)
+
+        for key, _ in ready_files:
+            if key.fileobj == proc.stdout:
+                buf = proc.stdout.read(BUFSIZE)
+                if not buf:
+                    break
+
+                yield buf
+            elif key.fileobj == proc.stderr:
+                errors += proc.stderr.read(BUFSIZE).decode()
+
+    while True:
+        buf = proc.stdout.read(BUFSIZE)
+        if not buf:
+            break
+
+        yield buf
+
+    errors += proc.stderr.read().decode()
+
+    if proc.returncode != 0:
+        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
+            raise SiteFilesException(errors.strip())
+        else:
+            raise SiteFilesException("Internal error")
+
+
+def download_zip_site_dir(site_id: int, relpath: str) -> Generator[bytes, None, None]:
+    site_dir = get_site_directory_path(site_id)
+
+    proc = run_helper_script_prog(
+        [
+            "download-zip",
+            site_dir,
+            relpath,
+            str(settings.MAX_FILE_DOWNLOAD_BYTES),
+            str(settings.MAX_ZIP_FILES),
+        ],
+        bufsize=0,  # THIS IS IMPORTANT
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
 
     errors = ""
 

@@ -11,6 +11,7 @@ from ..files import (
     SiteFilesException,
     chmod_path,
     create_site_file,
+    download_zip_site_dir,
     make_site_directory,
     remove_all_site_files_dangerous,
     remove_site_directory_recur,
@@ -43,6 +44,42 @@ def get_file_page(site_id: int) -> Union[Tuple[str, int], Response]:
     except SiteFilesException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 400
+    except BaseException:  # pylint: disable=broad-except
+        current_app.logger.error("%s", traceback.format_exc())
+        return "Error", 500
+    else:
+
+        def stream_wrapper() -> Generator[bytes, None, None]:
+            if first_chunk:
+                yield first_chunk
+
+            try:
+                yield from stream
+            except SiteFilesException:
+                pass
+
+        return Response(stream_wrapper(), mimetype="text/plain")
+
+
+@files.route("/sites/<int:site_id>/files/download-zip", methods=["GET"])
+def download_zip_page(site_id: int) -> Union[Tuple[str, int], Response]:
+    """Stream a zip file of files from a site's directory"""
+
+    if "path" not in request.args:
+        return "path parameter not passed", 400
+
+    try:
+        stream = download_zip_site_dir(site_id, request.args["path"])
+
+        # Get the first chunk so we can see if there are any errors
+        try:
+            first_chunk = next(stream)
+        except StopIteration:
+            # Empty file
+            first_chunk = b""
+    except SiteFilesException as ex:
+        current_app.logger.error("%s", traceback.format_exc())
+        return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
         return "Error", 500

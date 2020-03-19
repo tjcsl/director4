@@ -46,6 +46,10 @@ MAX_FILE_DOWNLOAD_BYTES = 10 * 1000 * 1000  # 10MB
 
 MAX_FILE_UPLOAD_BYTES = 10 * 1000 * 1000  # 10MB
 
+# No more than this many files in a zip file
+# Each file is also limited to MAX_FILE_DOWNLOAD_BYTES
+MAX_ZIP_FILES = 1000
+
 # Size of individual chunks
 FILE_STREAM_BUFSIZE = 4096
 
