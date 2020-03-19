@@ -70,6 +70,46 @@ def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, Str
     return response
 
 
+@require_GET
+@login_required
+def download_zip_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, StreamingHttpResponse]:
+    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+
+    if "path" not in request.GET:
+        return HttpResponse(status=400)
+
+    path = request.GET["path"]
+
+    try:
+        appserver = next(iter_random_pingable_appservers(timeout=0.5))
+    except StopIteration:
+        return HttpResponse("No appservers online", content_type="text/plain", status=500)
+
+    try:
+        res = appserver_open_http_request(
+            appserver,
+            "/sites/{}/files/download-zip".format(site.id),
+            method="GET",
+            params={"path": path},
+            timeout=10,
+        )
+    except AppserverProtocolError as ex:
+        return HttpResponse(str(ex), status=500)
+
+    def stream() -> Generator[bytes, None, None]:
+        while True:
+            chunk = res.response.read(4096)
+            if not chunk:
+                break
+
+            yield chunk
+
+    response = StreamingHttpResponse(stream(), content_type="application/zip")
+    response["Content-Disposition"] = "attachment; filename={}".format(os.path.basename(path) + ".zip")
+
+    return response
+
+
 @require_POST
 @login_required
 def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:

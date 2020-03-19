@@ -51,6 +51,7 @@ file_patterns = [
     path("mkdir/", views.files.make_directory_view, name="mkdir"),
     path("chmod/", views.files.chmod_view, name="chmod"),
     path("rename/", views.files.rename_view, name="rename"),
+    path("download_zip/", views.files.download_zip_view, name="download_zip"),
 ]
 
 site_patterns = [

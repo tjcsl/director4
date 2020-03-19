@@ -505,6 +505,9 @@ function FilesPane(container, uri, callbacks) {
             return {
                 callback: function(key, options) {
                     switch(key) {
+                        case "download-zip":
+                            downloadFolderZip(elem);
+                            break;
                         case "rename":
                             renameItem(elem);
                             break;
@@ -524,6 +527,7 @@ function FilesPane(container, uri, callbacks) {
                     }
                 },
                 items: {
+                    "download-zip": {name: "Download as zip file", icon: "fas fa-download"},
                     "rename": {name: "Rename", icon: "fas fa-pencil-alt"},
                     "delete": {name: "Delete", icon: "far fa-trash-alt"},
                     "sep2": "---------",
@@ -610,6 +614,35 @@ function FilesPane(container, uri, callbacks) {
         frame.attr("src", file_endpoints.get + "?" + $.param({path: path}));
 
         frame.appendTo($("body"));
+    }
+
+    function downloadFolderZip(elem) {
+        makeYesNoModalDialog(
+            "Are you sure?",
+            $("<div>").append(
+                "Downloading a folder as a zip file can take a long time, especially if there are a lot of files in it. ",
+                "In addition, it may fail if any programs attempt to modify files in the directory while the zip file ",
+                "is being downloaded.",
+                "<br>Are you sure you want to proceed?",
+            ),
+            function(result) {
+                if(!result) {
+                    return;
+                }
+
+                var path = self.getElemPath(elem);
+
+                var frame = $("<iframe>");
+                frame.css("display", "none");
+                frame.on("load", function() {
+                    $(this).remove();
+                });
+
+                frame.attr("src", file_endpoints.download_zip + "?" + $.param({path: path}));
+
+                frame.appendTo($("body"));
+            },
+        );
     }
 
     // Given an item, shows the rename dialog and renames the file

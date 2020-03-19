@@ -62,6 +62,7 @@
             "mkdir": "{% url 'sites:mkdir' site.id %}",
             "chmod": "{% url 'sites:chmod' site.id %}",
             "rename": "{% url 'sites:rename' site.id %}",
+            "download_zip": "{% url 'sites:download_zip' site.id %}",
         };
 
         var restart_endpoint = "{% url 'sites:restart_service_raw' site.id %}";
