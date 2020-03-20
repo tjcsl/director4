@@ -116,23 +116,37 @@ fi
 usermod -a -G docker vagrant
 
 
-## Setup Nginx
-# We need Nginx installed to check the config, but we don't want it running
-apt install -y nginx-full
-systemctl disable --now nginx
+## Create /data directories
+for dir in /data /data/db; do
+    mkdir -p "$dir"
+    chown root:root "$dir"
+done
 
-# Copy config files
-cp vagrant-config/nginx.conf /etc/nginx/nginx.conf
-chown vagrant:vagrant /etc/nginx/nginx.conf
-mkdir -p /etc/nginx/director.d/
-chown vagrant:vagrant /etc/nginx/director.d/
+for dir in /data/sites /data/images /data/db/postgres /data/db/mysql /data/registry /data/nginx /data/nginx/director.d; do
+    mkdir -p "$dir"
+    chown vagrant:vagrant "$dir"
+done
+
+
+## Setup Nginx
+# Move old Nginx config files
+if [ -d /etc/nginx/director.d ]; then
+    mv /etc/nginx/director.d /data/nginx
+fi
+
+# Remove Nginx if installed
+# We don't need it anymore
+apt-get -y remove nginx-full
+
+# Copy main Nginx config file
+cp vagrant-config/nginx.conf /data/nginx/nginx.conf
 
 # Set up Docker Swarm nginx service
 docker service rm director-nginx || true
 docker service create --replicas=1 \
     --publish published=80,target=80 \
-    --mount type=bind,source=/etc/nginx/nginx.conf,destination=/etc/nginx/nginx.conf \
-    --mount type=bind,source=/etc/nginx/director.d,destination=/etc/nginx/director.d \
+    --mount type=bind,source=/data/nginx/nginx.conf,destination=/etc/nginx/nginx.conf \
+    --mount type=bind,source=/data/nginx/director.d,destination=/etc/nginx/director.d \
     --mount type=bind,source=/data/sites,destination=/data/sites,ro \
     --network director-sites \
     --name director-nginx \
@@ -142,22 +156,7 @@ docker service create --replicas=1 \
 docker service rm director-nginx-static || true
 
 
-# Prune system
-docker system prune --force
-
-
-# Create /data directories
-for dir in /data /data/db; do
-    mkdir -p "$dir"
-    chown root:root "$dir"
-done
-
-for dir in /data/sites /data/images /data/db/postgres /data/db/mysql /data/registry; do
-    mkdir -p "$dir"
-    chown vagrant:vagrant "$dir"
-done
-
-# Prune system
+## Prune system
 docker system prune --force
 
 

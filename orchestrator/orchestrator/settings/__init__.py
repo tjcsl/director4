@@ -10,7 +10,7 @@ DEBUG = True
 SITES_DOMAIN = "sites.tjhsst.edu"
 
 # Location of nginx configs in containers
-NGINX_CONFIG_DIRECTORY = "/etc/nginx/director.d"
+NGINX_CONFIG_DIRECTORY = "/data/nginx/director.d"
 
 # Name of Nginx Docker Swarm service
 NGINX_SERVICE_NAME = "director-nginx"
