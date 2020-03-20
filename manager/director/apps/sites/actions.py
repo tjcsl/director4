@@ -212,6 +212,17 @@ def remove_docker_image(  # pylint: disable=unused-argument
         )
 
 
+def ensure_site_directories_exist(
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    appserver = random.choice(scope["pingable_appservers"])
+
+    yield "Connecting to appserver {} to ensure site directories exist".format(appserver)
+    appserver_open_http_request(
+        appserver, "/sites/{}/ensure-directories-exist".format(site.id), method="POST",
+    )
+
+
 def remove_all_site_files_dangerous(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:

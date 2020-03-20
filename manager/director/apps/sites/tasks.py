@@ -325,6 +325,8 @@ def create_site_task(operation_id: int) -> None:
     with auto_run_operation_wrapper(operation_id, scope) as wrapper:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
+        wrapper.add_action("Create site directories", actions.ensure_site_directories_exist)
+
         if site.type == "dynamic":
             wrapper.add_action("Creating Docker service", actions.update_docker_service)
 
@@ -410,6 +412,8 @@ def fix_site_task(operation_id: int) -> None:
             wrapper.add_action("Regenerating database password", actions.regen_database_password)
 
         wrapper.add_action("Building Docker image", actions.build_docker_image)
+
+        wrapper.add_action("Ensuring site directories exist", actions.ensure_site_directories_exist)
 
         if site.type == "dynamic":
             wrapper.add_action("Updating Docker service", actions.update_docker_service)

@@ -16,7 +16,6 @@ from ..docker.services import (
 )
 from ..docker.utils import create_client
 from ..exceptions import OrchestratorActionError
-from ..files import ensure_site_directories_exist
 
 docker_blueprint = Blueprint("docker", __name__)
 
@@ -35,8 +34,6 @@ def update_docker_service_page(site_id: int) -> Union[str, Tuple[str, int]]:
         return "Error", 400
 
     try:
-        ensure_site_directories_exist(site_id)
-
         update_director_service(create_client(), site_id, json.loads(request.form["data"]))
     except OrchestratorActionError as ex:
         current_app.logger.error("%s", traceback.format_exc())

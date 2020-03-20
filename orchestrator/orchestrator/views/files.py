@@ -12,6 +12,7 @@ from ..files import (
     chmod_path,
     create_site_file,
     download_zip_site_dir,
+    ensure_site_directories_exist,
     make_site_directory,
     remove_all_site_files_dangerous,
     remove_site_directory_recur,
@@ -23,6 +24,20 @@ from ..files import (
 from ..utils import iter_chunks
 
 files = Blueprint("files", __name__)
+
+
+@files.route("/sites/<int:site_id>/ensure-directories-exist", methods=["POST"])
+def ensure_site_directories_exist_page(site_id: int) -> Union[str, Tuple[str, int]]:
+    try:
+        ensure_site_directories_exist(site_id)
+    except SiteFilesException as ex:
+        current_app.logger.error("%s", traceback.format_exc())
+        return str(ex), 500
+    except BaseException:  # pylint: disable=broad-except
+        current_app.logger.error("%s", traceback.format_exc())
+        return "Error", 500
+    else:
+        return "Success"
 
 
 @files.route("/sites/<int:site_id>/files/get", methods=["GET"])
