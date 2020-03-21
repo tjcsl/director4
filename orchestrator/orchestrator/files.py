@@ -42,6 +42,26 @@ class SiteFilesException(Exception):
     pass
 
 
+class SiteFilesUserViewableException(SiteFilesException):
+    pass
+
+
+def raise_for_process_result(returncode: int, stderr: Union[str, bytes]) -> None:
+    if returncode == 0:
+        return
+
+    if isinstance(stderr, bytes):
+        try:
+            stderr = stderr.decode()
+        except UnicodeDecodeError:
+            stderr = cast(bytes, stderr).decode("latin1")
+
+    if returncode == HELPER_SPECIAL_EXIT_CODE:
+        raise SiteFilesUserViewableException(stderr.strip())
+    else:
+        raise SiteFilesException(stderr.strip())
+
+
 def get_site_directory_path(site_id: int) -> str:
     id_parts = ("{:02d}".format(site_id // 100), "{:02d}".format(site_id % 100))
 
@@ -143,10 +163,7 @@ def ensure_site_directories_exist(site_id: int) -> None:
 
     _, stderr = proc.communicate()
 
-    if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-        raise SiteFilesException(stderr.decode().strip())
-    elif proc.returncode != 0:
-        raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, stderr)
 
 
 def list_site_files(site_id: int, relpath: str) -> List[Dict[str, str]]:
@@ -161,12 +178,9 @@ def list_site_files(site_id: int, relpath: str) -> List[Dict[str, str]]:
 
     stdout, stderr = proc.communicate()
 
-    if proc.returncode == 0:
-        return cast(List[Dict[str, str]], json.loads(stdout.decode().strip()))
-    elif proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-        raise SiteFilesException(stderr.decode().strip())
-    else:
-        raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, stderr)
+
+    return cast(List[Dict[str, str]], json.loads(stdout.decode().strip()))
 
 
 def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]:
@@ -180,9 +194,24 @@ def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]
         stderr=subprocess.PIPE,
     )
 
-    line = proc.stderr.readline().decode().strip()
-    if line != "OK":
-        raise SiteFilesException(line)
+    line = proc.stderr.readline().strip()
+    if line != b"OK":
+        try:
+            proc.terminate()
+        except ProcessLookupError:
+            pass
+
+        try:
+            proc.wait(timeout=0.5)
+        except subprocess.TimeoutExpired:
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                pass
+
+        proc.wait()
+
+        raise_for_process_result(proc.returncode, line + b"\n" + proc.stderr.read())
 
     errors = ""
 
@@ -212,11 +241,7 @@ def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]
 
     errors += proc.stderr.read().decode()
 
-    if proc.returncode != 0:
-        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-            raise SiteFilesException(errors.strip())
-        else:
-            raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, errors)
 
 
 def download_zip_site_dir(site_id: int, relpath: str) -> Generator[bytes, None, None]:
@@ -264,11 +289,7 @@ def download_zip_site_dir(site_id: int, relpath: str) -> Generator[bytes, None, 
 
     errors += proc.stderr.read().decode()
 
-    if proc.returncode != 0:
-        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-            raise SiteFilesException(errors.strip())
-        else:
-            raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, errors)
 
 
 def write_site_file(
@@ -296,11 +317,7 @@ def write_site_file(
 
     _, stderr = proc.communicate()
 
-    if proc.returncode != 0:
-        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-            raise SiteFilesException(stderr.decode().strip())
-        else:
-            raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, stderr)
 
 
 def create_site_file(site_id: int, relpath: str, *, mode_str: Optional[str] = None) -> None:
@@ -316,11 +333,7 @@ def create_site_file(site_id: int, relpath: str, *, mode_str: Optional[str] = No
 
     _, stderr = proc.communicate()
 
-    if proc.returncode != 0:
-        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-            raise SiteFilesException(stderr.decode().strip())
-        else:
-            raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, stderr)
 
 
 def remove_all_site_files_dangerous(site_id: int) -> None:
@@ -334,11 +347,7 @@ def remove_all_site_files_dangerous(site_id: int) -> None:
 
     _, stderr = proc.communicate()
 
-    if proc.returncode != 0:
-        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-            raise SiteFilesException(stderr.decode().strip())
-        else:
-            raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, stderr)
 
 
 def remove_site_file(site_id: int, relpath: str) -> None:
@@ -352,11 +361,7 @@ def remove_site_file(site_id: int, relpath: str) -> None:
 
     _, stderr = proc.communicate()
 
-    if proc.returncode != 0:
-        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-            raise SiteFilesException(stderr.decode().strip())
-        else:
-            raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, stderr)
 
 
 def remove_site_directory_recur(site_id: int, relpath: str) -> None:
@@ -370,11 +375,7 @@ def remove_site_directory_recur(site_id: int, relpath: str) -> None:
 
     _, stderr = proc.communicate()
 
-    if proc.returncode != 0:
-        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-            raise SiteFilesException(stderr.decode().strip())
-        else:
-            raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, stderr)
 
 
 def make_site_directory(site_id: int, relpath: str, *, mode_str: Optional[str] = None) -> None:
@@ -390,11 +391,7 @@ def make_site_directory(site_id: int, relpath: str, *, mode_str: Optional[str] =
 
     _, stderr = proc.communicate()
 
-    if proc.returncode != 0:
-        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-            raise SiteFilesException(stderr.decode().strip())
-        else:
-            raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, stderr)
 
 
 def rename_path(site_id: int, oldpath: str, newpath: str) -> None:
@@ -409,11 +406,7 @@ def rename_path(site_id: int, oldpath: str, newpath: str) -> None:
 
     _, stderr = proc.communicate()
 
-    if proc.returncode != 0:
-        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-            raise SiteFilesException(stderr.decode().strip())
-        else:
-            raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, stderr)
 
 
 def chmod_path(site_id: int, relpath: str, *, mode_str: str) -> None:
@@ -428,11 +421,7 @@ def chmod_path(site_id: int, relpath: str, *, mode_str: str) -> None:
 
     _, stderr = proc.communicate()
 
-    if proc.returncode != 0:
-        if proc.returncode == HELPER_SPECIAL_EXIT_CODE:
-            raise SiteFilesException(stderr.decode().strip())
-        else:
-            raise SiteFilesException("Internal error")
+    raise_for_process_result(proc.returncode, stderr)
 
 
 class SiteFilesMonitor:

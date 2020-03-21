@@ -9,6 +9,7 @@ from flask import Blueprint, Response, current_app, request
 from .. import settings
 from ..files import (
     SiteFilesException,
+    SiteFilesUserViewableException,
     chmod_path,
     create_site_file,
     download_zip_site_dir,
@@ -30,12 +31,12 @@ files = Blueprint("files", __name__)
 def ensure_site_directories_exist_page(site_id: int) -> Union[str, Tuple[str, int]]:
     try:
         ensure_site_directories_exist(site_id)
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
         return "Success"
 
@@ -56,12 +57,12 @@ def get_file_page(site_id: int) -> Union[Tuple[str, int], Response]:
         except StopIteration:
             # Empty file
             first_chunk = b""
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 400
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
 
         def stream_wrapper() -> Generator[bytes, None, None]:
@@ -92,12 +93,12 @@ def download_zip_page(site_id: int) -> Union[Tuple[str, int], Response]:
         except StopIteration:
             # Empty file
             first_chunk = b""
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
 
         def stream_wrapper() -> Generator[bytes, None, None]:
@@ -126,12 +127,12 @@ def write_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
             iter_chunks(request.stream, settings.FILE_STREAM_BUFSIZE),
             mode_str=request.args.get("mode", None),
         )
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
         return "Success"
 
@@ -147,12 +148,12 @@ def create_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
         create_site_file(
             site_id, request.args["path"], mode_str=request.args.get("mode", None),
         )
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
         return "Success"
 
@@ -164,12 +165,12 @@ def remove_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
 
     try:
         remove_site_file(site_id, request.args["path"])
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
         return "Success"
 
@@ -181,12 +182,12 @@ def make_directory_page(site_id: int) -> Union[str, Tuple[str, int]]:
 
     try:
         make_site_directory(site_id, request.args["path"], mode_str=request.args.get("mode", ""))
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
         return "Success"
 
@@ -200,12 +201,12 @@ def chmod_page(site_id: int) -> Union[str, Tuple[str, int]]:
 
     try:
         chmod_path(site_id, request.args["path"], mode_str=request.args["mode"])
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
         return "Success"
 
@@ -219,12 +220,12 @@ def rename_page(site_id: int) -> Union[str, Tuple[str, int]]:
 
     try:
         rename_path(site_id, request.args["oldpath"], request.args["newpath"])
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
         return "Success"
 
@@ -236,12 +237,12 @@ def remove_directory_recur_page(site_id: int) -> Union[str, Tuple[str, int]]:
 
     try:
         remove_site_directory_recur(site_id, request.args["path"])
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
         return "Success"
 
@@ -250,11 +251,11 @@ def remove_directory_recur_page(site_id: int) -> Union[str, Tuple[str, int]]:
 def remove_all_site_files_dangerous_page(site_id: int) -> Union[str, Tuple[str, int]]:
     try:
         remove_all_site_files_dangerous(site_id)
-    except SiteFilesException as ex:
+    except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500
     except BaseException:  # pylint: disable=broad-except
         current_app.logger.error("%s", traceback.format_exc())
-        return "Error", 500
+        return "Internal error", 500
     else:
         return "Success"
