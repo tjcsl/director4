@@ -125,7 +125,7 @@ def construct_file_event_dict(fname: str) -> Dict[str, Optional[str]]:
     return event_info
 
 
-def setup_cmd(site_directory: str) -> None:
+def ensure_directories_exist_cmd(site_directory: str) -> None:
     chroot_into(site_directory)
 
     directories = [
@@ -514,7 +514,7 @@ def main(argv: List[str]) -> None:
     resource.setrlimit(resource.RLIMIT_AS, (200 * 1024 * 1024, 200 * 1024 * 1024))
 
     commands = {
-        "setup": (setup_cmd, [1]),
+        "ensure-directories-exist": (ensure_directories_exist_cmd, [1]),
         "ls": (ls_cmd, [2]),
         "get": (get_cmd, [3]),
         "write": (write_cmd, [2, 3]),

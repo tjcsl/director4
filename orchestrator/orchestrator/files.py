@@ -135,7 +135,7 @@ def ensure_site_directories_exist(site_id: int) -> None:
     )
 
     proc = run_helper_script_prog(
-        ["setup", site_dir],
+        ["ensure-directories-exist", site_dir],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
