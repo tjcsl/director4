@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+import os
 from typing import Any, Dict
 
 from docker.client import DockerClient
@@ -32,6 +33,12 @@ def gen_director_shared_params(  # pylint: disable=unused-argument
                 type="bind",
                 source=get_site_directory_path(site_id),
                 target="/site",
+                read_only=False,
+            ),
+            Mount(
+                type="bind",
+                source=os.path.join(get_site_directory_path(site_id), ".home"),
+                target="/root",
                 read_only=False,
             ),
             Mount(

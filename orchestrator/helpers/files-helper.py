@@ -131,6 +131,7 @@ def ensure_directories_exist_cmd(site_directory: str) -> None:
     directories = [
         "/private",
         "/public",
+        "/.home",
     ]
 
     for directory in directories:
