@@ -8,11 +8,11 @@ function SiteLogsFollower(container, uri) {
     });
 
     var logDiv = $("<div>").css({
-        "width": "100%",
+        "width": "calc(100% - 10px)",
         "margin": "5px",
         "font-size": "90%",
         "font-family": "Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-        "white-space": "pre",
+        "white-space": "pre-wrap",
     }).appendTo(container);
 
     var ws = new ReconnectingWebSocket(
