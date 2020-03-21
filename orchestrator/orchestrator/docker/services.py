@@ -59,7 +59,7 @@ for path in /site/run.sh /site/private/run.sh /site/public/run.sh; do
             date +'DIRECTOR: Stopping server at %Y-%m-%d %H:%M:%S %Z'
             kill "$child"
         }
-        trap term SIGTERM
+        trap term TERM
 
         "$path" &
         child="$!"
