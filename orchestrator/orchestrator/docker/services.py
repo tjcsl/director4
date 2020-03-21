@@ -68,6 +68,7 @@ for path in /site/run.sh /site/private/run.sh /site/public/run.sh; do
         exec date +'DIRECTOR: Stopped server at %Y-%m-%d %H:%M:%S %Z'
     fi
 done
+echo 'DIRECTOR: No run.sh file found -- if it exists, make sure it is set as executable'
 exec sleep 2147483647"""
 
     params.update(
