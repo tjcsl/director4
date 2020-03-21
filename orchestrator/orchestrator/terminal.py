@@ -107,7 +107,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         if self.site_data.get("database_url"):
             env["DATABASE_URL"] = self.site_data["database_url"]
 
-        args = ["sh"]
+        args = ["sh", "-c", "exec bash || exec sh"]
 
         self.exec_id = self.client.api.exec_create(
             self.container.id,
