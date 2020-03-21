@@ -69,8 +69,12 @@ async def terminal_handler(  # pylint: disable=unused-argument
 
     client = create_client(timeout=60)
 
-    terminal = TerminalContainer(client, site_id, site_data)
-    await terminal.start()
+    try:
+        terminal = TerminalContainer(client, site_id, site_data)
+        await terminal.start()
+    except docker.errors.APIError as ex:
+        logger.error("Error opening terminal for site %d: %s", site_id, ex)
+        return
 
     logger.info("Opened terminal for site %s", site_id)
 
