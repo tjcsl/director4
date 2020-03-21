@@ -86,6 +86,10 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
             }
         });
     }).fail(function(data) {
+        Messenger().error({
+            message: "Error opening file: " + (data.responseText || "Unknown error"),
+            hideAfter: 5,
+        });
         layoutContainer.close();
     });
 
