@@ -145,7 +145,7 @@ class Site(models.Model):
             value = getattr(resource_limits, name)
 
             # Only use if the new value if a) it's not None or "" and b) either it's not a number or
-            # it's <= 0
+            # it's > 0
             if (
                 value is not None
                 and value != ""
