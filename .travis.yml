@@ -14,6 +14,7 @@ env:
 install:
 - (cd manager && pipenv install --dev --deploy)
 - (cd orchestrator && pipenv install --dev --deploy)
+- (cd router && pipenv install --dev --deploy)
 script:
 - (cd manager && pipenv run ./scripts/format.sh)
 - (cd manager && pipenv run ./scripts/static_templates_format.sh)
@@ -22,3 +23,6 @@ script:
 - (cd orchestrator && pipenv run ./scripts/format.sh)
 - (cd orchestrator && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
 - (cd orchestrator && pipenv run ./scripts/check.sh)
+- (cd router && pipenv run ./scripts/format.sh)
+- (cd router && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
+- (cd router && pipenv run ./scripts/check.sh)
