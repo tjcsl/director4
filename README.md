@@ -8,7 +8,7 @@ Our project is to develop a website management and hosting platform (based on th
 It is composed of three primary components:
 * `orchestrator`: The code that orchestrates the Docker containers
 * `manager`: The public-facing Django web application that provides an easy-to-use interface for managing websites.
-* `router`: (NOT STARTED)
+* `router`: The code that runs on the balancers and handles a lot of the frontend for custom domains.
 
 ## Architecture
 A full description of the project's architecture can be found in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

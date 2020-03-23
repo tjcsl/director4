@@ -406,12 +406,15 @@ class Domain(models.Model):
         # Disabled (respected in generation of configuration, but currently no provisions for
         # setting domains to inactive)
         ("inactive", "Inactive"),
+        # This domain was removed from the Site it was added to. All records of it should be
+        # removed.
+        ("deleted", "Deleted"),
         # Reserved domains we don't want people to use for legal/policy reasons (these should always
         # have site=None)
         ("blocked", "Blocked"),
     ]
 
-    # Should ONLY be None for blocked domains
+    # Should ONLY be None for deleted or blocked domains
     site = models.ForeignKey(Site, null=True, on_delete=models.PROTECT)
 
     domain = models.CharField(

@@ -1,0 +1,17 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+flake8 = "~=3.7.9"
+pylint = "~=2.4.4"
+isort = "~=4.3.21"
+black = "==19.10b0"
+typed-ast = "~=1.4.1"  # Required by black, but Pipenv doesn't pull it in correctly on 3.8
+autopep8 = "~=1.5.0"
+mypy = "~=0.761"
+
+[packages]
+flask = "~=1.1.1"
+gunicorn = "~=20.0.4"

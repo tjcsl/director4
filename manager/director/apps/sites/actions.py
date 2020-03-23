@@ -17,7 +17,7 @@ from ...utils.appserver import (
 )
 from ...utils.balancer import balancer_open_http_request, iter_pingable_balancers
 from ...utils.secret_generator import gen_database_password
-from .models import Site
+from .models import Domain, Site
 
 
 def find_pingable_appservers(  # pylint: disable=unused-argument
@@ -251,6 +251,41 @@ def update_balancer_nginx_config(  # pylint: disable=unused-argument
             params={"data": json.dumps(site.serialize_for_balancer())},
         )
         yield "Updated balancer {}".format(i)
+
+
+def remove_balancer_nginx_config(  # pylint: disable=unused-argument
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    yield "Pinging balancers"
+    pingable_balancers = list(iter_pingable_balancers())
+    yield "Pingable balancers: {}".format(pingable_balancers)
+
+    for i in pingable_balancers:
+        yield "Removing Nginx config on balancer {}".format(i)
+        balancer_open_http_request(i, "/sites/{}/remove-nginx".format(site.id))
+        yield "Removed Nginx config on balancer {}".format(i)
+
+
+def update_balancer_certbot(  # pylint: disable=unused-argument
+    site: Site, scope: Dict[str, Any]
+) -> Iterator[Union[Tuple[str, str], str]]:
+    yield "Setting up certbot for site"
+    balancer_open_http_request(
+        0,
+        "/sites/{}/certbot-setup".format(site.id),
+        params={"data": json.dumps(site.serialize_for_balancer())},
+    )
+
+    yield "Removing old domains"
+    balancer_open_http_request(
+        0,
+        "/sites/certbot-remove-old-domains",
+        params={
+            "domains": json.dumps(
+                list(Domain.objects.exclude(status="active").values_list("domain", flat=True))
+            ),
+        },
+    )
 
 
 def delete_site_database_and_object(  # pylint: disable=unused-argument

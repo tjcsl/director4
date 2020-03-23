@@ -48,6 +48,8 @@ def rename_site_task(operation_id: int, new_name: str) -> None:
         )
 
         if not settings.DEBUG:
+            wrapper.add_action("Updating balancer certbot setup", actions.update_balancer_certbot)
+
             wrapper.add_action(
                 "Updating balancer configuration", actions.update_balancer_nginx_config
             )
@@ -88,16 +90,20 @@ def edit_site_names_task(
             for domain_name in scope["domains"]:
                 try:
                     domain_obj = Domain.objects.get(domain=domain_name)
-                    if domain_obj.site is not None and domain_obj.site.id != site.id:
+                    if domain_obj.status == "blocked":
+                        yield "Domain {} is blocked; silently ignoring"
+                    elif domain_obj.site is not None and domain_obj.site.id != site.id:
                         yield "Domain {} belongs to another site; silently ignoring".format(
                             domain_name,
                         )
                     else:
-                        yield "Domain {} already belongs to site {}".format(domain_name, site.id)
+                        domain_obj.site = site
+                        domain_obj.status = "active"
+                        domain_obj.save()
                 except Domain.DoesNotExist:
                     Domain.objects.create(site=site, domain=domain_name, creating_user=request_user)
 
-            site.domain_set.exclude(domain__in=scope["domains"]).delete()
+            site.domain_set.exclude(domain__in=scope["domains"]).update(site=None, status="deleted")
 
             yield ("after_state", str(site.list_urls()))
 
@@ -106,6 +112,8 @@ def edit_site_names_task(
         )
 
         if not settings.DEBUG:
+            wrapper.add_action("Updating balancer certbot setup", actions.update_balancer_certbot)
+
             wrapper.add_action(
                 "Updating balancer configuration", actions.update_balancer_nginx_config
             )
@@ -124,7 +132,7 @@ def regen_nginx_config_task(operation_id: int) -> None:
 
         if not settings.DEBUG:
             wrapper.add_action(
-                "Updating balancer configuration", actions.update_balancer_nginx_config
+                "Updating balancer Nginx configuration", actions.update_balancer_nginx_config
             )
 
 
@@ -334,11 +342,6 @@ def create_site_task(operation_id: int) -> None:
             "Updating appserver configuration", actions.update_appserver_nginx_config
         )
 
-        if not settings.DEBUG:
-            wrapper.add_action(
-                "Updating balancer configuration", actions.update_balancer_nginx_config
-            )
-
 
 @shared_task
 def delete_site_task(operation_id: int) -> None:
@@ -361,6 +364,11 @@ def delete_site_task(operation_id: int) -> None:
         wrapper.add_action(
             "Removing appserver Nginx configuration", actions.remove_appserver_nginx_config
         )
+
+        if not settings.DEBUG:
+            wrapper.add_action(
+                "Removing balancer Nginx configuration", actions.remove_balancer_nginx_config
+            )
 
         wrapper.add_action("Removing site files", actions.remove_all_site_files_dangerous)
 
@@ -425,6 +433,8 @@ def fix_site_task(operation_id: int) -> None:
         )
 
         if not settings.DEBUG:
+            wrapper.add_action("Updating balancer certbot setup", actions.update_balancer_certbot)
+
             wrapper.add_action(
-                "Updating balancer configuration", actions.update_balancer_nginx_config
+                "Updating balancer Nginx configuration", actions.update_balancer_nginx_config
             )
