@@ -5,6 +5,6 @@ NGINX_DIRECTOR_DIR = "/etc/nginx/director.d"
 
 NGINX_RELOAD_COMMAND = ["sudo", "systemctl", "reload", "nginx"]
 
-HELPER_SCRIPT_EXEC_ARGS = ["sudo", "/usr/local/bin/certbot-director"]
+HELPER_SCRIPT_EXEC_ARGS = ["sudo", "/usr/bin/python3", "/usr/local/bin/certbot-director"]
 
 SITES_DOMAIN = "sites.tjhsst.edu"
