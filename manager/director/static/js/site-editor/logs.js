@@ -29,10 +29,14 @@ function SiteLogsFollower(container, uri) {
         },
     );
 
+    // Send heartbeats to keep the connection alive
     setInterval(function() {
         ws.send(JSON.stringify({heartbeat: 1}));
     }, 30000);
 
+    // Clear the output when the websocket connects.
+    // The server will send some of the previous output, so we can
+    // just display that.
     ws.addEventListener("open", function(e) {
         logDiv.text("");
     });

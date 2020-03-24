@@ -96,6 +96,7 @@ $(function() {
     if(localStorage != null) {
         var settingsData = localStorage.getItem("editor-settings-" + site_id);
         if(settingsData) {
+            // Use the values from LocalStorage to override the defaults
             $.extend(settings, JSON.parse(settingsData));
         }
 

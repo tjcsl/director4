@@ -1,4 +1,6 @@
 function SettingsPane(container, settings, updateCallback, resetLayout) {
+    // This is set up declaratively. Define an option here and it will be translated
+    // to the necessary HTML, and everything will be set up to handle it changing.
     var settingsSpec = {
         "layout-theme": {
             label: "Layout Theme",

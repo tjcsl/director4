@@ -9,6 +9,9 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
     function updateTitle(fileStatus) {
         var prefixClasses;
         if(fileStatus == "loading" || fileStatus == "saving") {
+            // These icons have some CSS animations that make them spin.
+            // Let's change the icon to a circle with a notch to aid
+            // the visual cue.
             prefixClasses = "file-title-icon fas fa-circle-notch file-" + fileStatus;
         }
         else {
@@ -73,6 +76,7 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
             editor.resize();
         });
 
+        // Events triggered by the Vim keybindings
         containerElem.on("director:save", saveFile);
 
         containerElem.on("director:close", function() {
@@ -80,6 +84,7 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
         });
 
         containerElem.keydown(function(e) {
+            // Ctrl+S, Ctrl+F4, Meta+S, Meta+F4, Pause
             if(((e.which == 115 || e.which == 83) && (e.ctrlKey || e.metaKey)) || e.which == 19) {
                 saveFile();
                 return false;
@@ -90,6 +95,7 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
             message: "Error opening file: " + (data.responseText || "Unknown error"),
             hideAfter: 5,
         });
+
         layoutContainer.close();
     });
 
@@ -156,6 +162,7 @@ ace.config.loadModule("ace/keybinding/vim", function() {
     });
 
     VimApi.defineEx("wq", "wq", function(cm) {
+        // Save and close on :wq
         $(cm.ace.container).trigger("director:save");
         $(cm.ace.container).trigger("director:close");
     });
