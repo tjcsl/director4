@@ -157,7 +157,13 @@ $(function() {
     });
 
     layout.registerComponent("editfile", function(container, componentState) {
-        addComponent(container, new FileEditor(container, file_endpoints.get, file_endpoints.write, componentState.fname));
+        var editor = new FileEditor(container, file_endpoints.get, file_endpoints.write, componentState.fname);
+
+        addComponent(container, editor);
+
+        container.on("show", function() {
+            editor.focus();
+        });
     });
 
     layout.registerComponent("media", function(container, componentState) {
@@ -178,7 +184,7 @@ $(function() {
     layout.registerComponent("terminal", function(container, componentState) {
         container.setTitle("<span class='fas fa-terminal'></span> Terminal");
 
-        addComponent(container, setupTerminal(
+        var component = setupTerminal(
             ws_endpoints.terminal,
             container.getElement(),
             {
@@ -187,7 +193,19 @@ $(function() {
                     container.setTitle("<span class='fas fa-terminal'></span> " + escapeHTML(title));
                 },
             },
-        ));
+        );
+
+        addComponent(container, component);
+
+        // Any time when it is "shown" after the first 100 milliseconds
+        // (to avoid grabbing the focus first), focus it.
+        setTimeout(function() {
+            container.on("show", function() {
+                setTimeout(function() {
+                    component.term.focus();
+                }, 0);
+            });
+        }, 100);
 
         "open resize show".split(" ").forEach(function(event_name) {
             container.on(event_name, function() {
@@ -205,6 +223,15 @@ $(function() {
 
         container.getElement().html($("#database-shell-template").html());
         setupSQLConsole(db_shell_endpoint, container.getElement().children(".sql-console-wrapper"));
+
+        // Same as above
+        setTimeout(function() {
+            container.on("show", function() {
+                setTimeout(function() {
+                    container.getElement().find(".input").focus();
+                }, 0);
+            });
+        }, 100);
     });
 
 

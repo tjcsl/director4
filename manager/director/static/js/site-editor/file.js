@@ -122,6 +122,12 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
         }
     });
 
+    this.focus = function() {
+        if(editor != null) {
+            editor.focus();
+        }
+    };
+
     var settings = {};
 
     this.updateSettings = function(newSettings) {

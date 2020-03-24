@@ -182,6 +182,7 @@ function setupTerminal(uri, wrapper, options) {
     setTimeout(openWS, 0);
 
     return {
+        term: term,
         updateSettings: function(settings) {
             term.setOption("fontSize", settings["terminal-font-size"]);
         },
