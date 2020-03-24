@@ -14,7 +14,7 @@ def run_helper(args: Iterable[str], **kwargs: Any) -> "subprocess.CompletedProce
 
 
 def setup(site_id: int, data: Dict[str, Any]) -> None:
-    run_helper(["setup", str(site_id), *data["custom_domains"], check=True)
+    run_helper(["setup", str(site_id), *data["custom_domains"]], check=True)
 
 
 def remove_old_domains(domains: Iterable[str]) -> None:

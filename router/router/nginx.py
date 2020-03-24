@@ -21,7 +21,7 @@ def get_config_path(site_id: int) -> str:
 
 
 def update_config(site_id: int, data: Dict[str, Any]) -> None:
-    assert set(name) < set(string.ascii_letters + string.digits + "-")
+    assert set(data["name"]) < set(string.ascii_letters + string.digits + "-")
 
     for domain in data["custom_domains"]:
         assert set(domain) < set(string.ascii_letters + string.digits + "-.")
