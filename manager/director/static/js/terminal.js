@@ -42,7 +42,10 @@ function setupTerminal(uri, wrapper, options) {
         e.preventDefault();
         e.stopPropagation();
         if(connected && dataReceived) {
-            fitAddon.fit();
+            if(container.is(":visible")) {
+                term.resize(0, 0);
+                fitAddon.fit();
+            }
         }
     });
 
@@ -61,7 +64,13 @@ function setupTerminal(uri, wrapper, options) {
             if(options.autoFocus) {
                 term.focus();
             }
-            fitAddon.fit();
+
+            var fitInterval = setInterval(function() {
+                if(container.is(":visible")) {
+                    fitAddon.fit();
+                    clearInterval(fitInterval);
+                }
+            }, 500);
         }
 
         term.reset();
@@ -170,7 +179,7 @@ function setupTerminal(uri, wrapper, options) {
         titleCallback("Terminal");
     }
 
-    setTimeout(openWS);
+    setTimeout(openWS, 0);
 
     return {
         updateSettings: function(settings) {
