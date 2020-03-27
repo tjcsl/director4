@@ -1,12 +1,4 @@
 $(function() {
-    $("#database-url").click(function() {
-        $("#database-pass").removeClass("hide");
-    }).dblclick(function() {
-        $(this).selectText();
-    }).on("blur", function() {
-        $("#database-pass").addClass("hide");
-    });
-
     var site_ids = [];
     $(".site-dynamic.user-site").each(function() {
         site_ids.push($(this).data("site-id"));
