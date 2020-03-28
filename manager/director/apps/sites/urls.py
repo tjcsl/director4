@@ -9,6 +9,7 @@ app_name = "sites"
 
 urlpatterns = [
     path("", views.sites.index_view, name="index"),
+    path("search/", views.sites.search_view, name="search"),
     path(
         "prometheus-metrics", views.maintenance.prometheus_metrics_view, name="prometheus-metrics"
     ),

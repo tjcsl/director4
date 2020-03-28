@@ -13,12 +13,23 @@
 {% endblock %}
 
 {% block navbar %}
-    <input class="search-box" data-search="#sites .site" data-fields=".name,.desc,.type" type="text" placeholder="&#xf002; Search Sites">
+    <li>
+        <form method="GET" action="{% url 'sites:search' %}" id="search-form">
+            <input type="text" name="q" placeholder="Search Sites" id="search-input" value="{{ query }}"><!--
+            --><button type="submit" id="search-button">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </li>
 {% endblock %}
 
 {% block main %}
     <div class="subheading clearfix">
+        {% if query %}
+        <h3 class="float-left d-none d-sm-block">Search Results From {% if show_all %}All{% else %}Your{% endif %} Sites</h3>
+        {% else %}
         <h3 class="float-left d-none d-sm-block">{% if show_all %}All{% else %}Your{% endif %} Sites</h3>
+        {% endif %}
         <a href="{% url 'sites:create' %}" class="float-right btn btn-ion"><i class="fas fa-plus"></i><span class="d-none d-md-inline"> Create</span> Site</a>
         {% if not request.user.is_superuser and not request.user.has_webdocs %}
             <a href="{% url 'sites:create_webdocs' %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-user-plus"></i><span class="hidden-xs-down"> Create</span> Webdocs</a>
@@ -26,9 +37,9 @@
 
         {% if request.user.is_superuser %}
             {% if show_all %}
-                <a href="{% url 'auth:index' %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="far fa-star"></i> Hide All</a>
+                <a href="{% if query %}{% url 'sites:search' %}?q={{ query }}{% else %}{% url 'auth:index' %}{% endif %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="far fa-star"></i> Hide All</a>
             {% else %}
-                <a href="{% url 'auth:index' %}?all=1" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-star"></i> Show All</a>
+                <a href="{% if query %}{% url 'sites:search' %}?q={{ query }}&amp;{% else %}{% url 'auth:index' %}?{% endif %}all=1" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-star"></i> Show All</a>
             {% endif %}
         {% endif %}
     </div>

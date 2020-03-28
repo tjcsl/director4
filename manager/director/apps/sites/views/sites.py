@@ -7,6 +7,7 @@ from typing import Optional
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -35,6 +36,35 @@ def index_view(request: HttpRequest) -> HttpResponse:
 
     context = {
         "show_all": show_all,
+        "sites": sites,
+    }
+    return render(request, "sites/list.html", context)
+
+
+@login_required
+def search_view(request: HttpRequest) -> HttpResponse:
+    query = request.GET.get("q", "")
+
+    sites = list(
+        Site.objects.filter(users=request.user)
+        .filter(Q(name__icontains=query) | Q(description__icontains=query))
+        .order_by("name")
+        .annotate(user_owns_site=models.Value(True, models.BooleanField()))
+    )
+
+    show_all = request.user.is_superuser and (bool(request.GET.get("all")) or not sites)
+
+    if show_all:
+        sites.extend(
+            Site.objects.exclude(users=request.user)
+            .filter(Q(name__icontains=query) | Q(description__icontains=query))
+            .order_by("name")
+            .annotate(user_owns_site=models.Value(False, models.BooleanField()))
+        )
+
+    context = {
+        "show_all": show_all,
+        "query": query,
         "sites": sites,
     }
     return render(request, "sites/list.html", context)
