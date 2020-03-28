@@ -30,7 +30,7 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
                 path: fname,
             }),
             data: {
-                contents: editor.getSession().getValue(),
+                contents: editor.getSession().getValue().replace("\r", ""),
             },
             processData: true,
             contentType: "application/x-www-form-urlencoded",
