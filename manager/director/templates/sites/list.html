@@ -39,7 +39,7 @@
             <i class="icon float-left fa-2x fa-fw {% if site.purpose == 'user' %}fas fa-user{% elif site.purpose == 'activity' %}fas fa-globe{% elif site.purpose == 'legacy' %}far fa-snowflake{% else %}fas fa-cube{% if site.purpose == 'project' %} project{% endif %}{% endif %}">
                 <span class="site-status"></span>
             </i>
-            <b class="name">{{ site.name }}</b><span class="sub"><span class="type">{{ site.get_type_display }}</span> - <span class="desc">{{ site.description|default:"No Description" }}</span> - <span class="users">{{ site.users.count }} user{% if site.users.count != 2 %}s{% endif %}</span></span>
+            <b class="name">{{ site.name }}</b><span class="sub"><span class="type">{{ site.get_type_display }}</span> - <span class="desc">{{ site.description|default:"No Description" }}</span> - <span class="users">{{ site.users.count }} user{% if site.users.count != 1 %}s{% endif %}</span></span>
         </a>
     {% endfor %}
     {% if sites.count == 0 %}
