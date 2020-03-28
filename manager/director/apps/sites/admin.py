@@ -9,6 +9,7 @@ from .models import (
     DatabaseHost,
     DockerImage,
     DockerImageExtraPackage,
+    DockerImageSetupCommand,
     Domain,
     Operation,
     Site,
@@ -16,6 +17,7 @@ from .models import (
 )
 
 admin.site.register(DockerImage)
+admin.site.register(DockerImageSetupCommand)
 admin.site.register(DockerImageExtraPackage)
 admin.site.register(Domain)
 

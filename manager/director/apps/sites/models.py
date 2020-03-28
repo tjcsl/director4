@@ -302,12 +302,17 @@ class DockerImage(models.Model):
         related_name="children",
     )
 
-    # If this is set, it will be run before anything else.
+    setup_commands = models.ManyToManyField(
+        "DockerImageSetupCommand", blank=True, related_name="docker_images"
+    )
+
+    # If this is set, it will be run before installing packages. (but after running
+    # the DockerImageSetupCommands).
     # This should be used to install basic dependencies. For example, in the Python
     # images this should be used to install virtualenv.
-    # If there are any DockerImageExtraPackages to install, the command that is
-    # run looks like "<base_install_command> && <install_command_prefix> <pkgs>",
-    # so be careful about accidental syntax errors!
+    # For something broader, like timezone setup on Alpine, use a
+    # DockerImageSetupCommand instead.
+    # Be careful about syntax errors; everything is "&&"-ed together.
     base_install_command = models.TextField(blank=True, null=False, default="")
 
     # This will be run with sh -c '<cmd> <pkgs>' where <cmd> is this command
@@ -327,21 +332,20 @@ class DockerImage(models.Model):
 
         """
 
-        if self.parent is not None:
-            install_command_prefix = self.parent.install_command_prefix
-            base_install_command = self.parent.base_install_command
-        else:
+        if self.parent is None:
             return None
 
-        command_parts = []
+        command_parts = list(self.parent.setup_commands.values_list("command", flat=True))
 
-        if base_install_command:
-            command_parts.append(base_install_command)
+        if self.parent.base_install_command:
+            command_parts.append(self.parent.base_install_command)
 
-        if install_command_prefix:
+        if self.parent.install_command_prefix:
             package_names = self.extra_packages.values_list("name", flat=True)
             if package_names.exists():
-                command_parts.append(install_command_prefix + " " + " ".join(package_names))
+                command_parts.append(
+                    self.parent.install_command_prefix + " " + " ".join(package_names)
+                )
 
         return " && ".join(command_parts) if command_parts else None
 
@@ -370,6 +374,51 @@ class DockerImage(models.Model):
 
     def __repr__(self) -> str:
         return "<DockerImage: " + str(self) + ">"
+
+
+class DockerImageSetupCommandManager(models.Manager):
+    def get_queryset(self):
+        # A lot of code assumes that this ordering takes place.
+        # Don't remove it without careful analysis.
+        return super().get_queryset().order_by("order", "id")
+
+
+class DockerImageSetupCommand(models.Model):
+    """This is a setup command that is reusable across multiple DockerImages.
+    For example, installing Pip for the Python images, or setting up timezones
+    in the Alpine images."""
+
+    objects = DockerImageSetupCommandManager()
+
+    name = models.CharField(
+        null=False,
+        blank=False,
+        max_length=32,
+        help_text="A short name describing what the command does. If the command is "
+        "OS/language-specific, please use prefixes like this for consistency:"
+        "'[OS:Alpine] Fix timezone setup', '[Lang:Python] Install virtualenv with Pip'",
+    )
+
+    command = models.TextField(
+        null=False,
+        blank=False,
+        help_text="The command to run. Everything will be '&&'-ed together, so be careful about "
+        "syntax errors.",
+    )
+
+    order = models.IntegerField(
+        null=False,
+        blank=False,
+        help_text="This will be used to sort the setup commands (in ascending order). The "
+        "following values are recommended for standardization: 0=OS-specific commands, "
+        "1=language-specific commands; other values as required for specific use cases.",
+    )
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return "<DockerImageSetupCommand: " + str(self) + ">"
 
 
 class DockerImageExtraPackage(models.Model):
