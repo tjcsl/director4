@@ -2,6 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import json
+import re
 from typing import Optional
 
 from django.contrib import messages
@@ -10,63 +11,106 @@ from django.db import models
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 
+from ....utils.pagination import paginate
 from .. import operations
 from ..forms import ImageSelectForm, SiteCreateForm
 from ..helpers import send_new_site_email
 from ..models import DockerImage, Site
 
+SEARCH_QUERY_SPLIT_REGEX = re.compile(r"(^\s*|(?<=\s))(?P<word>(\S|'[^']'|\"[^\"]\")+)(\s*$|\s+)")
+
 
 @login_required
 def index_view(request: HttpRequest) -> HttpResponse:
-    show_all = request.user.is_superuser and bool(request.GET.get("all"))
+    query = request.GET.get("q", "").strip()
 
-    sites = list(
-        Site.objects.filter(users=request.user)
-        .order_by("name")
-        .annotate(user_owns_site=models.Value(True, models.BooleanField()))
-    )
-    if show_all:
-        sites.extend(
-            Site.objects.exclude(users=request.user)
-            .order_by("name")
-            .annotate(user_owns_site=models.Value(False, models.BooleanField()))
+    # Split the query string up
+    # The re.Scanner class and the associated Pattern.scanner() methods are
+    # not documented for some reason, but this is hard to do without them and
+    # they should be fairly stable.
+    scanner = SEARCH_QUERY_SPLIT_REGEX.scanner(query)  # type: ignore
+    query_words = [  # type: ignore
+        match.group("word").replace("'", "").replace('"', "")
+        for match in iter(scanner.search, None)
+    ]
+
+    # Construct the Site query
+    filtered_sites = Site.objects.all()
+    for word in query_words:
+        # Try to look for fields
+        if word.startswith("id:"):
+            try:
+                val = int(word[3:])
+            except ValueError:
+                pass
+            else:
+                filtered_sites = filtered_sites.filter(id=val)
+                continue
+        elif word.startswith("name:"):
+            filtered_sites = filtered_sites.filter(name__icontains=word[5:])
+            continue
+        elif word.startswith(("desc:", "description:")):
+            filtered_sites = filtered_sites.filter(description__icontains=word.split(":", 1)[1])
+            continue
+        elif word.startswith("user:"):
+            filtered_sites = filtered_sites.filter(users__username__icontains=word[5:])
+            continue
+
+        # Fall back on just a simple search
+        filtered_sites = filtered_sites.filter(
+            Q(name__icontains=word) | Q(description__icontains=word) | Q(users__username=word)
         )
 
-    context = {
-        "show_all": show_all,
-        "sites": sites,
-    }
-    return render(request, "sites/list.html", context)
-
-
-@login_required
-def search_view(request: HttpRequest) -> HttpResponse:
-    query = request.GET.get("q", "")
-
-    sites = list(
-        Site.objects.filter(users=request.user)
-        .filter(Q(name__icontains=query) | Q(description__icontains=query))
-        .order_by("name")
-        .annotate(user_owns_site=models.Value(True, models.BooleanField()))
+    # Start with just the sites owned by the user
+    own_sites = filtered_sites.filter(users=request.user).annotate(
+        user_owns_site=models.Value(True, models.BooleanField())
     )
 
-    show_all = request.user.is_superuser and (bool(request.GET.get("all")) or not sites)
+    # Show results from other sites too if they're a superuser and:
+    # - They requested to be shown other sites
+    # - OR they entered search terms but nothing matched
+    show_all = bool(
+        request.user.is_superuser and (request.GET.get("all") or (query and not own_sites.exists()))
+    )
 
+    # Actually add the sites to the query
     if show_all:
-        sites.extend(
-            Site.objects.exclude(users=request.user)
-            .filter(Q(name__icontains=query) | Q(description__icontains=query))
-            .order_by("name")
-            .annotate(user_owns_site=models.Value(False, models.BooleanField()))
+        other_sites = filtered_sites.exclude(users=request.user).annotate(
+            user_owns_site=models.Value(False, models.BooleanField())
         )
+
+        # This uses an SQL UNION. Django says that most database backends
+        # don't support LIMIT or OFFSET in combined queries, but PostgreSQL
+        # seems to work fine with it.
+        sites = own_sites.union(other_sites)
+    else:
+        sites = own_sites
+
+    try:
+        page_num = int(request.GET["page"])
+    except (KeyError, ValueError):
+        page_num = 1
+
+    paginated_sites, page_links = paginate(
+        # Show sites owned by the user first, then order alphabetically
+        sites.order_by("-user_owns_site", "name"),
+        page_num=page_num,
+        per_page=30,
+        prev_text=mark_safe("&laquo;"),
+        next_text=mark_safe("&raquo;"),
+    )
 
     context = {
         "show_all": show_all,
         "query": query,
-        "sites": sites,
+        "page_num": page_num,
+        "paginated_sites": paginated_sites,
+        "page_links": page_links,
     }
+
     return render(request, "sites/list.html", context)
 
 

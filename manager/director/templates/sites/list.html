@@ -14,7 +14,7 @@
 
 {% block navbar %}
     <li>
-        <form method="GET" action="{% url 'sites:search' %}" id="search-form">
+        <form method="GET" action="{% url 'sites:index' %}" id="search-form">
             <input type="text" name="q" placeholder="Search Sites" id="search-input" value="{{ query }}"><!--
             --><button type="submit" id="search-button">
                 <i class="fas fa-search"></i>
@@ -37,14 +37,14 @@
 
         {% if request.user.is_superuser %}
             {% if show_all %}
-                <a href="{% if query %}{% url 'sites:search' %}?q={{ query }}{% else %}{% url 'auth:index' %}{% endif %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="far fa-star"></i> Hide All</a>
+                <a href="{% if query %}{% url 'sites:index' %}?q={{ query }}{% else %}{% url 'auth:index' %}{% endif %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="far fa-star"></i> Hide All</a>
             {% else %}
-                <a href="{% if query %}{% url 'sites:search' %}?q={{ query }}&amp;{% else %}{% url 'auth:index' %}?{% endif %}all=1" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-star"></i> Show All</a>
+                <a href="{% if query %}{% url 'sites:index' %}?q={{ query }}&amp;{% else %}{% url 'auth:index' %}?{% endif %}all=1" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-star"></i> Show All</a>
             {% endif %}
         {% endif %}
     </div>
     <div id="sites">
-    {% for site in sites %}
+    {% for site in paginated_sites %}
         <a href="{% url 'sites:info' site.id %}" class="site{% if site.type == "dynamic" %} site-dynamic{% endif %}{% if site.user_owns_site %} user-site{% endif %}" id="site-{{ site.id }}" data-site-id="{{ site.id }}">
             {% if site.database %}<span data-toggle="tooltip" class="float-right tag tag-primary tag-database">{{ site.database.get_category_display }}</span>{% endif %}
             <i class="icon float-left fa-2x fa-fw {% if site.purpose == 'user' %}fas fa-user{% elif site.purpose == 'activity' %}fas fa-globe{% elif site.purpose == 'legacy' %}far fa-snowflake{% else %}fas fa-cube{% if site.purpose == 'project' %} project{% endif %}{% endif %}">
@@ -53,8 +53,31 @@
             <b class="name">{{ site.name }}</b><span class="sub"><span class="type">{{ site.get_type_display }}</span> - <span class="desc">{{ site.description|default:"No Description" }}</span> - <span class="users">{{ site.users.count }} user{% if site.users.count != 1 %}s{% endif %}</span></span>
         </a>
     {% endfor %}
-    {% if sites.count == 0 %}
-    <div id="empty">You don't have any sites! Click <a href="{% url 'sites:create' %}">here</a> to create a new site.</div>
+    {% if paginated_sites|length == 0 %}
+    <div id="empty">
+        {% if not query and not show_all %}
+        You don't have any sites! Click <a href="{% url 'sites:create' %}">here</a> to create a new site.
+        {% else %}
+        No sites found.
+        {% endif %}
+    </div>
     {% endif %}
     </div>
+
+    {# 3 for previous + next + current #}
+    {% if page_links|length > 3 %}
+    <nav aria-label="Site page navigation" class="pt-3">
+        <ul class="pagination justify-content-center">
+        {% for link_text, page in page_links %}
+            <li class="page-item{% if page is None %} disabled{% endif %}">
+                {% if page is None %}
+                    <a class="page-link" href="#">{{ link_text }}</a>
+                {% else %}
+                    <a class="page-link" href="?{% if query %}q={{ query }}&amp;{% endif %}{% if show_all %}all=1&amp;{% endif %}page={{ page }}">{{ link_text }}</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 {% endblock %}
