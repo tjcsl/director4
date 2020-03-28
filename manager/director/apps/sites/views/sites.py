@@ -56,12 +56,12 @@ def index_view(request: HttpRequest) -> HttpResponse:
             filtered_sites = filtered_sites.filter(description__icontains=word.split(":", 1)[1])
             continue
         elif word.startswith("user:"):
-            filtered_sites = filtered_sites.filter(users__username__icontains=word[5:])
+            filtered_sites = filtered_sites.filter(users__username__iexact=word[5:])
             continue
 
         # Fall back on just a simple search
         filtered_sites = filtered_sites.filter(
-            Q(name__icontains=word) | Q(description__icontains=word) | Q(users__username=word)
+            Q(name__icontains=word) | Q(description__icontains=word) | Q(users__username__iexact=word)
         )
 
     # Start with just the sites owned by the user
