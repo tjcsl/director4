@@ -33,7 +33,7 @@ def index_view(request: HttpRequest) -> HttpResponse:
     # they should be fairly stable.
     scanner = SEARCH_QUERY_SPLIT_REGEX.scanner(query)  # type: ignore
     query_words = [  # type: ignore
-        match.group("word").replace("'", "").replace('"', "")
+        match.group("word").replace("'", "").replace('"', "")  # type: ignore
         for match in iter(scanner.search, None)
     ]
 
