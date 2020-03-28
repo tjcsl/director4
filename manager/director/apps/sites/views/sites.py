@@ -61,7 +61,9 @@ def index_view(request: HttpRequest) -> HttpResponse:
 
         # Fall back on just a simple search
         filtered_sites = filtered_sites.filter(
-            Q(name__icontains=word) | Q(description__icontains=word) | Q(users__username__iexact=word)
+            Q(name__icontains=word)
+            | Q(description__icontains=word)
+            | Q(users__username__iexact=word)
         )
 
     # Start with just the sites owned by the user
