@@ -376,7 +376,7 @@ class DockerImage(models.Model):
         return "<DockerImage: " + str(self) + ">"
 
 
-class DockerImageSetupCommandManager(models.Manager):
+class DockerImageSetupCommandManager(models.Manager):  # pylint: disable=too-few-public-methods
     def get_queryset(self):
         # A lot of code assumes that this ordering takes place.
         # Don't remove it without careful analysis.
