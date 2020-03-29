@@ -3,7 +3,6 @@
 
 import json
 import re
-from typing import Optional
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -114,14 +113,6 @@ def index_view(request: HttpRequest) -> HttpResponse:
     }
 
     return render(request, "sites/list.html", context)
-
-
-# Used for routes that do not have views written but need to be linked to
-@login_required
-def dummy_view(  # pylint: disable=unused-argument
-    request: HttpRequest, site_id: Optional[int] = None
-) -> HttpResponse:
-    return HttpResponse("")
 
 
 @login_required
