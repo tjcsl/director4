@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block titlesuffix %} - Delete {{ site.name }}{% endblock %}
+
 {% block main %}
 <h3>Confirm Permanent Site Deletion</h3>
 <p>Are you sure you want to delete the site <b>{{ site.name }}</b> and all associated data? <span style="color:red">This action is permanent and irreversible!</span></p>

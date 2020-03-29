@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 
+{% block titlesuffix %} - Terminal{% endblock %}
+
 {% block head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'vendor/xterm-4.4.0/xterm.css' %}" type="text/css" />
