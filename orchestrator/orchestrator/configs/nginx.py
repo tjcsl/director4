@@ -36,7 +36,7 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> None:
     if new_data["primary_url_base"] is not None and (
         not isinstance(new_data["primary_url_base"], str)
         or re.search(
-            r"https?://[-a-zA-Z0-9.]+(:\d+)?(/([-_a-zA-Z0-9.~]+/)*[-_a-zA-Z0-9.~]*)?$",
+            r"^https?://[-a-zA-Z0-9.]+(:\d+)?(/([-_a-zA-Z0-9.~]+/)*[-_a-zA-Z0-9.~]*)?$",
             new_data["primary_url_base"],
         )
         is None
