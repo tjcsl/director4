@@ -3,10 +3,10 @@
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 
+from ...auth.decorators import superuser_required
 from .. import operations
 from ..forms import SiteResourceLimitsForm
 from ..models import Action, Operation, Site, SiteResourceLimits
@@ -34,19 +34,13 @@ def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
         raise Http404
 
 
-@login_required
+@superuser_required
 def management_view(request: HttpRequest) -> HttpResponse:
-    if not request.user.is_superuser:
-        raise Http404
-
     return render(request, "sites/management/management.html")
 
 
-@login_required
+@superuser_required
 def operations_view(request: HttpRequest) -> HttpResponse:
-    if not request.user.is_superuser:
-        raise Http404
-
     if request.GET.get("failed"):
         title = "Failed Operations"
         failed_only = True
@@ -65,11 +59,8 @@ def operations_view(request: HttpRequest) -> HttpResponse:
     return render(request, "sites/management/operations.html", context)
 
 
-@login_required
+@superuser_required
 def operation_delete_fix_view(request: HttpRequest, operation_id: int) -> HttpResponse:
-    if not request.user.is_superuser:
-        raise Http404
-
     operation = Operation.objects.get(id=operation_id)
     site = operation.site
 
@@ -84,11 +75,8 @@ def operation_delete_fix_view(request: HttpRequest, operation_id: int) -> HttpRe
     return redirect("sites:operations")
 
 
-@login_required
+@superuser_required
 def custom_resource_limits_list_view(request: HttpRequest) -> HttpResponse:
-    if not request.user.is_superuser:
-        raise Http404
-
     sites_with_custom_limits = SiteResourceLimits.objects.filter_has_custom_limits()  # type: ignore
 
     context = {
@@ -101,11 +89,8 @@ def custom_resource_limits_list_view(request: HttpRequest) -> HttpResponse:
     return render(request, "sites/management/custom_resource_limits_list.html", context)
 
 
-@login_required
+@superuser_required
 def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    if not request.user.is_superuser:
-        raise Http404
-
     site = Site.objects.get(id=site_id)
 
     if request.method == "POST":
