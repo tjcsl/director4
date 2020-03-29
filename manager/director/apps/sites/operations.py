@@ -75,9 +75,11 @@ def restart_service(site: Site) -> None:
     send_operation_updated_message(site)
 
 
-def update_resource_limits(site: Site, cpus: float, mem_limit: str, notes: str) -> None:
+def update_resource_limits(
+    site: Site, cpus: float, mem_limit: str, client_body_limit: str, notes: str
+) -> None:
     operation = Operation.objects.create(site=site, type="update_resource_limits")
-    update_resource_limits_task.delay(operation.id, cpus, mem_limit, notes)
+    update_resource_limits_task.delay(operation.id, cpus, mem_limit, client_body_limit, notes)
 
     send_operation_updated_message(site)
 

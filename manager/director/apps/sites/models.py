@@ -134,6 +134,7 @@ class Site(models.Model):
         limits = {
             "cpus": settings.DIRECTOR_RESOURCES_DEFAULT_CPUS,
             "mem_limit": settings.DIRECTOR_RESOURCES_DEFAULT_MEMORY_LIMIT,
+            "client_body_limit": str(settings.DIRECTOR_RESOURCES_DEFAULT_CLIENT_BODY_LIMIT),
         }
 
         try:
@@ -141,7 +142,7 @@ class Site(models.Model):
         except SiteResourceLimits.DoesNotExist:
             return limits
 
-        for name in ["cpus", "mem_limit"]:
+        for name in ["cpus", "mem_limit", "client_body_limit"]:
             value = getattr(resource_limits, name)
 
             # Only use if the new value if a) it's not None or "" and b) either it's not a number or
@@ -193,7 +194,9 @@ class SiteResourceLimitsQuerySet(models.query.QuerySet):
         not necessarily mean that site has custom limits set.
 
         """
-        return self.filter(Q(cpus__isnull=False) | Q(cpus__gt=0) | ~Q(mem_limit=""))
+        return self.filter(
+            Q(cpus__isnull=False) | Q(cpus__gt=0) | ~Q(mem_limit="") | ~Q(client_body_limit="")
+        )
 
 
 class SiteResourceLimits(models.Model):
@@ -224,6 +227,21 @@ class SiteResourceLimits(models.Model):
                 message="Must be either 1) blank for the default limit or 2) a number followed by "
                 "one of the suffixes KiB, MiB, or GiB (powers of 1024) or KB, MB, GB (powers of "
                 "1000).",
+            ),
+        ],
+    )
+
+    # Client body (aka file upload) size limit
+    client_body_limit = models.CharField(
+        null=False,
+        blank=True,
+        default="",
+        max_length=10,
+        validators=[
+            RegexValidator(
+                regex=r"^(\d+[kKmM]?)?$",
+                message="Must be either 1) blank for the default limit or 2) a number, optionally "
+                "followed by one of the suffixes k/K or m/M.",
             ),
         ],
     )

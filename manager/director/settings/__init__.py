@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-from typing import Container, Iterable, List, Pattern
+from typing import Container, Iterable, List, Pattern, Union
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -293,6 +293,11 @@ DIRECTOR_DOCS_CACHE_TIMEOUT = 24 * 60 * 60
 DIRECTOR_RESOURCES_DEFAULT_CPUS: float = 0.6
 # Memory in bytes
 DIRECTOR_RESOURCES_DEFAULT_MEMORY_LIMIT: int = 100 * 1000 * 1000
+# Client body (aka file upload) size limit
+# This *can* be a string, in which case it will be sent directly to Nginx.
+# However, it's recommended to keep it as an int to lessen the possibility of
+# typos breaking sites.
+DIRECTOR_RESOURCES_DEFAULT_CLIENT_BODY_LIMIT: Union[int, str] = 2 * 1024 * 1024
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "mail.tjhsst.edu"

@@ -241,6 +241,20 @@ class SiteResourceLimitsForm(forms.Form):
         ],
     )
 
+    client_body_limit = forms.CharField(
+        required=False,
+        max_length=10,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+        help_text="Client body (aka file upload) size limit",
+        validators=[
+            validators.RegexValidator(
+                regex=r"^(\d+[kKmM]?)?$",
+                message="Must be either 1) blank for the default limit or 2) a number, optionally "
+                "followed by one of the suffixes k/K or m/M.",
+            ),
+        ],
+    )
+
     notes = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={"class": "form-control"}),

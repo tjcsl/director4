@@ -21,7 +21,7 @@ nginx_template = jinja_env.get_template("nginx.conf")
 def update_nginx_config(site_id: int, data: Dict[str, Any]) -> None:
     """Returns None on success or a message on failure."""
     new_data = {}
-    for key in ["name", "no_redirect_domains", "primary_url_base", "type"]:
+    for key in ["name", "no_redirect_domains", "primary_url_base", "type", "resource_limits"]:
         if key not in data:
             raise OrchestratorActionError("Missing key {!r}".format(key))
 
@@ -52,10 +52,14 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> None:
         ):
             raise OrchestratorActionError("Invalid 'no redirect' domain {!r}".format(domain))
 
+    if re.search(r"^\d+[kKmM]?$", new_data["resource_limits"]["client_body_limit"]) is None:
+        raise OrchestratorActionError("Invalid client body limit")
+
     variables = {
         "settings": settings,
         "id": site_id,
         "site_dir": get_site_directory_path(site_id),
+        "client_body_limit": new_data["resource_limits"]["client_body_limit"],
         **new_data,
     }
 

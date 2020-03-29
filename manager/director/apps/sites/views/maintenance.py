@@ -118,6 +118,7 @@ def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
                     site,
                     form.cleaned_data["cpus"],
                     form.cleaned_data["mem_limit"],
+                    form.cleaned_data["client_body_limit"],
                     form.cleaned_data["notes"],
                 )
 
@@ -131,6 +132,7 @@ def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
             initial_data = {
                 "cpus": site.resource_limits.cpus,
                 "mem_limit": site.resource_limits.mem_limit,
+                "client_body_limit": site.resource_limits.client_body_limit,
                 "notes": site.resource_limits.notes,
             }
 
