@@ -85,6 +85,10 @@ function SettingsPane(container, settings, updateCallback, resetLayout) {
             label: "Show hidden files",
             type: "checkbox",
         },
+        "editor-enable-multi-select": {
+            label: "Enable multiple cursors",
+            type: "checkbox",
+        },
     };
 
     function setInputValues() {

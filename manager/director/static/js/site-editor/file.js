@@ -148,6 +148,7 @@ function FileEditor(layoutContainer, load_endpoint, save_endpoint, fname) {
                 "enableBasicAutocompletion": true,
                 "enableLiveAutocompletion": settings["editor-live-autocompletion"],
                 "theme": settings["editor-theme"],
+                "enableMultiselect": settings["editor-enable-multi-select"],
             });
 
             editor.setKeyboardHandler(settings["editor-keybinding"]);

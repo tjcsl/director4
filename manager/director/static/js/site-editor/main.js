@@ -90,6 +90,7 @@ $(function() {
         "editor-keybinding": "",
         "editor-font-size": 16,
         "editor-live-autocompletion": true,
+        "editor-enable-multi-select": true,
         "terminal-font-size": 16,
     };
 
