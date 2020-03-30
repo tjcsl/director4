@@ -291,16 +291,32 @@ class DockerImage(models.Model):
     # Examples: legacy_director_dynamic, site_1
     # For non-custom images (parent images), these should always be ":latest" images.
     # Weird things will happen if they aren't.
-    name = models.CharField(max_length=32, blank=False, null=False, unique=True)
-
-    # Will be shown to the user.
-    friendly_name = models.CharField(
-        max_length=32, blank=True, null=True, unique=True, default=None,
+    name = models.CharField(
+        max_length=32,
+        blank=False,
+        null=False,
+        unique=True,
+        help_text='These should always be ":latest" or equivalent images. Weird things will '
+        "happen if they aren't. Warning: You cannot edit this field once the image has been "
+        "created. Allowing that would break a fundamental assumption of the image handling code.",
     )
 
-    # A general description of what is in the image, what it's useful for, etc.
-    # The user will see this when they select an image.
-    description = models.TextField(blank=True, null=False, default="")
+    friendly_name = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        unique=True,
+        default=None,
+        help_text="Will be shown to the user.",
+    )
+
+    description = models.TextField(
+        blank=True,
+        null=False,
+        default="",
+        help_text="A general description of what is in the image, what it's useful for, etc. The "
+        "user will see this when they select an image.",
+    )
 
     # True if created by a user, False if created by a Director admin
     is_custom = models.BooleanField(null=False)
@@ -324,22 +340,31 @@ class DockerImage(models.Model):
         "DockerImageSetupCommand", blank=True, related_name="docker_images"
     )
 
-    # If this is set, it will be run before installing packages. (but after running
-    # the DockerImageSetupCommands).
-    # This should be used to install basic dependencies. For example, in the Python
-    # images this should be used to install virtualenv.
-    # For something broader, like timezone setup on Alpine, use a
-    # DockerImageSetupCommand instead.
-    # Be careful about syntax errors; everything is "&&"-ed together.
-    base_install_command = models.TextField(blank=True, null=False, default="")
+    base_install_command = models.TextField(
+        blank=True,
+        null=False,
+        default="",
+        help_text="A command to run after the setup commands, but before custom packages are "
+        "installed. This should be used to install basic dependencies specific to this image; for "
+        "something broader (OS/language-specific), use a setup command instead. Be careful about "
+        "syntax errors; everything is '&&'-ed together.",
+    )
 
-    # This will be run with sh -c '<cmd> <pkgs>' where <cmd> is this command
-    # and <pkgs> is a space-separated list of packages.
-    install_command_prefix = models.TextField(blank=True, null=False, default="")
+    install_command_prefix = models.TextField(
+        blank=True,
+        null=False,
+        default="",
+        help_text="This is run with '<cmd> <pkgs>' where <cmd> is this command and <pkgs> is a "
+        "space-separated list of packages.",
+    )
 
-    # The user will have the option to copy this into their site's run.sh
-    # when they select a Docker image.
-    run_script_template = models.TextField(blank=True, null=False, default="")
+    run_script_template = models.TextField(
+        blank=True,
+        null=False,
+        default="",
+        help_text="The user will have the option to copy this into their site's run.sh when they "
+        "select a Docker image.",
+    )
 
     def get_full_install_command(self) -> Optional[str]:
         """Get the full command to install all of this site's packages, or None
