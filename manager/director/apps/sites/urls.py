@@ -72,4 +72,16 @@ site_patterns = [
     path("files/", include(file_patterns)),
 ]
 
-urlpatterns.extend([path("<int:site_id>/", include(site_patterns))])
+image_mgmt_patterns = [
+    path("", views.image_mgmt.home_view, name="home"),
+    path("create/", views.image_mgmt.create_view, name="create"),
+    path("<int:image_id>/edit/", views.image_mgmt.edit_view, name="edit"),
+    path("<int:image_id>/delete/", views.image_mgmt.delete_view, name="delete"),
+]
+
+urlpatterns.extend(
+    [
+        path("<int:site_id>/", include(site_patterns)),
+        path("image-mgmt/", include((image_mgmt_patterns, "image_mgmt"))),
+    ]
+)

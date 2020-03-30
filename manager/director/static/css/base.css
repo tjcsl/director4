@@ -163,3 +163,15 @@ ul.errorlist {
 body a.nav-warn:hover {
     color: white;
 }
+
+a.danger:link, a.danger:visited {
+    color: red;
+}
+
+a.danger:hover, a.danger:active {
+    color: #AA0000;
+}
+
+.monospace {
+    font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+}

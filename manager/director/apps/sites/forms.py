@@ -260,3 +260,43 @@ class SiteResourceLimitsForm(forms.Form):
         widget=forms.TextInput(attrs={"class": "form-control"}),
         help_text="Why is this site being given custom resource limits?",
     )
+
+
+class DockerImageForm(forms.ModelForm):
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+
+        if self.instance is not None and self.instance.id is not None:
+            self.fields["name"].disabled = True
+            self.fields["name"].help_text = "You cannot edit the names of existing images."
+
+    class Meta:
+        model = DockerImage
+
+        fields = [
+            "name",
+            "friendly_name",
+            "description",
+            "is_user_visible",
+            "setup_commands",
+            "base_install_command",
+            "install_command_prefix",
+            "run_script_template",
+        ]
+
+        labels = {"is_user_visible": "Visible to users?"}
+
+        help_texts = {
+            "is_user_visible": "If this is not set, users will not be able to select this image "
+            "for their sites.",
+        }
+
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "friendly_name": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control"}),
+            "setup_commands": forms.SelectMultiple(attrs={"class": "form-control"}),
+            "base_install_command": forms.TextInput(attrs={"class": "form-control"}),
+            "install_command_prefix": forms.TextInput(attrs={"class": "form-control"}),
+            "run_script_template": forms.Textarea(attrs={"class": "form-control monospace"}),
+        }

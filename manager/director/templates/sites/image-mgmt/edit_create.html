@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - {% if image %}Edit image {{ image.friendly_name }}{% else %}New image{% endif %}{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block main %}
+    {% if image %}
+    <h1>Edit {{ image.name }} ({{ image.friendly_name }})</h1>
+    {% else %}
+    <h1>New image</h1>
+    {% endif %}
+
+    {% url 'sites:image_mgmt:home' as form_back_url %}
+    {% include "table_form.html" with form_submit_text="Save" %}
+{% endblock %}

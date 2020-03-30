@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Image management{% endblock %}
+
+{% block head %}
+    <style>
+        .image .friendly-name {
+            font-weight: bold;
+        }
+
+        .image .name {
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <h1>Image management</h1>
+
+    <h3>Images</h3>
+
+    <ul id="images">
+        {% for image in images %}
+        <li class="image">
+            <span class="friendly-name">{{ image.friendly_name }}</span>
+            <span class="name">({{ image.name }})</span>
+            <a class="edit" href="{% url 'sites:image_mgmt:edit' image.id %}"><i class="fas fa-sm fa-pencil-alt"></i></a>
+            <a class="delete danger" href="{% url 'sites:image_mgmt:delete' image.id %}"><i class="far fa-sm fa-trash-alt"></i></a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <a class="btn btn-ion" href="{% url 'sites:image_mgmt:create' %}"><i class="fas fa-plus"></i> Add image</a>
+{% endblock %}
