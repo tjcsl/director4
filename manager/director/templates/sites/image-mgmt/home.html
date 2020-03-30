@@ -38,7 +38,7 @@
         {% endfor %}
     </ul>
 
-    <a class="btn btn-ion" href="{% url 'sites:image_mgmt:create' %}"><i class="fas fa-plus"></i> Add image</a>
+    <p><a class="btn btn-ion" href="{% url 'sites:image_mgmt:create' %}"><i class="fas fa-plus"></i> Add image</a></p>
 
     <h3>Setup commands</h3>
 
@@ -60,5 +60,5 @@
         {% endfor %}
     </table>
 
-    <a class="btn btn-ion" href="{% url 'sites:image_mgmt:setup_command_create' %}"><i class="fas fa-plus"></i> Add setup command</a>
+    <p><a class="btn btn-ion" href="{% url 'sites:image_mgmt:setup_command_create' %}"><i class="fas fa-plus"></i> Add setup command</a></p>
 {% endblock %}
