@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block titlesuffix %} - Delete setup command{% endblock %}
+
+{% block main %}
+
+{% if not command.docker_images.exists %}
+<h3>Confirm Setup command Deletion</h3>
+<p>Are you sure you want to remove the setup command <strong>{{ command.name }}</strong>?</p>
+
+<p>Command:</p>
+<pre><code>{{ command.command }}</code></pre>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="confirm">Enter the command name (<strong>{{ command.name }}</strong>) below to confirm:</label>
+        <input type="text" placeholder="Command Name" id="confirm" name="confirm" class="form-control" autofocus>
+    </div>
+    <a href="{% url 'sites:image_mgmt:home' %}" class="btn btn-ion"><i class="fa fa-undo-alt"></i> Back</a>
+    <button type="submit" class="btn btn-ion btn-danger"><i class="far fa-trash-alt"></i> Delete command</button>
+</form>
+{% else %}
+<p>The setup command <strong>{{ command.name }}</strong> is in use. You cannot delete it.</p>
+<p>The following images are using this setup command:</p>
+<ul>
+    {% for image in command.docker_images.all %}
+    <li>
+        {{ image.name }} ({{ image.friendly_name }})
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}
+

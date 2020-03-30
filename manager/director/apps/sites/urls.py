@@ -77,6 +77,21 @@ image_mgmt_patterns = [
     path("create/", views.image_mgmt.create_view, name="create"),
     path("<int:image_id>/edit/", views.image_mgmt.edit_view, name="edit"),
     path("<int:image_id>/delete/", views.image_mgmt.delete_view, name="delete"),
+    path(
+        "setup-commands/create/",
+        views.image_mgmt.setup_command_edit_create_view,
+        name="setup_command_create",
+    ),
+    path(
+        "setup-commands/<int:command_id>/edit/",
+        views.image_mgmt.setup_command_edit_create_view,
+        name="setup_command_edit",
+    ),
+    path(
+        "setup-commands/<int:command_id>/delete/",
+        views.image_mgmt.setup_command_delete_view,
+        name="setup_command_delete",
+    ),
 ]
 
 urlpatterns.extend(

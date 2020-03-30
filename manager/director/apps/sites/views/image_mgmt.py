@@ -1,13 +1,15 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from typing import Optional
+
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from ...auth.decorators import superuser_required
-from ..forms import DockerImageForm
-from ..models import DockerImage, Site
+from ..forms import DockerImageForm, DockerImageSetupCommandForm
+from ..models import DockerImage, DockerImageSetupCommand, Site
 
 # WARNING: Allowing non-superusers to access ANY of the views here presents a major security
 # vulnerability!
@@ -15,7 +17,10 @@ from ..models import DockerImage, Site
 
 @superuser_required
 def home_view(request: HttpRequest) -> HttpResponse:
-    context = {"images": DockerImage.objects.filter(is_custom=False)}
+    context = {
+        "images": DockerImage.objects.filter(is_custom=False),
+        "setup_commands": DockerImageSetupCommand.objects.all(),
+    }
 
     return render(request, "sites/image-mgmt/home.html", context)
 
@@ -73,3 +78,41 @@ def delete_view(request: HttpRequest, image_id: int) -> HttpResponse:
     context = {"image": image, "image_sites": image_sites}
 
     return render(request, "sites/image-mgmt/delete.html", context)
+
+
+@superuser_required
+def setup_command_edit_create_view(
+    request: HttpRequest, command_id: Optional[int] = None
+) -> HttpResponse:
+    command: Optional[DockerImageSetupCommand]
+    if command_id is not None:
+        command = get_object_or_404(DockerImageSetupCommand, id=command_id)
+    else:
+        command = None
+
+    if request.method == "POST":
+        form = DockerImageSetupCommandForm(request.POST, instance=command)
+        if form.is_valid():
+            form.save()
+            return redirect("sites:image_mgmt:home")
+    else:
+        form = DockerImageSetupCommandForm(instance=command)
+
+    context = {"command": command, "form": form}
+
+    return render(request, "sites/image-mgmt/setup_command_edit_create.html", context)
+
+
+@superuser_required
+def setup_command_delete_view(request: HttpRequest, command_id: int) -> HttpResponse:
+    command = get_object_or_404(DockerImageSetupCommand, id=command_id)
+
+    if request.method == "POST" and not command.docker_images.exists():
+        if request.POST["confirm"] == command.name:
+            command.delete()
+
+            return redirect("sites:image_mgmt:home")
+
+    context = {"command": command}
+
+    return render(request, "sites/image-mgmt/setup_command_delete.html", context)

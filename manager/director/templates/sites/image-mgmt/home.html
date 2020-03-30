@@ -4,12 +4,20 @@
 {% block titlesuffix %} - Image management{% endblock %}
 
 {% block head %}
+    <link rel="stylesheet" href="{% static 'vendor/highlight-js-9.18.1/styles/default.css' %}">
+    <script src="{% static 'vendor/highlight-js-9.18.1/highlight.pack.js' %}"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
     <style>
         .image .friendly-name {
             font-weight: bold;
         }
 
         .image .name {
+        }
+
+        #setup-commands th, #setup-commands td {
+            padding: 5px;
         }
     </style>
 {% endblock %}
@@ -31,4 +39,26 @@
     </ul>
 
     <a class="btn btn-ion" href="{% url 'sites:image_mgmt:create' %}"><i class="fas fa-plus"></i> Add image</a>
+
+    <h3>Setup commands</h3>
+
+    <table id="setup-commands" class="has-border">
+        <tr>
+            <th>Name</th>
+            <th>Command</th>
+            <th>&nbsp;</th>
+        </tr>
+        {% for setup_command in setup_commands %}
+        <tr>
+            <td>{{ setup_command.name }}</td>
+            <td><code>{{ setup_command.command }}</code></td>
+            <td style="min-width: 45px">
+                <a class="edit" href="{% url 'sites:image_mgmt:setup_command_edit' setup_command.id %}"><i class="fas fa-sm fa-pencil-alt"></i></a>
+                <a class="delete danger" href="{% url 'sites:image_mgmt:setup_command_delete' setup_command.id %}"><i class="far fa-sm fa-trash-alt"></i></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <a class="btn btn-ion" href="{% url 'sites:image_mgmt:setup_command_create' %}"><i class="fas fa-plus"></i> Add setup command</a>
 {% endblock %}

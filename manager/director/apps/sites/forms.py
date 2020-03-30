@@ -9,7 +9,13 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core import validators
 
-from .models import DatabaseHost, DockerImage, DockerImageExtraPackage, Site
+from .models import (
+    DatabaseHost,
+    DockerImage,
+    DockerImageExtraPackage,
+    DockerImageSetupCommand,
+    Site,
+)
 
 
 class SiteCreateForm(forms.ModelForm):
@@ -299,4 +305,17 @@ class DockerImageForm(forms.ModelForm):
             "base_install_command": forms.TextInput(attrs={"class": "form-control"}),
             "install_command_prefix": forms.TextInput(attrs={"class": "form-control"}),
             "run_script_template": forms.Textarea(attrs={"class": "form-control monospace"}),
+        }
+
+
+class DockerImageSetupCommandForm(forms.ModelForm):
+    class Meta:
+        model = DockerImageSetupCommand
+
+        fields = ["name", "command", "order"]
+
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "command": forms.TextInput(attrs={"class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control"}),
         }
