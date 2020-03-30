@@ -18,7 +18,7 @@ from ..models import DockerImage, DockerImageSetupCommand, Site
 @superuser_required
 def home_view(request: HttpRequest) -> HttpResponse:
     context = {
-        "images": DockerImage.objects.filter(is_custom=False),
+        "images": DockerImage.objects.filter(is_custom=False).order_by("friendly_name"),
         "setup_commands": DockerImageSetupCommand.objects.all(),
     }
 
