@@ -11,20 +11,20 @@ black = "==19.10b0"
 typed-ast = "~=1.4.1"  # Required by black, but Pipenv doesn't pull it in correctly on 3.8
 autopep8 = "~=1.5.0"
 pylint-django = "~=2.0.14"
-mypy = "~=0.761"
-django-stubs = "~=1.4.0"
+mypy = "~=0.770"
+django-stubs = "~=1.5.0"
 
 [packages]
-django = "~=2.2.10"
+django = "~=2.2.11"
 social-auth-app-django = "~=3.1.0"
 psycopg2 = "~=2.8.4"
 ipython = "~=7.13.0"
-django-extensions = "~=2.2.8"
+django-extensions = "~=2.2.9"
 channels = "~=2.4.0"
 daphne = "~=2.4.1"
-celery = "~=4.4.1"
+celery = "~=4.4.2"
 channels-redis = "~=2.4.2"
-importlib-metadata = {version = "~=1.5.0",markers = "python_version < '3.8'"}
+importlib-metadata = {version = "~=1.6.0",markers = "python_version < '3.8'"}
 websockets = "~=8.1"
 django-redis-cache = "~=2.1.0"
 markdown = "~=3.2.1"
