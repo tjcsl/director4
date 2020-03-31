@@ -194,6 +194,9 @@ def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]
         stderr=subprocess.PIPE,
     )
 
+    assert proc.stderr is not None
+    assert proc.stdout is not None
+
     line = proc.stderr.readline().strip()
     if line != b"OK":
         try:
@@ -261,6 +264,9 @@ def download_zip_site_dir(site_id: int, relpath: str) -> Generator[bytes, None, 
         stderr=subprocess.PIPE,
     )
 
+    assert proc.stderr is not None
+    assert proc.stdout is not None
+
     errors = ""
 
     selector = selectors.DefaultSelector()
@@ -308,6 +314,8 @@ def write_site_file(
     proc = run_helper_script_prog(
         args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
+
+    assert proc.stdin is not None
 
     if isinstance(data, bytes):
         proc.stdin.write(data)
