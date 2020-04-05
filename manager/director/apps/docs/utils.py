@@ -2,6 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import os
+import re
 import time
 import urllib.parse
 import xml.etree.ElementTree
@@ -171,11 +172,14 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
     return {}, None
 
 
+PAGE_TITLE_REPLACE_RE = re.compile(r"[/-]+")
+
+
 def get_page_title(page_name: str, metadata: Dict[str, Any]) -> str:
     if "title" in metadata:
         return " ".join(metadata["title"])
     elif page_name:
-        return page_name.rstrip("/").split("/")[-1].replace("-", " ").title()
+        return PAGE_TITLE_REPLACE_RE.sub(" ", page_name.strip("/-")).title()
     else:
         return "index"
 
