@@ -27,6 +27,7 @@ class SiteCreateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if not user.is_superuser:
+            # Non-superusers cannot edit the site purpose.
             try:
                 self.initial_purpose = self.get_initial_for_field(self.fields["purpose"], "purpose")
                 if self.initial_purpose is None:
@@ -39,6 +40,7 @@ class SiteCreateForm(forms.ModelForm):
             self.fields["purpose"].disabled = True
 
             if self.initial_purpose == "user":
+                # And for user-specific sites, they cannot edit the name or the user list.
                 self.fields["name"].initial = user.username
                 self.fields["name"].disabled = True
 
