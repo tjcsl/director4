@@ -6,17 +6,15 @@
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/site-list.css' %}">
     <script type="text/javascript" src="{% static 'js/site-list.js' %}"></script>
-    {% comment %}
-    <script type="text/javascript" src="{% static 'js/search.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/sites/tooltip.js' %}"></script>
-  {% endcomment %}
+
+    <link rel="stylesheet" href="{% static 'css/search-form.css' %}">
 {% endblock %}
 
 {% block navbar %}
     <li>
-        <form method="GET" action="{% url 'sites:index' %}" id="search-form">
-            <input type="text" name="q" placeholder="Search Sites" id="search-input" value="{{ query }}"><!--
-            --><button type="submit" id="search-button">
+        <form method="GET" action="{% url 'sites:index' %}" class="search-form">
+            <input type="text" name="q" placeholder="Search Sites" class="search-input" value="{{ query }}"><!--
+            --><button type="submit" class="search-button">
                 <i class="fas fa-search"></i>
             </button>
         </form>

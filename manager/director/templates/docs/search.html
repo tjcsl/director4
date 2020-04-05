@@ -4,22 +4,21 @@
 {% block titlesuffix %} - Search{% endblock %}
 
 {% block head %}
+    <link rel="stylesheet" href="{% static 'css/search-form.css' %}">
+
     <style>
-        #search-field {
-            display: inline;
-            width: initial;
+        .search-form {
+            padding: 10px;
+            padding-bottom: 15px;
         }
 
-        #search-submit {
-            border-top-left-radius: 0px;
-            border-top-right-radius: 5px;
-            border-bottom-left-radius: 0px;
-            border-bottom-right-radius: 5px;
+        .search-input {
+            border: 1px solid rgba(0, 0, 0, 0.3);
+        }
 
-            border-width: 0;
-            text-shadow: none;
-            box-shadow: none;
-            background-color: lightgray;
+        .search-button {
+            color: white;
+            background-color: rgba(0, 0, 0, 0.3);
         }
     </style>
 {% endblock %}
@@ -27,9 +26,9 @@
 {% block main %}
     <h1>Search</h1>
 
-    <form method="get" action="{% url 'docs:search' %}">
-        <input type="text" name="q" id="search-field" required value="{{ query }}"><!--
-        --><button type="submit" id="search-submit">
+    <form method="get" action="{% url 'docs:search' %}" class="search-form">
+        <input type="text" name="q" placeholder="Search documentation" class="search-input" required value="{{ query }}"><!--
+        --><button type="submit" class="search-button">
             <i class="fas fa-search"></i>
         </button>
     </form>

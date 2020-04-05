@@ -1,0 +1,26 @@
+.search-form {
+    display: inline-flex;
+}
+
+.search-input {
+    height: 24px;
+
+    padding: 1px 4px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 0px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 0px;
+}
+
+.search-button {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 4px;
+
+    border-width: 0;
+
+    height: 24px;
+    font-size: 13px;
+    line-height: 13px;
+}
