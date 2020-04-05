@@ -107,7 +107,6 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
     potential_paths = [
         base_path + ".md",
         os.path.join(base_path, "index.md"),
-        os.path.join(base_path, "README.md"),
     ]
 
     for path in potential_paths:
@@ -117,6 +116,11 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
 
         # Resolve symbolic links
         path = os.path.realpath(path)
+
+        # Don't render READMEs
+        fname = os.path.basename(path)
+        if fname == "README.md":
+            continue
 
         # And check that the path is still within the directory
         if os.path.commonpath([path, director_dir_clean]) != director_dir_clean:
@@ -196,26 +200,20 @@ def iter_page_names() -> Generator[str, None, None]:
             if not fname.endswith(".md"):
                 continue
 
+            if fname == "README.md":
+                continue
+
             page_name = os.path.join(short_root, fname[:-3])
 
-            if fname in ("index.md", "README.md"):
-                # Examples paths so far:
-                # - a/index.md
-                # - a/README.md
+            if fname == "index.md":
+                # Example path so far: a/index.md
 
                 # The "not in seen_files" trick here reduces the number of stat() calls,
                 # but it only works because we only check files in the current directory
                 # or parent directories (which we've seen because we're going top down).
                 if root.rstrip("/") + ".md" not in seen_files:
-                    # a.md does not exist
-                    if fname == "index.md":
-                        # a/index.md is second in line. We know a.md does not exist,
-                        # so if they go to /a, they will get this page.
-                        page_name = short_root.rstrip("/")
-                    elif fname == "README.md":
-                        if os.path.join(root, "index.md") not in seen_files:
-                            # Neither a.md nor a/index.md exists. a/README.md is
-                            # the final fallback, so it will be hit on requests to /a.
-                            page_name = short_root.rstrip("/")
+                    # a.md does not exist. So if they go to /a, they will get this page
+                    # (a/index.md).
+                    page_name = short_root.rstrip("/")
 
             yield page_name
