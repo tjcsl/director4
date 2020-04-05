@@ -35,8 +35,8 @@ class LinkRewritingTreeProcessor(markdown.treeprocessors.Treeprocessor):
                     # Extract the path for rewriting
                     path = parts.path
 
-                    # Strip trailing slashes
-                    path = path.rstrip("/")
+                    # Strip trailing slashes, then add one back
+                    path = path.rstrip("/") + "/"
 
                     # Remove .md suffixes
                     if path.endswith(".md"):
