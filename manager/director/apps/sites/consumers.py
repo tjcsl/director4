@@ -21,6 +21,8 @@ from .models import Database, Site
 
 
 class SiteConsumer(AsyncJsonWebsocketConsumer):
+    """A websocket consumer that sends information on the site."""
+
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.site: Optional[Site] = None
@@ -37,8 +39,12 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         try:
             self.site = await get_site_for_user(self.scope["user"], id=site_id)
         except Site.DoesNotExist:
+            # Site does not exist
             await self.accept()
 
+            # If connected=True and site=None, send_site_info() will send "null".
+            # This allows the page to recognize that the site doesn't exist and display the
+            # "site deleted" message.
             self.connected = True
             await self.send_site_info()
             self.connected = False
@@ -46,12 +52,14 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
             await self.close()
             return
 
+        # Listen for events on the site
         assert self.site is not None
         await self.channel_layer.group_add(
             self.site.channels_group_name, self.channel_name,
         )
 
         if self.site.type == "dynamic":
+            # For dynamic sites, watch for changes in the site status
             await self.open_status_websocket()
 
             if self.status_websocket is not None:
@@ -90,6 +98,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
     async def status_websocket_mainloop(self) -> None:
         assert self.status_websocket is not None
 
+        # Forward status messages to the client
         while True:
             try:
                 msg = await self.status_websocket.recv()
@@ -102,6 +111,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
                 await self.send_json({"site_status": json.loads(msg)},)
 
     async def disconnect(self, code: int) -> None:
+        # Clean up
         if self.site is not None:
             await self.channel_layer.group_discard(
                 self.site.channels_group_name, self.channel_name,
@@ -114,6 +124,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
             await self.status_websocket.close()
 
     async def receive_json(self, content: Any, **kwargs: Any) -> None:
+        # Ignore messages
         if self.connected:
             pass
 
@@ -127,6 +138,12 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
 
     @database_sync_to_async
     def dump_site_info(self) -> Union[Dict[str, Any], None, bool]:
+        # If this method returns:
+        # a dictionary: Everything is OK, this should be sent to the client.
+        # None: The site doesn't exist. Send this to the client so it knows.
+        # False: The site type has changed. Close the connection. When the client reopens the
+        #   connection, we can check the site type again and adapt to handle it.
+
         if self.site is None:
             return None
 
@@ -245,6 +262,16 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
     async def open_terminal_connection(self) -> None:
         assert self.site is not None
 
+        # This is a little tricky. We have two goals here:
+        # 1) Spread the load across the appservers, since opening a terminal container can be
+        #    resource-intensive.
+        # 2) Try to open all terminals for a given site on the same appserver so that we don't end
+        #    up opening duplicate terminals, which is wasteful.
+        # Here's how we satisfy both: We take a hash of the site ID + site name, modulus the number
+        # of appservers, and try to connect to that numbered appserver. If the conection fails, we
+        # move on to the next appserver (wrapping around, so if there are 3 appservers and we start
+        # with appserver 1, it will try 2 and then wrap around to 0).
+
         appserver_num = hash(str(self.site.id) + self.site.name) % settings.DIRECTOR_NUM_APPSERVERS
 
         orig_appserver_num = appserver_num
@@ -258,7 +285,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
                     timeout=1,
                 )
 
-                # We successfully connected; keep going
+                # We successfully connected; break
                 break
             except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
                 # Connection failure; try the next appserver
@@ -273,6 +300,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         try:
             assert self.terminal_websock is not None
 
+            # Send the site information so the appserver knows how to set everything up.
             await self.terminal_websock.send(
                 json.dumps(await database_sync_to_async(self.site.serialize_for_appserver)())
             )
@@ -283,6 +311,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
     async def mainloop(self) -> None:
         assert self.terminal_websock is not None
 
+        # Just forward messages through
         while True:
             try:
                 msg = await self.terminal_websock.recv()
@@ -296,6 +325,8 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
                 await self.send(text_data=msg)
 
     async def disconnect(self, code: int) -> None:  # pylint: disable=unused-argument
+        # Clean up
+
         self.site = None
         self.connected = False
 
@@ -306,6 +337,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
     async def receive(
         self, text_data: Optional[str] = None, bytes_data: Optional[bytes] = None
     ) -> None:
+        # Just forward messages through
         if self.connected and self.terminal_websock is not None:
             try:
                 if bytes_data is not None:
