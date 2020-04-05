@@ -35,16 +35,19 @@ class LinkRewritingTreeProcessor(markdown.treeprocessors.Treeprocessor):
                     # Extract the path for rewriting
                     path = parts.path
 
-                    # Strip trailing slashes, then add one back
-                    path = path.rstrip("/") + "/"
+                    # Strip trailing slashes
+                    path = path.rstrip("/")
 
                     # Remove .md suffixes
                     if path.endswith(".md"):
                         path = path[:-3]
 
-                    # Rewrite "/"-prefixed URLs to make them relative to the main docs app
                     if path.startswith("/"):
+                        # Rewrite "/"-prefixed URLs to make them relative to the main docs app
                         path = reverse("docs:doc_page", args=[path.lstrip("/")])
+                    else:
+                        # For other URLS, add a single trailing slash
+                        path += "/"
 
                     # Recombine and use the new path
                     new_parts = (parts.scheme, parts.netloc, path, parts.query, parts.fragment)
