@@ -171,7 +171,7 @@ def get_page_title(page_name: str, metadata: Dict[str, Any]) -> str:
     if "title" in metadata:
         return " ".join(metadata["title"])
     elif page_name:
-        return page_name.rstrip("/").split("/")[-1]
+        return page_name.rstrip("/").split("/")[-1].replace("-", " ").title()
     else:
         return "index"
 
