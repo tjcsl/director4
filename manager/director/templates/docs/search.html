@@ -36,12 +36,15 @@
     {% if results is not None %}
     <h2>Results</h2>
 
+    {% if results %}
+    <ul>
     {% for page_name, title, _ in results %}
-    <div>
-        <a href="{% if page_name %}{% url 'docs:doc_page' page_name %}{% else %}{% url 'docs:index' %}{% endif %}">{{ title }}</a>
-    </div>
-    {% empty %}
-    <p>No results found</p>
+        <li><a href="{% if page_name %}{% url 'docs:doc_page' page_name %}{% else %}{% url 'docs:index' %}{% endif %}">{{ title }}</a></li>
     {% endfor %}
+    </ul>
+    {% else %}
+    <p>No results found</p>
+    {% endif %}
+
     {% endif %}
 {% endblock %}
