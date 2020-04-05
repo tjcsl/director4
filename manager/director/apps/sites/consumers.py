@@ -108,7 +108,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
                 break
 
             if isinstance(msg, str):
-                await self.send_json({"site_status": json.loads(msg)},)
+                await self.send_json({"site_status": json.loads(msg)})
 
     async def disconnect(self, code: int) -> None:
         # Clean up
@@ -278,7 +278,8 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
 
         while True:
             try:
-                self.terminal_websock = await asyncio.wait_for(
+                # Try to open a connection.
+                terminal_websock = await asyncio.wait_for(
                     appserver_open_websocket(
                         appserver_num, "/ws/sites/{}/terminal".format(self.site.id)
                     ),
@@ -298,12 +299,15 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
                     return
 
         try:
-            assert self.terminal_websock is not None
-
             # Send the site information so the appserver knows how to set everything up.
-            await self.terminal_websock.send(
+            await terminal_websock.send(
                 json.dumps(await database_sync_to_async(self.site.serialize_for_appserver)())
             )
+
+            # We wait until here to assign it to self.terminal_websock. Otherwise the client
+            # could send JSON data really quickly and perhaps get that sent to the appserver
+            # instead of our data above.
+            self.terminal_websock = terminal_websock
         except (OSError, asyncio.TimeoutError, websockets.exceptions.WebSocketException):
             self.connected = False
             await self.close()
@@ -559,15 +563,17 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
     async def open_monitor_connection(self) -> None:
         for appserver_num in iter_random_pingable_appservers():
             try:
-                self.monitor_websock = await asyncio.wait_for(
+                monitor_websock = await asyncio.wait_for(
                     appserver_open_websocket(appserver_num, "/ws/sites/multi-status/"), timeout=1,
                 )
             except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
                 pass
             else:
-                assert self.monitor_websock is not None
-
-                await self.monitor_websock.send(json.dumps(self.site_ids))
+                await monitor_websock.send(json.dumps(self.site_ids))
+                # Don't assign to self.monitor_websock until we've sent the data, to prevent the
+                # client from sending JSON data before we do and getting theirs sent to the
+                # appserver first.
+                self.monitor_websock = monitor_websock
 
                 return
 
