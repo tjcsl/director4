@@ -15,7 +15,7 @@ mypy = "~=0.770"
 django-stubs = "~=1.5.0"
 
 [packages]
-django = "~=2.2.11"
+django = "~=2.2.12"
 social-auth-app-django = "~=3.1.0"
 psycopg2 = "~=2.8.4"
 ipython = "~=7.13.0"
