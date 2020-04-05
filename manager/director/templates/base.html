@@ -72,6 +72,14 @@
             {% if site %}
                 <li><i class="fas fa-chevron-right"></i></li>
                 <li><a class="nav-site-name" href="{% url 'sites:info' site.id %}">{{ site.name }}</a></li>
+            {% elif request.resolver_match.app_name == "docs" %}
+                <li><i class="fas fa-chevron-right"></i></li>
+                <li><a href="{% url 'docs:index' %}" class="pr-1">Docs</a></li>
+                {% if doc_page %}
+                <li><i class="fas fa-chevron-right pl-2"></i></li>
+                <li class="d-none d-sm-block"><a href="{% url 'docs:doc_page' doc_page %}">{{ title }}</a></li>
+                <li class="d-sm-none">...</li>
+                {% endif %}
             {% endif %}
             {% block navbar %}
             {% endblock %}

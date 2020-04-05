@@ -20,6 +20,7 @@ def doc_page_view(request: HttpRequest, page_name: str = "") -> HttpResponse:
         raise Http404
 
     context = {
+        "doc_page": page_name,
         "doc_content": text_html,
         "title": get_page_title(page_name, metadata),
     }
