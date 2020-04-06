@@ -2,6 +2,7 @@
 import io
 import os
 import re
+import shutil
 import tarfile
 import zipfile
 from typing import Dict, List, Optional, Union
@@ -553,6 +554,11 @@ for dependency in VENDORED_DEPENDENCIES:
 
     if download:
         dependency.download_version(latest_version, os.path.join(vendor_dir, dependency.name + "-" + latest_version))
+
+        # Remove old version
+        if dependency.name in old_dependencies:
+            print("Removing version " + old_dependencies[dependency.name])
+            shutil.rmtree(os.path.join(vendor_dir, dependency.name + "-" + old_dependencies[dependency.name]))
 
         prefix = "{% static 'vendor/" + dependency.name + "-"
 
