@@ -158,6 +158,8 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
                 ),
                 LinkRewritingExtension(),
             ],
+            tab_length=4,
+            output_format="html5",
         )
 
         text_html = markdown_converter.convert(text_md)
