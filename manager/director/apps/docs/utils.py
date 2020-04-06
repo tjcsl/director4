@@ -6,14 +6,64 @@ import re
 import time
 import urllib.parse
 import xml.etree.ElementTree
-from typing import Any, Dict, Generator, Optional, Set, Tuple
+from typing import Any, Dict, Generator, List, Optional, Set, Tuple
 
+import bleach
 import markdown
 import markdown.extensions.toc
 
 from django.conf import settings
 from django.core.cache import cache
 from django.urls import reverse
+
+# Based off of https://github.com/yourcelf/bleach-whitelist/blob/1b1d5bbced6fa9d5342380c68a57f63720a4d01b/bleach_whitelist/bleach_whitelist.py  # noqa # pylint: disable=line-too-long
+ALLOWED_TAGS = [
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "b",
+    "i",
+    "strong",
+    "em",
+    "tt",
+    "p",
+    "br",
+    "span",
+    "div",
+    "blockquote",
+    "code",
+    "hr",
+    "ul",
+    "ol",
+    "li",
+    "dd",
+    "dt",
+    "img",
+    "a",
+    "sub",
+    "sup",
+    "small",
+    "pre",
+]
+
+ALLOWED_ATTRS = {
+    "*": ["id"],
+    "img": ["src", "alt", "title"],
+    "a": ["href", "title"],
+}
+
+ALLOWED_STYLES: List[str] = []
+
+cleaner = bleach.sanitizer.Cleaner(
+    tags=ALLOWED_TAGS,
+    attributes=ALLOWED_ATTRS,
+    styles=ALLOWED_STYLES,
+    strip=True,
+    strip_comments=True,
+)
 
 
 class LinkRewritingTreeProcessor(markdown.treeprocessors.Treeprocessor):
@@ -162,7 +212,7 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
             output_format="html5",
         )
 
-        text_html = markdown_converter.convert(text_md)
+        text_html = cleaner.clean(markdown_converter.convert(text_md))
         metadata = markdown_converter.Meta  # pylint: disable=no-member
 
         # Save the data (and the modification time)

@@ -28,3 +28,4 @@ importlib-metadata = {version = "~=1.6.0",markers = "python_version < '3.8'"}
 websockets = "~=8.1"
 django-redis-cache = "~=2.1.0"
 markdown = "~=3.2.1"
+bleach = "~=3.1.3"
