@@ -9,6 +9,8 @@ app_name = "docs"
 
 urlpatterns = [
     path("", views.doc_page_view, name="index"),
+    path("-/search", views.search_view, name="search"),
     path("-/search/", views.search_view, name="search"),
-    path("<path:page_name>/", views.doc_page_view, name="doc_page"),
+    # This MUST NOT have a trailing slash
+    path("<path:url>", views.doc_page_view, name="doc_page"),
 ]

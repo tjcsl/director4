@@ -87,19 +87,25 @@ class LinkRewritingTreeProcessor(markdown.treeprocessors.Treeprocessor):
                 parts = urllib.parse.urlsplit(href)
 
                 # If it's not an external link, rewrite it
-                if not parts.netloc:
+                if not parts.netloc and parts.path:
                     # Extract the path for rewriting
                     path = parts.path
 
-                    # Strip trailing slashes
-                    path = path.rstrip("/")
+                    # *** WARNING WARNING WARNING ***
+                    # The URL manipulation here is closely tied to the setup in views.py.
+                    # Read the comments there for an explanation.
 
-                    # Remove .md suffixes
-                    if path.endswith(".md"):
-                        path = path[:-3]
+                    ext = os.path.splitext(path)[1]
+                    if not ext or ext == ".md":
+                        # If there's no file extension, or if it's a link to a markdown file
+                        if ext == ".md":
+                            # Remove .md suffixes
+                            path = path[:-3]
 
-                    # Add a trailing slash
-                    path += "/"
+                        # Ensure we have exactly one trailing slash
+                        path = path.rstrip("/") + "/"
+
+                    # For other files, do nothing. In particular, no extra trailing slash.
 
                     if not path.startswith("/"):
                         # Make the path absolute by combining with the previous page
@@ -111,7 +117,7 @@ class LinkRewritingTreeProcessor(markdown.treeprocessors.Treeprocessor):
                         path = os.path.join("/", parent_page, path)
 
                     # Make URLs relative to the main docs app
-                    path = reverse("docs:doc_page", args=[path.strip("/")])
+                    path = reverse("docs:doc_page", args=[path.lstrip("/")])
 
                     # Recombine and use the new path
                     new_parts = (parts.scheme, parts.netloc, path, parts.query, parts.fragment)
@@ -122,10 +128,36 @@ class LinkRewritingTreeProcessor(markdown.treeprocessors.Treeprocessor):
 
 class LinkRewritingExtension(markdown.extensions.Extension):
     def __init__(self, page: str) -> None:
+        super().__init__()
         self.page = page
 
     def extendMarkdown(self, md: markdown.Markdown) -> None:
         md.treeprocessors.register(LinkRewritingTreeProcessor(md, self.page), "link_rewriter", -100)
+
+
+def url_to_path(url: str) -> Optional[str]:
+    # We do some checks that should prevent ".." attacks later, but
+    # it's a good idea to check here too
+    if ".." in url.split("/"):
+        return None
+
+    url = url.rstrip("/")
+
+    director_docs_dir_clean = os.path.normpath(settings.DIRECTOR_DOCS_DIR)
+    base_path = os.path.normpath(os.path.join(director_docs_dir_clean, url))
+
+    # Sanity check 1: Make sure they aren't trying to address a file outside the
+    # directory.
+    if os.path.commonpath([base_path, director_docs_dir_clean]) != director_docs_dir_clean:
+        return None
+
+    # Sanity check 2: Don't allow loading hidden files.
+    # This implicitly blocks ".." as well.
+    for part in url.split("/"):
+        if part.startswith("."):
+            return None
+
+    return base_path
 
 
 def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
@@ -153,26 +185,11 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
 
     """
 
-    # We do some checks that should prevent ".." attacks later, but
-    # it's a good idea to check here too
-    if ".." in page.split("/"):
+    base_path = url_to_path(page)
+    if base_path is None:
         return {}, None
 
-    page = page.rstrip("/")
-
-    director_dir_clean = os.path.normpath(settings.DIRECTOR_DOCS_DIR)
-    base_path = os.path.normpath(os.path.join(director_dir_clean, page))
-
-    # Sanity check 1: Make sure they aren't trying to address a file outside the
-    # directory.
-    if os.path.commonpath([base_path, director_dir_clean]) != director_dir_clean:
-        return {}, None
-
-    # Sanity check 2: Don't allow loading hidden files.
-    # This implicitly blocks ".." as well.
-    for part in page.split("/"):
-        if part.startswith("."):
-            return {}, None
+    director_docs_dir_clean = os.path.normpath(settings.DIRECTOR_DOCS_DIR)
 
     # Render index.md within directories
     potential_paths = [
@@ -194,7 +211,7 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
             continue
 
         # And check that the path is still within the directory
-        if os.path.commonpath([path, director_dir_clean]) != director_dir_clean:
+        if os.path.commonpath([path, director_docs_dir_clean]) != director_docs_dir_clean:
             continue
 
         cache_name = "docs:" + path
@@ -247,6 +264,19 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
     return {}, None
 
 
+def find_static_file(url: str) -> Optional[str]:
+    base_path = url_to_path(url)
+    if base_path is None:
+        return None
+
+    director_docs_dir_clean = os.path.normpath(settings.DIRECTOR_DOCS_DIR)
+
+    if os.path.commonpath([base_path, director_docs_dir_clean]) != director_docs_dir_clean:
+        return None
+
+    return base_path
+
+
 PAGE_TITLE_REPLACE_RE = re.compile(r"[/-]+")
 
 
@@ -260,15 +290,15 @@ def get_page_title(page_name: str, metadata: Dict[str, Any]) -> str:
 
 
 def iter_page_names() -> Generator[str, None, None]:
-    director_dir_clean = os.path.normpath(settings.DIRECTOR_DOCS_DIR)
+    director_docs_dir_clean = os.path.normpath(settings.DIRECTOR_DOCS_DIR)
 
     seen_files: Set[str] = set()
     seen_dirs: Set[str] = set()
 
     # Some of the optimizations in here are dependent on the traversal order.
     # Keep topdown=True!
-    for root, dirs, files in os.walk(director_dir_clean, topdown=True):
-        short_root = os.path.relpath(root, director_dir_clean)
+    for root, dirs, files in os.walk(director_docs_dir_clean, topdown=True):
+        short_root = os.path.relpath(root, director_docs_dir_clean)
         if short_root == ".":
             short_root = ""
 
