@@ -30,7 +30,7 @@
         {% endif %}
         <a href="{% url 'sites:create' %}" class="float-right btn btn-ion"><i class="fas fa-plus"></i><span class="d-none d-md-inline"> Create</span> Site</a>
         {% if not request.user.is_superuser and not request.user.has_webdocs %}
-            <a href="{% url 'sites:create_webdocs' %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-user-plus"></i><span class="hidden-xs-down"> Create</span> Webdocs</a>
+            <a href="{% url 'sites:create_webdocs' %}" class="float-right btn btn-ion" style="margin-right:5px"><i class="fas fa-user-plus"></i><span class="d-none d-md-inline"> Create</span> Webdocs</a>
         {% endif %}
 
         {% if request.user.is_superuser %}
