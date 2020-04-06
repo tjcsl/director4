@@ -69,6 +69,10 @@ cleaner = bleach.sanitizer.Cleaner(
 
 
 class LinkRewritingTreeProcessor(markdown.treeprocessors.Treeprocessor):
+    def __init__(self, md: markdown.Markdown, page: str) -> None:
+        super().__init__(md)
+        self.page = page.strip("/")
+
     def run(self, root: xml.etree.ElementTree.Element) -> None:
         self.handle_element(root)
 
@@ -94,12 +98,20 @@ class LinkRewritingTreeProcessor(markdown.treeprocessors.Treeprocessor):
                     if path.endswith(".md"):
                         path = path[:-3]
 
-                    if path.startswith("/"):
-                        # Rewrite "/"-prefixed URLs to make them relative to the main docs app
-                        path = reverse("docs:doc_page", args=[path.lstrip("/")])
-                    else:
-                        # For other URLS, add a single trailing slash
-                        path += "/"
+                    # Add a trailing slash
+                    path += "/"
+
+                    if not path.startswith("/"):
+                        # Make the path absolute by combining with the previous page
+                        if "/" in self.page:
+                            parent_page = self.page.rsplit("/", 1)[0]
+                        else:
+                            parent_page = ""
+
+                        path = os.path.join("/", parent_page, path)
+
+                    # Make URLs relative to the main docs app
+                    path = reverse("docs:doc_page", args=[path.strip("/")])
 
                     # Recombine and use the new path
                     new_parts = (parts.scheme, parts.netloc, path, parts.query, parts.fragment)
@@ -109,8 +121,11 @@ class LinkRewritingTreeProcessor(markdown.treeprocessors.Treeprocessor):
 
 
 class LinkRewritingExtension(markdown.extensions.Extension):
+    def __init__(self, page: str) -> None:
+        self.page = page
+
     def extendMarkdown(self, md: markdown.Markdown) -> None:
-        md.treeprocessors.register(LinkRewritingTreeProcessor(md), "link_rewriter", -100)
+        md.treeprocessors.register(LinkRewritingTreeProcessor(md, self.page), "link_rewriter", -100)
 
 
 def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
@@ -161,11 +176,11 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
 
     # Render index.md within directories
     potential_paths = [
-        base_path + ".md",
-        os.path.join(base_path, "index.md"),
+        (base_path + ".md", ""),
+        (os.path.join(base_path, "index.md"), "index"),
     ]
 
-    for path in potential_paths:
+    for path, extra_part in potential_paths:
         # Check if the path exists first
         if not os.path.exists(path):
             continue
@@ -208,7 +223,10 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
                 markdown.extensions.toc.TocExtension(
                     permalink="", permalink_class="headerlink fa fa-link",
                 ),
-                LinkRewritingExtension(),
+                # We add on the "extra part" because if this was a file like /a/index.md,
+                # then links should be interpreted relative to /a.
+                # If it was just /a.md, they should be interpreted relative to /.
+                LinkRewritingExtension((page + "/" + extra_part).rstrip("/")),
             ],
             tab_length=4,
             output_format="html5",
