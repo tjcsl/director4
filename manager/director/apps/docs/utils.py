@@ -16,6 +16,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.urls import reverse
 
+UTILS_FILE_MTIME = os.path.getmtime(__file__)
+
 # Based off of https://github.com/yourcelf/bleach-whitelist/blob/1b1d5bbced6fa9d5342380c68a57f63720a4d01b/bleach_whitelist/bleach_whitelist.py  # noqa # pylint: disable=line-too-long
 ALLOWED_TAGS = [
     "h1",
@@ -188,8 +190,8 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
             # Get the file modification time
             file_mtime = os.path.getmtime(path)
 
-            # If the cache is newer than the file
-            if file_mtime < cache_creation_time:
+            # If the cache is newer than both the markdown file AND this file
+            if file_mtime < cache_creation_time and UTILS_FILE_MTIME < cache_creation_time:
                 return cached_meta, cached_text_html
 
         with open(path) as f_obj:
