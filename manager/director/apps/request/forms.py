@@ -17,8 +17,7 @@ class SiteRequestForm(forms.ModelForm):
     )
 
     student_agreement = forms.BooleanField(
-        required=True,
-        help_text=mark_safe(settings.DIRECTOR_SITE_STUDENT_AGREEMENT_HELP_TEXT),
+        required=True, help_text=mark_safe(settings.DIRECTOR_SITE_STUDENT_AGREEMENT_HELP_TEXT),
     )
 
     class Meta:
