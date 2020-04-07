@@ -10,7 +10,13 @@ from django.http import FileResponse, Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET
 
-from .utils import find_static_file, get_page_title, iter_page_names, load_doc_page
+from .utils import (
+    add_url_docs_prefix,
+    find_static_file,
+    get_page_title,
+    iter_page_names,
+    load_doc_page,
+)
 
 # *** WARNING WARNING WARNING: Read this carefully before making any URL routing changes ***
 # Here's how routing works.
@@ -40,7 +46,9 @@ from .utils import find_static_file, get_page_title, iter_page_names, load_doc_p
 
 @require_GET
 @login_required
-def doc_page_view(request: HttpRequest, url: str = "") -> Union[FileResponse, HttpResponse]:
+def doc_page_view(  # pylint: disable=too-many-return-statements
+    request: HttpRequest, url: str = "",
+) -> Union[FileResponse, HttpResponse]:
     ext = os.path.splitext(url)[1]  # This will be empty if the path ends with a "/"
 
     if ext == ".md":
@@ -72,7 +80,7 @@ def doc_page_view(request: HttpRequest, url: str = "") -> Union[FileResponse, Ht
         raise Http404
 
     if metadata.get("Redirect"):
-        return redirect("docs:doc_page", metadata.get("Redirect").lstrip("/"))
+        return redirect(add_url_docs_prefix(metadata["Redirect"][0]))
 
     # We know that the page exists. Now make sure the URL ends with a "/".
     if url and not url.endswith("/"):

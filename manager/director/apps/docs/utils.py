@@ -97,7 +97,9 @@ class LinkRewritingExtension(markdown.extensions.Extension):
         md.treeprocessors.register(LinkRewritingTreeProcessor(md, self.page), "link_rewriter", -100)
 
 
-def rewrite_markdown_link(*, link_url: str, base_page_name: str) -> str:
+def rewrite_markdown_link(
+    *, link_url: str, base_page_name: str, add_docs_prefix: bool = True
+) -> str:
     parts = urllib.parse.urlsplit(link_url)
 
     base_page_name = base_page_name.strip("/")
@@ -131,8 +133,9 @@ def rewrite_markdown_link(*, link_url: str, base_page_name: str) -> str:
 
             path = os.path.normpath(os.path.join("/", parent_page, path))
 
-        # Make URLs relative to the main docs app
-        path = reverse("docs:doc_page", args=[path.lstrip("/")])
+        if add_docs_prefix:
+            # Make URLs relative to the main docs app
+            path = add_url_docs_prefix(path)
 
         # Recombine and use the new path
         new_parts = (parts.scheme, parts.netloc, path, parts.query, parts.fragment)
@@ -167,7 +170,13 @@ def url_to_path(url: str) -> Optional[str]:
     return base_path
 
 
-def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
+def add_url_docs_prefix(url: str) -> str:
+    url = url.lstrip("/")
+
+    return reverse("docs:doc_page", args=[url]) if url else reverse("docs:index")
+
+
+def load_doc_page(page: str) -> Tuple[Dict[str, List[str]], Optional[str]]:
     """Given the name of a documentation page, this function finds the correct file within
     ``settings.DIRECTOR_DOCS_DIR``, extracts JSON-encoded metadata from a
     "<!-- META: ... -->" comment on the first line if it is present, and returns 1) the metadata
@@ -205,13 +214,18 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
     ]
 
     for path, extra_part in potential_paths:
+        # We add on the "extra part" because if this was a file like /a/index.md,
+        # then links should be interpreted relative to /a.
+        # If it was just /a.md, they should be interpreted relative to /.
+        base_page_name = (page + "/" + extra_part).rstrip("/")
+
         # Treat symlinks as redirects
         if os.path.islink(path):
             redirect_url = rewrite_markdown_link(
-                link_url=os.readlink(path), base_page_name=base_page_name,
+                link_url=os.readlink(path), base_page_name=base_page_name, add_docs_prefix=False,
             )
 
-            return {"Redirect": redirect_url}, ""
+            return {"Redirect": [redirect_url]}, ""
 
         # Check if the path exists first
         if not os.path.exists(path):
