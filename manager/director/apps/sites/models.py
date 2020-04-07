@@ -322,6 +322,13 @@ class DockerImage(models.Model):
         help_text="Will be shown to the user.",
     )
 
+    logo_url = models.URLField(
+        max_length=300,
+        blank=True,
+        null=False,
+        default="",
+    )
+
     description = models.TextField(
         blank=True,
         null=False,

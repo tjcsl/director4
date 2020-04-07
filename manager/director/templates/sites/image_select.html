@@ -43,7 +43,19 @@
             font-weight: bold;
         }
 
-        .has-run-script-template::after {
+        div.image-subwidget-container .logo {
+            width: 50px;
+            height: 50px;
+            margin-left: 20px;
+        }
+
+        div.image-subwidget-container.has-description .logo {
+            float: right;
+            width: 100px;
+            height: 100px;
+        }
+
+        .has-run-script-template label::after {
             color: gray;
             content: "Has run.sh template";
             padding-left: 5px;
@@ -60,8 +72,13 @@
         <span class="tbl-cell" style="vertical-align:top;padding:6px 5px 0px 0px; min-width: 150px">{{ field.label_tag }}</span>
         <div class="tbl-cell" style="padding-bottom:5px;padding-top:6px;">
             {% for subwidget, image_data in image_subwidgets_and_data %}
-            <div class="image-subwidget-container">
-                <div class="image-radio-container {% if image_data.has_run_sh_template %} has-run-script-template{% endif %}">{{ subwidget }}</div>
+            <div class="image-subwidget-container{% if image_data.description %} has-description{% endif %}">
+                <div class="image-radio-container {% if image_data.has_run_sh_template %} has-run-script-template{% endif %}">
+                    {{ subwidget }}
+                </div>
+                {% if image_data.logo_url %}
+                    <img src="{{ image_data.logo_url }}" alt="" class="logo">
+                {% endif %}
                 {% if image_data.description %}
                 <div style="margin-left: 1.1em">{{ image_data.description|linebreaks }}</div>
                 {% endif %}

@@ -252,6 +252,7 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
             image_data = {
                 "has_run_sh_template": bool(image.run_script_template),
                 "description": image.description,
+                "logo_url": image.logo_url,
             }
 
         image_subwidgets_and_data.append((subwidget, image_data))
