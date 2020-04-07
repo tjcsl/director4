@@ -65,6 +65,12 @@ function FilesPane(container, uri, callbacks) {
             return;
         }
 
+        if(data.fname) {
+            // Trim trailing slashes
+            // They cause all kinds of trouble
+            data.fname = data.fname.replace(/\/+$/, "");
+        }
+
         switch(data.event) {
             case "create":
                 self.addItem(data);
