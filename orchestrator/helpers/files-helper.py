@@ -483,7 +483,7 @@ def monitor_cmd(site_directory: str) -> None:
                         }
                     elif (
                         event.mask & inotify_simple.flags.CREATE  # Subfile created
-                        or event.mask & inotify_simple.flags.MOVED_TO,  # Subfile moved here
+                        or event.mask & inotify_simple.flags.MOVED_TO  # Subfile moved here
                     ):
                         event_info = construct_file_event_dict(fname)
                         event_info["event"] = "create"
