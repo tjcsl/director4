@@ -201,10 +201,6 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
     ]
 
     for path, extra_part in potential_paths:
-        # Check if the path exists first
-        if not os.path.exists(path):
-            continue
-
         # Treat symlinks as redirects
         if os.path.islink(path):
             redirect_url = rewrite_markdown_link(
@@ -212,6 +208,10 @@ def load_doc_page(page: str) -> Tuple[Dict[str, Any], Optional[str]]:
             )
 
             return {"Redirect": redirect_url}, ""
+
+        # Check if the path exists first
+        if not os.path.exists(path):
+            continue
 
         # Resolve symbolic links
         path = os.path.realpath(path)
