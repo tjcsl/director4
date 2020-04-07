@@ -11,7 +11,7 @@
             var run_sh_pre = $("<pre>").appendTo($("<code>").appendTo($("#id_write_run_sh_file").closest(".tbl-cell")));
 
             function updateRunSh() {
-                var has_run_sh = $("input[name='image']:checked").closest(".image-radio-container").hasClass("has-run-script-template");
+                var has_run_sh = $("input[name='image']:checked").closest(".image").hasClass("has-run-script-template");
                 $("#id_write_run_sh_file").prop("disabled", !has_run_sh);
 
                 var selected_image = $("input[name='image']:checked").val();
@@ -33,39 +33,80 @@
     </script>
 
     <style>
-        div.image-subwidget-container {
-            margin-bottom: 5px;
+        .image-container {
+            padding: 10px;
+            margin: 0;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        div.image-subwidget-container label {
-            margin-bottom: 0;
+        .image {
+            margin: 0 auto;
+            padding: 10px;
 
+            height: 100%;
+            width: 100%;
+            max-width: 500px;
+            min-width: 200px;
+            min-height: 150px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            align-items: center;
+            text-align: center;
+
+            background-color: white;
+        }
+
+        .image .name {
             font-weight: bold;
         }
 
-        div.image-subwidget-container .logo {
-            max-width: 50px;
-            max-height: 50px;
-            width: auto;
-            height: auto;
-            min-width: 40px;
-
-            margin-left: 20px;
-        }
-
-        div.image-subwidget-container.has-description .logo {
+        .image .logo {
             max-width: 100px;
             max-height: 100px;
+            width: auto;
+            height: auto;
             min-width: 70px;
-
-            float: right;
         }
 
-        .has-run-script-template label::after {
+        .image.has-run-script-template div.name-container::after {
             color: gray;
-            content: "Has run.sh template";
-            padding-left: 5px;
             font-style: italic;
+            content: "\AHas run.sh template";
+            white-space: pre-wrap;
+        }
+
+        .image .description p:not(:first-child):not(.show):not(.collapsing) {
+            display: none;
+        }
+
+        .image .description p {
+            margin-bottom: .5rem;
+        }
+        .image .description p:last-child {
+            margin-bottom: 0;
+        }
+
+        .image .collapse-button {
+            font-size: 80%;
+
+            border-radius: 4px;
+            border: none;
+            padding: 4px 6px;
+
+            background-color: transparent;
+            color: gray;
+        }
+
+        .image .collapse-button::before {
+            content: "Collapse";
+        }
+        .image .collapse-button.collapsed::before {
+            content: "Expand";
         }
     </style>
 {% endblock %}
@@ -73,29 +114,30 @@
 {% block main %}
     {% include "table_form_header.html" with form=form form_submit_text="Save image" %}
 
+    </div>
+
     {% with field=form.image %}
-    <div class="tbl-row">
-        <span class="tbl-cell" style="vertical-align:top;padding:6px 5px 0px 0px; min-width: 150px">{{ field.label_tag }}</span>
-        <div class="tbl-cell" style="padding-bottom:5px;padding-top:6px;">
-            {% for subwidget, image_data in image_subwidgets_and_data %}
-            <div class="image-subwidget-container{% if image_data.description %} has-description{% endif %}">
-                <div class="image-radio-container {% if image_data.has_run_sh_template %} has-run-script-template{% endif %}">
-                    {{ subwidget }}
-                </div>
-                {% if image_data.logo_url %}
-                    <img src="{{ image_data.logo_url }}" alt="" class="logo">
+    {{ field.errors }}
+    <div class="row m-0">
+        {% for subwidget, image in image_subwidgets_and_objs %}
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3 image-container">
+            <label for="id_image_{{ subwidget.data.index }}" class="image{% if image.description %} has-description{% endif %}{% if image.run_script_template %} has-run-script-template{% endif %}" id="image-{{ subwidget.data.index }}">
+                <div class="name-container">{{ subwidget.tag }} <span class="name">{{ image.friendly_name }}</span></div>
+                {% if image.logo_url %}
+                    <img src="{{ image.logo_url }}" alt="" class="logo"><br>
                 {% endif %}
-                {% if image_data.description %}
-                <div style="margin-left: 1.1em">{{ image_data.description|linebreaks }}</div>
+                {% if image.description %}
+                <div class="description">{{ image.description|linebreaks }}</div>
+                <button class="collapse-button collapsed" type="button" data-toggle="collapse" data-target="#image-{{ subwidget.data.index }} .description p:not(:first-child)">
+                </button>
                 {% endif %}
-            </div>
-            {% endfor %}
-            {{ field.errors }}
-            {% if field.help_text %}<br>{{ field.help_text }}{% endif %}
+            </label>
         </div>
+        {% endfor %}
     </div>
     {% endwith %}
 
+    <div class="tbl">
     {% for field in form %}
     {% if field.name != "image" %}
     {% include "table_form_row.html" with form_field=field %}

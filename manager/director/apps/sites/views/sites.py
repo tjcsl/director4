@@ -240,27 +240,21 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
             }
         )
 
-    image_subwidgets_and_data = []
+    image_subwidgets_and_objs = []
     for subwidget in form["image"].subwidgets:  # type: ignore
         try:
             image = DockerImage.objects.filter_user_visible().get(  # type: ignore
                 name=subwidget.data["value"]
             )
         except DockerImage.DoesNotExist:
-            image_data = {}
-        else:
-            image_data = {
-                "has_run_sh_template": bool(image.run_script_template),
-                "description": image.description,
-                "logo_url": image.logo_url,
-            }
+            image = None
 
-        image_subwidgets_and_data.append((subwidget, image_data))
+        image_subwidgets_and_objs.append((subwidget, image))
 
     context = {
         "site": site,
         "form": form,
-        "image_subwidgets_and_data": image_subwidgets_and_data,
+        "image_subwidgets_and_objs": image_subwidgets_and_objs,
         "image_json": json.dumps(
             {
                 image.name: {
