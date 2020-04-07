@@ -302,7 +302,7 @@ class DockerImage(models.Model):
     )
 
     friendly_name = models.CharField(
-        max_length=32,
+        max_length=50,
         blank=True,
         null=True,
         unique=True,
@@ -436,7 +436,7 @@ class DockerImageSetupCommand(models.Model):
     name = models.CharField(
         null=False,
         blank=False,
-        max_length=32,
+        max_length=50,
         help_text="A short name describing what the command does. If the command is "
         "OS/language-specific, please use prefixes like this for consistency:"
         "'[OS:Alpine] Fix timezone setup', '[Lang:Python] Install virtualenv with Pip'",
