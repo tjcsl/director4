@@ -16,6 +16,7 @@ def send_email(
     context: Mapping[str, Any],
     subject: str,
     emails: Sequence[str],
+    bcc: bool,
 ) -> None:
     text_plain = get_template(text_template).render(context)
     text_html = get_template(html_template).render(context)
@@ -32,18 +33,27 @@ def send_email(
                     text_plain=text_plain,
                     text_html=text_html,
                     emails=list(emails),
+                    bcc=bcc,
                 )
 
 
 @shared_task
-def _raw_send_email(subject: str, text_html: str, text_plain: str, emails: Sequence[str]) -> None:
-    msg = EmailMultiAlternatives(
-        subject=settings.EMAIL_SUBJECT_PREFIX + subject,
-        body=text_plain,
-        from_email=settings.EMAIL_FROM,
-        to=emails,
-        reply_to=[settings.DIRECTOR_CONTACT_EMAIL],
-    )
+def _raw_send_email(
+    subject: str, text_html: str, text_plain: str, emails: Sequence[str], bcc: bool
+) -> None:
+    kwargs = {
+        "subject": settings.EMAIL_SUBJECT_PREFIX + subject,
+        "body": text_plain,
+        "from_email": settings.EMAIL_FROM,
+        "reply_to": [settings.DIRECTOR_CONTACT_EMAIL],
+    }
+
+    if bcc:
+        kwargs["bcc"] = emails
+    else:
+        kwargs["to"] = emails
+
+    msg = EmailMultiAlternatives(**kwargs)
     msg.attach_alternative(text_html, "text/html")
 
     msg.send()

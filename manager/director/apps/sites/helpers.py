@@ -180,4 +180,5 @@ def send_new_site_email(*, user: Any, site: Site) -> None:
         context={"site": site, "DJANGO_SETTINGS": settings},
         subject="You've been added to a new website!",
         emails=[user.email],
+        bcc=False,
     )

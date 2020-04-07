@@ -46,6 +46,7 @@ def approve_teacher_view(request: HttpRequest) -> HttpResponse:
                         context={"site_request": site_request, "DJANGO_SETTINGS": settings},
                         subject="A website request has been approved",
                         emails=[settings.DIRECTOR_CONTACT_EMAIL],
+                        bcc=False,
                     )
 
                     messages.success(
@@ -143,6 +144,7 @@ def create_view(request: HttpRequest) -> HttpResponse:
                 context={"site_request": site_request, "DJANGO_SETTINGS": settings},
                 subject="A website request needs your approval",
                 emails=[site_request.teacher.email],
+                bcc=False,
             )
 
             messages.success(request, "Website request created!")
