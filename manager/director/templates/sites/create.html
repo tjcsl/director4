@@ -41,14 +41,22 @@
         {% csrf_token %}
         {% for field in form %}
         <div class="control-group">
+        {% if field.name == "student_agreement" %}
+            <p><a href="#" data-toggle="modal" data-target="#guidelines-modal">TJHSST Website Guidelines</a></p>
+            {{ field }}
+            <label for="id_{{ field.name }}">{{ field.help_text }}</label>
+        {% else %}
             <label for="id_{{ field.name }}">{{ field.label }}</label>
             {{ field }}
             {{ field.errors }}
             {% if field.help_text %}
             <p class="help-text">{{ field.help_text }}</p>
             {% endif %}
+        {% endif %}
         </div>
         {% endfor %}
         <input type="submit" value="Create site" class="btn btn-ion">
     </form>
+
+    {% include "guidelines_modal.html" %}
 {% endblock %}

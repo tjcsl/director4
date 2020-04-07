@@ -23,6 +23,16 @@ class SiteCreateForm(forms.ModelForm):
         required=False, queryset=get_user_model().objects.filter(is_service=False)
     )
 
+    student_agreement = forms.BooleanField(
+        required=True,
+        help_text="I have read, understood, and agree to abide by the rules outlined in the "
+        "Computer Systems Lab Policy, the TJHSST World-Wide Website Guidelines, the FCPS "
+        "Acceptable Use Policy, and the FCPS Student Rights and Responsibilities. I understand "
+        "that the above services may be revoked at any time and other disciplinary actions may "
+        "occur if I directly or indirectly violate any guidelines as outlined in the above "
+        "policies.",
+    )
+
     def __init__(self, *args: Any, user: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
 
