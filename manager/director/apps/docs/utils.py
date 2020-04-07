@@ -14,7 +14,6 @@ import markdown.extensions.toc
 
 from django.conf import settings
 from django.core.cache import cache
-from django.urls import reverse
 
 UTILS_FILE_MTIME = os.path.getmtime(__file__)
 
