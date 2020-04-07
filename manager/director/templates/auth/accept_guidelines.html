@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block titlesuffix %}: Accept guidelines {% endblock %}
+
+{% block main %}
+    <h1>To log into Director, you must accept the TJHSST Website Guidelines</h1>
+
+    {% include "guidelines.html" %}
+
+    <form method="POST" action="{% url 'auth:accept_guidelines' %}">
+        {% csrf_token %}
+        <input type="checkbox" name="accepted" id="accepted-input" required> <label for="accepted-input">I accept the TJHSST Website Guidelines</label><br>
+        <input type="submit" value="Proceed">
+    </form>
+{% endblock %}

@@ -14,6 +14,7 @@ from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 
 from ....utils.pagination import paginate
+from ...auth.decorators import require_accept_guidelines
 from .. import operations
 from ..forms import ImageSelectForm, SiteCreateForm
 from ..helpers import send_new_site_email
@@ -23,6 +24,7 @@ SEARCH_QUERY_SPLIT_REGEX = re.compile(r"(^\s*|(?<=\s))(?P<word>(\S|'[^']'|\"[^\"
 
 
 @login_required
+@require_accept_guidelines
 def index_view(request: HttpRequest) -> HttpResponse:
     query = request.GET.get("q", "").strip()
 
@@ -116,6 +118,7 @@ def index_view(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def terminal_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -127,6 +130,7 @@ def terminal_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def regen_nginx_config_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -141,6 +145,7 @@ def regen_nginx_config_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def create_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = SiteCreateForm(request.POST, user=request.user)
@@ -166,6 +171,7 @@ def create_view(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def create_webdocs_view(request: HttpRequest) -> HttpResponse:
     if request.user.is_superuser:
         return redirect("sites:create")
@@ -195,6 +201,7 @@ def create_webdocs_view(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -203,6 +210,7 @@ def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -267,6 +275,7 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @require_POST
 @login_required
+@require_accept_guidelines
 def regenerate_secrets_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -281,6 +290,7 @@ def regenerate_secrets_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @require_POST
 @login_required
+@require_accept_guidelines
 def restart_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -295,6 +305,7 @@ def restart_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @require_POST
 @login_required
+@require_accept_guidelines
 def restart_raw_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -307,6 +318,7 @@ def restart_raw_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def delete_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 

@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from ...auth.decorators import require_accept_guidelines
 from .. import operations
 from ..forms import DomainFormSet, SiteMetaForm, SiteNamesForm, SiteTypeForm
 from ..helpers import send_new_site_email, send_site_updated_message
@@ -13,6 +14,7 @@ from ..models import Domain, Site
 
 
 @login_required
+@require_accept_guidelines
 def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -30,6 +32,7 @@ def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -57,6 +60,7 @@ def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -110,6 +114,7 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def edit_type_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 

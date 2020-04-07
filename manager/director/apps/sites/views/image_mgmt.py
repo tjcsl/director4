@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from ...auth.decorators import superuser_required
+from ...auth.decorators import require_accept_guidelines, superuser_required
 from ..forms import DockerImageForm, DockerImageSetupCommandForm
 from ..models import DockerImage, DockerImageSetupCommand, Site
 
@@ -16,6 +16,7 @@ from ..models import DockerImage, DockerImageSetupCommand, Site
 
 
 @superuser_required
+@require_accept_guidelines
 def home_view(request: HttpRequest) -> HttpResponse:
     context = {
         "images": DockerImage.objects.filter(is_custom=False).order_by("friendly_name"),
@@ -26,6 +27,7 @@ def home_view(request: HttpRequest) -> HttpResponse:
 
 
 @superuser_required
+@require_accept_guidelines
 def create_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = DockerImageForm(request.POST)
@@ -45,6 +47,7 @@ def create_view(request: HttpRequest) -> HttpResponse:
 
 
 @superuser_required
+@require_accept_guidelines
 def edit_view(request: HttpRequest, image_id: int) -> HttpResponse:
     image = get_object_or_404(DockerImage, is_custom=False, id=image_id)
 
@@ -62,6 +65,7 @@ def edit_view(request: HttpRequest, image_id: int) -> HttpResponse:
 
 
 @superuser_required
+@require_accept_guidelines
 def delete_view(request: HttpRequest, image_id: int) -> HttpResponse:
     image = get_object_or_404(DockerImage, is_custom=False, id=image_id)
 
@@ -81,6 +85,7 @@ def delete_view(request: HttpRequest, image_id: int) -> HttpResponse:
 
 
 @superuser_required
+@require_accept_guidelines
 def setup_command_edit_create_view(
     request: HttpRequest, command_id: Optional[int] = None
 ) -> HttpResponse:
@@ -104,6 +109,7 @@ def setup_command_edit_create_view(
 
 
 @superuser_required
+@require_accept_guidelines
 def setup_command_delete_view(request: HttpRequest, command_id: int) -> HttpResponse:
     command = get_object_or_404(DockerImageSetupCommand, id=command_id)
 

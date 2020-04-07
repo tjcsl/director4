@@ -14,11 +14,13 @@ from ....utils.appserver import (
     appserver_open_http_request,
     iter_random_pingable_appservers,
 )
+from ...auth.decorators import require_accept_guidelines, require_accept_guidelines_no_redirect
 from ..models import Site
 
 
 @require_GET
 @login_required
+@require_accept_guidelines
 def editor_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -31,6 +33,7 @@ def editor_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @require_GET
 @login_required
+@require_accept_guidelines_no_redirect
 def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, StreamingHttpResponse]:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -72,6 +75,7 @@ def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, Str
 
 @require_GET
 @login_required
+@require_accept_guidelines_no_redirect
 def download_zip_view(
     request: HttpRequest, site_id: int
 ) -> Union[HttpResponse, StreamingHttpResponse]:
@@ -116,6 +120,7 @@ def download_zip_view(
 
 @require_POST
 @login_required
+@require_accept_guidelines_no_redirect
 def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -167,6 +172,7 @@ def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @require_POST
 @login_required
+@require_accept_guidelines_no_redirect
 def create_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -198,6 +204,7 @@ def create_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @require_POST
 @login_required
+@require_accept_guidelines_no_redirect
 def remove_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -227,6 +234,7 @@ def remove_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @require_POST
 @login_required
+@require_accept_guidelines_no_redirect
 def remove_directory_recur_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -256,6 +264,7 @@ def remove_directory_recur_view(request: HttpRequest, site_id: int) -> HttpRespo
 
 @require_POST
 @login_required
+@require_accept_guidelines_no_redirect
 def make_directory_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -287,6 +296,7 @@ def make_directory_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @require_POST
 @login_required
+@require_accept_guidelines_no_redirect
 def chmod_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -319,6 +329,7 @@ def chmod_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 @require_POST
 @login_required
+@require_accept_guidelines_no_redirect
 def rename_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 

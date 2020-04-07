@@ -38,6 +38,8 @@ class User(AbstractBaseUser):
 
     date_joined = models.DateTimeField(auto_now_add=True)
 
+    accepted_guidelines = models.BooleanField(default=False, null=False)
+
     def has_perm(self, perm: str, obj: Any = None) -> bool:  # pylint: disable=unused-argument
         return self.is_superuser
 

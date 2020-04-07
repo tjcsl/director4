@@ -6,7 +6,11 @@ from django.contrib import messages
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 
-from ...auth.decorators import superuser_required
+from ...auth.decorators import (
+    require_accept_guidelines,
+    require_accept_guidelines_no_redirect,
+    superuser_required,
+)
 from .. import operations
 from ..forms import SiteResourceLimitsForm
 from ..models import Action, Operation, Site, SiteResourceLimits
@@ -15,6 +19,7 @@ from ..models import Action, Operation, Site, SiteResourceLimits
 # vulnerability!
 
 
+@require_accept_guidelines_no_redirect
 def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
     remote_addr = (
         request.META["HTTP_X_REAL_IP"]
@@ -35,11 +40,13 @@ def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
 
 
 @superuser_required
+@require_accept_guidelines
 def management_view(request: HttpRequest) -> HttpResponse:
     return render(request, "sites/management/management.html")
 
 
 @superuser_required
+@require_accept_guidelines
 def operations_view(request: HttpRequest) -> HttpResponse:
     if request.GET.get("failed"):
         title = "Failed Operations"
@@ -60,6 +67,7 @@ def operations_view(request: HttpRequest) -> HttpResponse:
 
 
 @superuser_required
+@require_accept_guidelines
 def operation_delete_fix_view(request: HttpRequest, operation_id: int) -> HttpResponse:
     operation = Operation.objects.get(id=operation_id)
     site = operation.site
@@ -76,6 +84,7 @@ def operation_delete_fix_view(request: HttpRequest, operation_id: int) -> HttpRe
 
 
 @superuser_required
+@require_accept_guidelines
 def custom_resource_limits_list_view(request: HttpRequest) -> HttpResponse:
     sites_with_custom_limits = SiteResourceLimits.objects.filter_has_custom_limits()  # type: ignore
 
@@ -90,6 +99,7 @@ def custom_resource_limits_list_view(request: HttpRequest) -> HttpResponse:
 
 
 @superuser_required
+@require_accept_guidelines
 def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = Site.objects.get(id=site_id)
 

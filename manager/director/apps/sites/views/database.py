@@ -9,12 +9,14 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from ....utils.appserver import appserver_open_http_request, iter_random_pingable_appservers
+from ...auth.decorators import require_accept_guidelines
 from .. import operations
 from ..forms import DatabaseCreateForm
 from ..models import Site
 
 
 @login_required
+@require_accept_guidelines
 def create_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -37,6 +39,7 @@ def create_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def delete_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
@@ -53,6 +56,7 @@ def delete_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
 
 @login_required
+@require_accept_guidelines
 def database_shell_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
