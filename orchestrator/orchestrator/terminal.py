@@ -11,6 +11,7 @@ from docker.models.containers import Container
 
 from . import settings
 from .docker import containers
+from .docker.shared import gen_director_container_env
 from .utils import run_in_executor
 
 
@@ -103,9 +104,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
                     self.client, self.container_name, run_params=run_params,
                 )
 
-        env = {}
-        if self.site_data.get("database_url"):
-            env["DATABASE_URL"] = self.site_data["database_url"]
+        env = gen_director_container_env(self.client, self.site_id, self.site_data)
 
         args = ["sh", "-c", "if [ -x /bin/bash ]; then exec bash; fi; exec sh"]
 

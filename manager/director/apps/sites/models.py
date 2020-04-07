@@ -117,7 +117,19 @@ class Site(models.Model):
             "type": self.type,
             "no_redirect_domains": list({split_domain(url) for url in self.list_urls()}),
             "primary_url_base": main_url,
-            "database_url": (self.database.db_url if self.database is not None else None),
+            "database_info": (
+                {
+                    "url": self.database.db_url,
+                    "type": self.database.db_type,
+                    "host": self.database.db_host,
+                    "port": self.database.db_port,
+                    "name": self.database.db_name,
+                    "username": self.database.username,
+                    "password": self.database.password,
+                }
+                if self.database is not None
+                else None
+            ),
             "docker_image": self.docker_image.serialize_for_appserver(),
             "resource_limits": self.serialize_resource_limits(),
         }
