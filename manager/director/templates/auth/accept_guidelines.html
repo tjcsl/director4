@@ -2,14 +2,47 @@
 
 {% block titlesuffix %}: Accept guidelines {% endblock %}
 
+{% block head %}
+    <style>
+        #accept-form {
+            background-color: #e8e8e8;
+
+            overflow: auto;
+
+            height: 100px;
+        }
+
+        #guidelines {
+            margin-bottom: 100px;
+        }
+
+        #guidelines > p:last-child {
+            margin-bottom: 0;
+        }
+
+        @media(max-width: 500px) {
+            #accept-form {
+                height: 120px;
+            }
+            #guidelines {
+                margin-bottom: 120px;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block main %}
-    <h1>To log into Director, you must accept the TJHSST Website Guidelines</h1>
+    <h3>To log into Director, you must accept the TJHSST Website Guidelines</h3>
 
-    {% include "guidelines.html" %}
+    <hr>
 
-    <form method="POST" action="{% url 'auth:accept_guidelines' %}">
+    <div id="guidelines">
+        {% include "guidelines.html" %}
+    </div>
+
+    <form method="POST" action="{% url 'auth:accept_guidelines' %}" id="accept-form" class="fixed-bottom m-0 p-3 border-top border-dark">
         {% csrf_token %}
-        <input type="checkbox" name="accepted" id="accepted-input" required> <label for="accepted-input">I accept the TJHSST Website Guidelines</label><br>
+        <label for="accepted-input"><input type="checkbox" name="accepted" id="accepted-input" required> I have read and agree to the TJHSST Website Guidelines.</label><br>
         <input type="submit" value="Proceed">
     </form>
 {% endblock %}
