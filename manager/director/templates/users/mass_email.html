@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Mass emails{% endblock %}
+
+{% block head %}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#id_limit_users").selectize();
+        });
+    </script>
+{% endblock %}
+
+{% block main %}
+    <h1>Send mass email</h1>
+
+    <p>Note: The exact same message will be sent to all users!</p>
+
+    {% include "table_form.html" with form_submit_text="Send email" %}
+{% endblock %}
+

@@ -28,6 +28,7 @@ urlpatterns = [
     path("sites/", include("director.apps.sites.urls", namespace="sites")),
     path("request/", include("director.apps.request.urls", namespace="request")),
     path("docs/", include("director.apps.docs.urls", namespace="docs")),
+    path("users/", include("director.apps.users.urls", namespace="users")),
 ]
 
 if settings.DEBUG:
