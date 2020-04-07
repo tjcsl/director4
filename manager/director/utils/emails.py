@@ -27,7 +27,7 @@ def send_email(
             if settings.DEBUG and not settings.DEBUG_EMAIL_SEND:
                 print(text_plain)
             else:
-                _raw_send_email(
+                _raw_send_email.delay(
                     subject=subject,
                     text_plain=text_plain,
                     text_html=text_html,
