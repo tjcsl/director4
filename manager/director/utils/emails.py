@@ -10,7 +10,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
 
-def send_email(
+def send_email(  # pylint: disable=too-many-arguments
     text_template: str,
     html_template: str,
     context: Mapping[str, Any],
@@ -41,19 +41,14 @@ def send_email(
 def _raw_send_email(
     subject: str, text_html: str, text_plain: str, emails: Sequence[str], bcc: bool
 ) -> None:
-    kwargs = {
-        "subject": settings.EMAIL_SUBJECT_PREFIX + subject,
-        "body": text_plain,
-        "from_email": settings.EMAIL_FROM,
-        "reply_to": [settings.DIRECTOR_CONTACT_EMAIL],
-    }
-
-    if bcc:
-        kwargs["bcc"] = emails
-    else:
-        kwargs["to"] = emails
-
-    msg = EmailMultiAlternatives(**kwargs)
+    msg = EmailMultiAlternatives(
+        subject=settings.EMAIL_SUBJECT_PREFIX + subject,
+        body=text_plain,
+        from_email=settings.EMAIL_FROM,
+        reply_to=[settings.DIRECTOR_CONTACT_EMAIL],
+        bcc=(emails if bcc else None),
+        to=(None if bcc else emails),
+    )
     msg.attach_alternative(text_html, "text/html")
 
     msg.send()
