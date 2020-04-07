@@ -16,6 +16,10 @@
         .image .name {
         }
 
+        .image:not(.visible) {
+            opacity: 60%;
+        }
+
         #setup-commands th, #setup-commands td {
             padding: 5px;
         }
@@ -29,7 +33,7 @@
 
     <ul id="images">
         {% for image in images %}
-        <li class="image">
+        <li class="image{% if image.is_user_visible %} visible{% endif %}">
             <span class="friendly-name">{{ image.friendly_name }}</span>
             <span class="name">({{ image.name }})</span>
             <a class="edit" href="{% url 'sites:image_mgmt:edit' image.id %}"><i class="fas fa-sm fa-pencil-alt"></i></a>
