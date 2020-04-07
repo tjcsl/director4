@@ -71,6 +71,9 @@ def doc_page_view(request: HttpRequest, url: str = "") -> Union[FileResponse, Ht
     if text_html is None:
         raise Http404
 
+    if metadata.get("Redirect"):
+        return redirect("docs:doc_page", metadata.get("Redirect").lstrip("/"))
+
     # We know that the page exists. Now make sure the URL ends with a "/".
     if url and not url.endswith("/"):
         return redirect("docs:doc_page", url + "/")
