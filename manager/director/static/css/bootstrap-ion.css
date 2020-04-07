@@ -84,23 +84,22 @@ body {
     border-radius: 0px;
     color: white;
     line-height: 40px;
-    padding: 0;
+    padding: 0 15px;
     margin: 0;
 }
 .navbar .navbar-brand, .navbar .navbar-brand:hover, .navbar .navbar-brand:active, .navbar .navbar-brand:focus {
     color: white;
-    margin-left: 15px;
     padding: 0px;
 }
 .dropdown {
     margin-top: 10px;
     margin-bottom: 10px;
-    margin-right: 15px;
     padding: 3px 5px;
     height: 20px;
     font-size: 13px;
     border-radius: 3px;
     line-height: 14px;
+    z-index: 999;
 }
 .dropdown-toggle {
     cursor: pointer;
@@ -170,4 +169,13 @@ body {
 .nav > a:hover, .nav > a:focus {
     color: #cccccc;
     text-decoration: none;
+}
+
+@media(max-width:575px) {
+    #user-dropdown {
+        width: 38px;
+    }
+    .dropdown-menu .arrow {
+        margin-left: 13px;
+    }
 }

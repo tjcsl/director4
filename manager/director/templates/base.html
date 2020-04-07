@@ -3,6 +3,9 @@
 <html>
 <head>
     <meta charset="utf-8">
+
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
     <title>{% block title %}{{ DJANGO_SETTINGS.DIRECTOR_APPLICATION_NAME }}{% block titlesuffix %}{% endblock %}{% endblock %}</title>
     <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'vendor/fontawesome-free-5.13.0/css/all.min.css' %}">
@@ -64,56 +67,61 @@
     {% block head %}{% endblock %}
 </head>
 <body>
-    <div class="navbar navbar-light bg-faded navbar-expand">
+    <div class="navbar navbar-dark bg-faded navbar-expand-sm">
         <a class="navbar-brand" href="/">
             <i class="fas fa-cloud"></i> {{ DJANGO_SETTINGS.DIRECTOR_APPLICATION_NAME }}
         </a>
-        <ul class="nav navbar-nav">
-            {% if site %}
-                <li><i class="fas fa-chevron-right"></i></li>
-                <li><a class="nav-site-name" href="{% url 'sites:info' site.id %}">{{ site.name }}</a></li>
-            {% elif request.resolver_match.app_name == "docs" %}
-                <li><i class="fas fa-chevron-right"></i></li>
-                <li><a href="{% url 'docs:index' %}" class="pr-1">Docs</a></li>
-                {% if doc_page %}
-                <li><i class="fas fa-chevron-right pl-2"></i></li>
-                <li class="d-none d-sm-block"><a href="{% url 'docs:doc_page' doc_page %}">{{ title }}</a></li>
-                <li class="d-sm-none">...</li>
-                {% endif %}
-            {% endif %}
-            {% block navbar %}
-            {% endblock %}
-        </ul>
-        <div class="nav navbar-nav ml-auto float-right">
-            <div class="nav-item">
-            {% if show_teacher_site_request_button %}
-            <a class="nav-warn" href="{% url 'request:approve_teacher' %}">Site Requests</a>
-            {% endif %}
-            {% if show_admin_site_request_button %}
-            <a class="nav-warn" href="{% url 'request:approve_admin' %}">{% if show_teacher_site_request_button %}Admin {% endif %}Site Requests</a>
-            {% endif %}
-            </div>
-            {% if request.user.is_authenticated %}
-            <div class="nav-item dropdown" id="user-dropdown">
-                <button class="dropdown-toggle" data-toggle="dropdown"><i class="fas fa-user"></i> <span class="d-none d-md-inline">{{ request.user.full_name }}</span></button>
-                <div class="dropdown-menu">
-                    <div class="arrow"></div>
-                    <!--<li><a href=""><i class="fa fa-fw fa-cog"></i> Settings</a></li>-->
-                    {% if request.user.is_superuser %}
-                        <!--<li><a href=""><i class="fa fa-fw fa-users"></i> User Admin</a></li>-->
-                        {% if request.user.is_staff %}
-                            <a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-fw fa-star"></i> Django Admin</a>
-                        {% endif %}
-                        <a class="dropdown-item" href="{% url 'sites:operations' %}"><i class="fas fa-fw fa-running"></i> Operations</a>
-                        <a class="dropdown-item" href="{% url 'sites:management' %}"><i class="fas fa-fw fa-laptop-code"></i> Management</a>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-content" aria-controls="navbar-content" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbar-content">
+            <ul class="nav navbar-nav">
+                {% if site %}
+                    <li class="d-none d-sm-block"><i class="fas fa-chevron-right"></i></li>
+                    <li><a class="nav-site-name" href="{% url 'sites:info' site.id %}">{{ site.name }}</a></li>
+                {% elif request.resolver_match.app_name == "docs" %}
+                    <li class="d-none d-sm-block"><i class="fas fa-chevron-right"></i></li>
+                    <li><a href="{% url 'docs:index' %}" class="pr-1">Docs</a></li>
+                    {% if doc_page %}
+                    <li class="d-none d-sm-block"><i class="fas fa-chevron-right pl-2"></i></li>
+                    <li><a href="{% url 'docs:doc_page' doc_page %}">{{ title }}</a></li>
                     {% endif %}
-                    <!--<li class="feedback"><a href=""><i class="fa fa-fw fa-smile-o"></i> Send Feedback</a></li>
-                    <li><a href=""><i class="fa fa-fw fa-info-circle"></i> About/Credits</a></li>-->
-                    <a class="dropdown-item" href="{% url 'docs:index' %}"><i class="fas fa-fw fa-question-circle"></i> Documentation</a>
-                    <a class="dropdown-item" href="{% url 'auth:logout' %}"><i class="fas fa-fw fa-sign-out-alt"></i> Logout</a>
+                {% endif %}
+                {% block navbar %}
+                {% endblock %}
+            </ul>
+            <div class="nav navbar-nav ml-auto float-sm-right">
+                <div class="nav-item">
+                {% if show_teacher_site_request_button %}
+                <a class="nav-warn" href="{% url 'request:approve_teacher' %}">Site Requests</a>
+                {% endif %}
+                {% if show_admin_site_request_button %}
+                <a class="nav-warn" href="{% url 'request:approve_admin' %}">{% if show_teacher_site_request_button %}Admin {% endif %}Site Requests</a>
+                {% endif %}
                 </div>
+                {% if request.user.is_authenticated %}
+                <div class="nav-item dropdown" id="user-dropdown">
+                    <button class="dropdown-toggle" data-toggle="dropdown"><i class="fas fa-user"></i> <span class="d-sm-none d-md-inline">{{ request.user.full_name }}</span></button>
+                    <div class="dropdown-menu">
+                        <div class="arrow"></div>
+                        <!--<li><a href=""><i class="fa fa-fw fa-cog"></i> Settings</a></li>-->
+                        {% if request.user.is_superuser %}
+                            <!--<li><a href=""><i class="fa fa-fw fa-users"></i> User Admin</a></li>-->
+                            {% if request.user.is_staff %}
+                                <a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-fw fa-star"></i> Django Admin</a>
+                            {% endif %}
+                            <a class="dropdown-item" href="{% url 'sites:operations' %}"><i class="fas fa-fw fa-running"></i> Operations</a>
+                            <a class="dropdown-item" href="{% url 'sites:management' %}"><i class="fas fa-fw fa-laptop-code"></i> Management</a>
+                        {% endif %}
+                        <!--<li class="feedback"><a href=""><i class="fa fa-fw fa-smile-o"></i> Send Feedback</a></li>
+                        <li><a href=""><i class="fa fa-fw fa-info-circle"></i> About/Credits</a></li>-->
+                        <a class="dropdown-item" href="{% url 'docs:index' %}"><i class="fas fa-fw fa-question-circle"></i> Documentation</a>
+                        <a class="dropdown-item" href="{% url 'auth:logout' %}"><i class="fas fa-fw fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
     </div>
     <div id="content">
