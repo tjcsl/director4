@@ -55,6 +55,7 @@ ALLOWED_ATTRS = {
     "*": ["id"],
     "img": ["src", "alt", "title"],
     "a": ["href", "title"],
+    "code": ["class"],
 }
 
 ALLOWED_STYLES: List[str] = []
