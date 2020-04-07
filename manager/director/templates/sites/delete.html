@@ -4,7 +4,7 @@
 
 {% block main %}
 <h3>Confirm Permanent Site Deletion</h3>
-<p>Are you sure you want to delete the site <b>{{ site.name }}</b> and all associated data? <span style="color:red">This action is permanent and irreversible!</span></p>
+<p>Are you sure you want to delete the site <b>{{ site.name }}</b> and all associated files/data? <span style="color:red">This action is permanent and irreversible!</span></p>
 <form method="POST">
     {% csrf_token %}
     <div class="form-group">
