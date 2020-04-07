@@ -45,11 +45,6 @@
 
     {% include "table_form_header.html" %}
     {% for form_field in form %}
-        {% if form_field.name == "student_agreement" %}
-            <div class="tbl-row">
-                <a href="#" data-toggle="modal" data-target="#guidelines-modal">TJHSST Website Guidelines</a>
-            </div>
-        {% endif %}
         {% include "table_form_row.html" with form_field=form_field only %}
     {% endfor %}
     {% include "table_form_footer.html" with form_submit_text="Save" %}

@@ -299,6 +299,19 @@ DIRECTOR_RESOURCES_DEFAULT_MEMORY_LIMIT: int = 100 * 1000 * 1000
 # typos breaking sites.
 DIRECTOR_RESOURCES_DEFAULT_CLIENT_BODY_LIMIT: Union[int, str] = 2 * 1024 * 1024
 
+DIRECTOR_SITE_STUDENT_AGREEMENT_HELP_TEXT = (
+    "I have read, understood, and agree to abide by the rules outlined in the "
+    "Computer Systems Lab Policy, the "
+    "<a href='#' data-toggle='modal' data-target='#guidelines-modal'>TJHSST Website Guidelines</a>, "
+    "the <a href='https://www.fcps.edu/about-fcps/policies-regulations-and-notices/"
+    "student-rights-and-responsibilities/appendices#appendix-a-acceptable-use-policy-for-student-network-access'>"
+    "FCPS Acceptable Use Policy for Student Network Access</a>, and the <a href='https://www.fcps.edu/srr'>"
+    "FCPS Student Rights and Responsibilities</a>. I understand "
+    "that the above services may be revoked at any time and other disciplinary actions may "
+    "occur if I directly or indirectly violate any guidelines as outlined in the above "
+    "policies."
+)
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "mail.tjhsst.edu"
 EMAIL_PORT = 587

@@ -6,8 +6,10 @@ import string
 from typing import Any, Dict
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import validators
+from django.utils.safestring import mark_safe
 
 from .models import (
     DatabaseHost,
@@ -25,12 +27,7 @@ class SiteCreateForm(forms.ModelForm):
 
     student_agreement = forms.BooleanField(
         required=True,
-        help_text="I have read, understood, and agree to abide by the rules outlined in the "
-        "Computer Systems Lab Policy, the TJHSST World-Wide Website Guidelines, the FCPS "
-        "Acceptable Use Policy, and the FCPS Student Rights and Responsibilities. I understand "
-        "that the above services may be revoked at any time and other disciplinary actions may "
-        "occur if I directly or indirectly violate any guidelines as outlined in the above "
-        "policies.",
+        help_text=mark_safe(settings.DIRECTOR_SITE_STUDENT_AGREEMENT_HELP_TEXT),
     )
 
     def __init__(self, *args: Any, user: Any, **kwargs: Any):
