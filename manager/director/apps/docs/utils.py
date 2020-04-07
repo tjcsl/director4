@@ -14,6 +14,7 @@ import markdown.extensions.toc
 
 from django.conf import settings
 from django.core.cache import cache
+from django.urls import reverse
 
 UTILS_FILE_MTIME = os.path.getmtime(__file__)
 
@@ -129,6 +130,9 @@ def rewrite_markdown_link(*, link_url: str, base_page_name: str) -> str:
                 parent_page = ""
 
             path = os.path.normpath(os.path.join("/", parent_page, path))
+
+        # Make URLs relative to the main docs app
+        path = reverse("docs:doc_page", args=[path.lstrip("/")])
 
         # Recombine and use the new path
         new_parts = (parts.scheme, parts.netloc, path, parts.query, parts.fragment)
