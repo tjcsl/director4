@@ -269,23 +269,24 @@ def remove_balancer_nginx_config(  # pylint: disable=unused-argument
 def update_balancer_certbot(  # pylint: disable=unused-argument
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
-    yield "Setting up certbot for site"
-    balancer_open_http_request(
-        0,
-        "/sites/{}/certbot-setup".format(site.id),
-        params={"data": json.dumps(site.serialize_for_balancer())},
-    )
+    if settings.DIRECTOR_NUM_BALANCERS:
+        yield "Setting up certbot for site"
+        balancer_open_http_request(
+            0,
+            "/sites/{}/certbot-setup".format(site.id),
+            params={"data": json.dumps(site.serialize_for_balancer())},
+        )
 
-    yield "Removing old domains"
-    balancer_open_http_request(
-        0,
-        "/sites/certbot-remove-old-domains",
-        params={
-            "domains": json.dumps(
-                list(Domain.objects.exclude(status="active").values_list("domain", flat=True))
-            ),
-        },
-    )
+        yield "Removing old domains"
+        balancer_open_http_request(
+            0,
+            "/sites/certbot-remove-old-domains",
+            params={
+                "domains": json.dumps(
+                    list(Domain.objects.exclude(status="active").values_list("domain", flat=True))
+                ),
+            },
+        )
 
 
 def delete_site_database_and_object(  # pylint: disable=unused-argument
