@@ -131,7 +131,10 @@ def rewrite_markdown_link(
             else:
                 parent_page = ""
 
+            old_path = path
             path = os.path.normpath(os.path.join("/", parent_page, path))
+            if path != "/" and old_path.endswith("/"):
+                path += "/"
 
         if add_docs_prefix:
             # Make URLs relative to the main docs app
