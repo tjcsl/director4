@@ -2,7 +2,7 @@
 
 {% block main %}
 <h3>Confirm Database Deletion</h3>
-<p>Are you sure you want to delete <b>{{ site.name }}</b>'s database and all of the tables in it? <span style="color:red">This action is permanant and irreversible!</span></p>
+<p>Are you sure you want to delete <b>{{ site.name }}</b>'s database and all of the tables in it? <span style="color:red">This action is permanent and irreversible!</span></p>
 <form method="POST">
     {% csrf_token %}
     <div class="form-group">
