@@ -270,7 +270,7 @@ def load_doc_page(page: str) -> Tuple[Dict[str, List[str]], Optional[str]]:
                 "meta",
                 "nl2br",
                 markdown.extensions.toc.TocExtension(
-                    permalink="", permalink_class="headerlink fa fa-link",
+                    permalink="", permalink_class="headerlink fa fa-link", toc_depth="2-6",
                 ),
                 # We add on the "extra part" because if this was a file like /a/index.md,
                 # then links should be interpreted relative to /a.
