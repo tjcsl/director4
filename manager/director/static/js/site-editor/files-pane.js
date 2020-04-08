@@ -194,6 +194,7 @@ function FilesPane(container, uri, callbacks) {
         // Events may be duplicated or delayed, so we need this.
         var prevItem = self.followPath(info.fname);
         if(prevItem != null) {
+            prevOpenFolders.push(...getOpenFolderNames(prevItem));
             prevItem.remove();
         }
 
