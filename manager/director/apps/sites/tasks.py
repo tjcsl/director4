@@ -318,13 +318,16 @@ def update_image_task(
                     site.docker_image.parent is not None
                     and site.docker_image.parent.run_script_template
                 ):
-                    yield "Connecting to appserver {} to restart Docker service".format(appserver)
+                    yield "Connecting to appserver {} to write run.sh file".format(appserver)
                     appserver_open_http_request(
                         appserver,
                         "/sites/{}/files/write".format(site.id),
                         params={"path": "run.sh", "mode": "0755"},
                         method="POST",
-                        data=site.docker_image.parent.run_script_template.encode().rstrip() + b"\n",
+                        data=site.docker_image.parent.run_script_template.replace("\r", "")
+                        .encode()
+                        .rstrip()
+                        + b"\n",
                     )
 
                     yield "Successfully wrote run.sh"
