@@ -452,25 +452,26 @@ async def build_image_handler(  # pylint: disable=unused-argument
     else:
         logger.info("Built image %s", build_data["name"])
 
-    try:
-        output = await asyncio.get_event_loop().run_in_executor(
-            None, push_custom_docker_image, client, build_data["name"],
-        )
+    if result["successful"]:
+        try:
+            output = await asyncio.get_event_loop().run_in_executor(
+                None, push_custom_docker_image, client, build_data["name"],
+            )
 
-        logger.info("Pushed image %s", build_data["name"])
-        logger.info("Output from pushing image %s: %s", build_data["name"], output)
-    except OrchestratorActionError as ex:
-        logger.error(
-            "Error pushing image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
-        )
-        result = {"successful": False, "msg": "Error pushing image: {}".format(ex)}
-    except BaseException as ex:  # pylint: disable=broad-except
-        logger.error(
-            "Error pushing image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
-        )
-        result = {"successful": False, "msg": "Error pushing image"}
-    else:
-        logger.info("Pushed image %s", build_data["name"])
+            logger.info("Pushed image %s", build_data["name"])
+            logger.info("Output from pushing image %s: %s", build_data["name"], output)
+        except OrchestratorActionError as ex:
+            logger.error(
+                "Error pushing image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
+            )
+            result = {"successful": False, "msg": "Error pushing image: {}".format(ex)}
+        except BaseException as ex:  # pylint: disable=broad-except
+            logger.error(
+                "Error pushing image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
+            )
+            result = {"successful": False, "msg": "Error pushing image"}
+        else:
+            logger.info("Pushed image %s", build_data["name"])
 
     try:
         await websock.send(json.dumps(result))
