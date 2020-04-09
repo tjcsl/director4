@@ -28,6 +28,12 @@ from .terminal import TerminalContainer
 
 logger = logging.getLogger(__name__)
 
+# Long-running tasks like building/pushing images run in a separate executor so they don't hold up other
+# tasks
+long_running_executor = concurrent.futures.ThreadPoolExecutor(
+    max_workers=min(32, (os.cpu_count() or 2) * 2)
+)
+
 
 def create_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLContext]:
     if options.ssl_certfile is None:
@@ -437,7 +443,7 @@ async def build_image_handler(  # pylint: disable=unused-argument
 
     try:
         await asyncio.get_event_loop().run_in_executor(
-            None, build_custom_docker_image, client, build_data,
+            long_running_executor, build_custom_docker_image, client, build_data,
         )
     except OrchestratorActionError as ex:
         logger.error(
@@ -455,7 +461,7 @@ async def build_image_handler(  # pylint: disable=unused-argument
     if result["successful"]:
         try:
             output = await asyncio.get_event_loop().run_in_executor(
-                None, push_custom_docker_image, client, build_data["name"],
+                long_running_executor, push_custom_docker_image, client, build_data["name"],
             )
 
             logger.info("Pushed image %s", build_data["name"])
