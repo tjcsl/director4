@@ -455,15 +455,6 @@ class SiteFilesMonitor:
 
         return await self.proc.wait()
 
-    def terminate(self) -> None:
-        if self.proc is None:
-            raise Exception("SiteFilesMonitor.start() was not called")
-
-        try:
-            self.proc.terminate()
-        except ProcessLookupError:
-            pass
-
     def kill(self) -> None:
         if self.proc is None:
             raise Exception("SiteFilesMonitor.start() was not called")
@@ -474,7 +465,8 @@ class SiteFilesMonitor:
             pass
 
     async def stop_wait(self, *, timeout: Union[int, float]) -> None:
-        self.terminate()
+        self.proc.stdin.write(b"q\n")
+        await self.proc.stdin.drain()
 
         try:
             await asyncio.wait_for(self.wait(), timeout=timeout)
