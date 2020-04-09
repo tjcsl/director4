@@ -68,24 +68,10 @@ systemctl restart redis-server
 systemctl enable redis-server
 
 
-## Setup RabbitMQ
-apt-get -y install rabbitmq-server
-systemctl start rabbitmq-server
-systemctl enable rabbitmq-server
-for vhost in 'manager'; do
-    if [[ "$(rabbitmqctl list_vhosts)\n" != *$'\n'"$vhost"$'\n'* ]]; then
-        rabbitmqctl add_vhost "$vhost"
-    fi
-    rabbitmqctl set_permissions -p "$vhost" guest '.*' '.*' '.*'
-done
-
-
-# RabbitMQ starts epmd processes that don't get killed properly. This fixes it.
-# Source: https://bugs.archlinux.org/task/55842
-mkdir -p /etc/systemd/system/rabbitmq-server.service.d
-echo $'[Unit]\nRequires=epmd.service\nAfter=epmd.service' >/etc/systemd/system/rabbitmq-server.service.d/override.conf
-
-systemctl daemon-reload
+## Disable RabbitMQ
+# Not needed any more
+systemctl stop rabbitmq-server
+systemctl disable rabbitmq-server
 
 
 ## Setup Docker

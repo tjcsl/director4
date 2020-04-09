@@ -170,7 +170,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "serve")
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
 # Celery
-CELERY_BROKER_URL = "amqp://guest:guest@localhost:5672//"
+CELERY_BROKER_URL = "redis://localhost:6379/2"
 # Celery will import these modules to try to find tasks
 # If a task is not in a director/apps/<app name>/tasks.py, it should
 # be added here

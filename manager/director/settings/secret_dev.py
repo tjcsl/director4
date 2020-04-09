@@ -4,15 +4,14 @@ from typing import Dict, Optional
 
 DEBUG = True
 
-RABBITMQ_HOST = "localhost"
-RABBITMQ_PORT = 5672
 REDIS_HOST = "127.0.0.1"
 REDIS_PORT = "6379"
 
 CHANNELS_REDIS_DB = 0
 CHANNELS_REDIS_PREFIX = "manager-channels:"
 
-CELERY_BROKER_URL = "amqp://guest:guest@{}:{}/manager".format(RABBITMQ_HOST, RABBITMQ_PORT)
+CELERY_BROKER_URL = "redis://{}:{}/2".format(REDIS_HOST, REDIS_PORT)
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
