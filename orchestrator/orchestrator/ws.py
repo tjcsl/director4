@@ -28,8 +28,8 @@ from .terminal import TerminalContainer
 
 logger = logging.getLogger(__name__)
 
-# Long-running tasks like building/pushing images run in a separate executor so they don't hold up other
-# tasks
+# Long-running tasks like building/pushing images run in a separate executor so they don't hold up
+# other tasks
 long_running_executor = concurrent.futures.ThreadPoolExecutor(
     max_workers=min(32, (os.cpu_count() or 2) * 2)
 )

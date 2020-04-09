@@ -26,6 +26,9 @@ DOCKER_REGISTRY_AUTH_CONFIG = {"username": "user", "password": "user"}
 # API
 DOCKER_REGISTRY_TIMEOUT = 20
 
+# "Maintainer" of custom docker images
+DOCKER_IMAGE_MAINTAINER = "CSL"
+
 # Main data directory
 DATA_DIRECTORY = "/data"
 # Where site files are stored

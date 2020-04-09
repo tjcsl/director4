@@ -23,14 +23,14 @@ def get_docker_image_directory(image_name: str) -> str:
 
 def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]) -> None:
     image_name = image_data["name"]
-    parent_name = image_data["parent_name"]
-    full_install_command = image_data["full_install_command"]
 
     context = {
-        "parent": parent_name,
-        "maintainer": "CSL",
-        "full_install_command": full_install_command,
+        k: v
+        for k, v in image_data.items()
+        if k in {"parent_name", "parent_setup_command", "install_command"}
     }
+    context["maintainer"] = settings.DOCKER_IMAGE_MAINTAINER
+
     dockerfile_content = dockerfile_template.render(context)
 
     image_directory = get_docker_image_directory(image_name)

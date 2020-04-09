@@ -380,38 +380,45 @@ class DockerImage(models.Model):
         "select a Docker image.",
     )
 
-    def get_full_install_command(self) -> Optional[str]:
-        """Get the full command to install all of this site's packages, or None
+    def get_setup_command(self) -> Optional[str]:
+        """Get the command to perform all of the setup required by this image, or None
         if there is nothing to do.
 
-        This will only return None if 1) there are no ``DockerImageExtraPackage``s
-        for this ``DockerImage`` AND 2) ``base_install_command`` is empty.
+        This is designed to be run on the parent image of a custom image.
 
         """
 
-        if self.parent is None:
-            return None
+        command_parts = list(self.setup_commands.values_list("command", flat=True))
 
-        command_parts = list(self.parent.setup_commands.values_list("command", flat=True))
-
-        if self.parent.base_install_command:
-            command_parts.append(self.parent.base_install_command)
-
-        if self.parent.install_command_prefix:
-            package_names = self.extra_packages.values_list("name", flat=True)
-            if package_names.exists():
-                command_parts.append(
-                    self.parent.install_command_prefix + " " + " ".join(package_names)
-                )
+        if self.base_install_command:
+            command_parts.append(self.base_install_command)
 
         return " && ".join(command_parts) if command_parts else None
+
+    def get_install_command(self) -> Optional[str]:
+        """Get the command to install all of this site's packages, or None if there
+        is nothing to do.
+
+        This is designed to be run on a custom image.
+
+        """
+
+        if self.parent is not None and self.parent.install_command_prefix:
+            package_names = self.extra_packages.values_list("name", flat=True)
+            if package_names.exists():
+                return self.parent.install_command_prefix + " " + " ".join(package_names)
+
+        return None
 
     def serialize_for_appserver(self) -> Dict[str, Any]:
         return {
             "name": self.name,
             "is_custom": self.is_custom,
             "parent_name": (self.parent.name if self.parent is not None else None),
-            "full_install_command": self.get_full_install_command(),
+            "parent_setup_command": (
+                self.parent.get_setup_command() if self.parent is not None else None
+            ),
+            "install_command": self.get_install_command(),
         }
 
     def __str__(self) -> str:

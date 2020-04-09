@@ -465,6 +465,11 @@ class SiteFilesMonitor:
             pass
 
     async def stop_wait(self, *, timeout: Union[int, float]) -> None:
+        if self.proc is None:
+            raise Exception("SiteFilesMonitor.start() was not called")
+
+        assert self.proc.stdin is not None
+
         self.proc.stdin.write(b"q\n")
         await self.proc.stdin.drain()
 
