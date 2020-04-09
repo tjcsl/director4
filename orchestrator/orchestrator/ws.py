@@ -458,6 +458,11 @@ async def build_image_handler(  # pylint: disable=unused-argument
     else:
         logger.info("Built image %s", build_data["name"])
 
+    try:
+        await websock.send(json.dumps(result))
+    except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+        pass
+
     if result["successful"]:
         try:
             output = await asyncio.get_event_loop().run_in_executor(
@@ -479,10 +484,10 @@ async def build_image_handler(  # pylint: disable=unused-argument
         else:
             logger.info("Pushed image %s", build_data["name"])
 
-    try:
-        await websock.send(json.dumps(result))
-    except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
-        pass
+        try:
+            await websock.send(json.dumps(result))
+        except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+            pass
 
 
 async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -> None:
