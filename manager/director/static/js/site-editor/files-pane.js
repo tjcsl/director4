@@ -93,7 +93,7 @@ function FilesPane(container, uri, callbacks) {
     }
 
     function wsClosed() {
-        container.addClass("disabled");
+        itemsContainer.addClass("disabled");
 
         isOpen = false;
         ws = null;
