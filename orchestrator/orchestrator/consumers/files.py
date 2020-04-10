@@ -8,7 +8,7 @@ from typing import Any, Dict
 import websockets
 
 from ..files import SiteFilesMonitor
-from ..utils import cancel_remaining_tasks, wait_for_event
+from .utils import mainloop_auto_cancel, wait_for_event
 
 
 async def file_monitor_handler(  # pylint: disable=unused-argument
@@ -52,15 +52,7 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
             except websockets.exceptions.ConnectionClosed:
                 break
 
-    websock_task = asyncio.Task(websock_loop())
-    monitor_task = asyncio.Task(monitor_loop())
-    stop_event_task = asyncio.Task(wait_for_event(stop_event))
-
-    await asyncio.wait(
-        [websock_task, monitor_task, stop_event_task], return_when=asyncio.FIRST_COMPLETED,
-    )
+    await mainloop_auto_cancel([websock_loop(), monitor_loop(), wait_for_event(stop_event)])
 
     await websock.close()
     await monitor.stop_wait(timeout=3)
-
-    await cancel_remaining_tasks([websock_task, monitor_task, stop_event_task])

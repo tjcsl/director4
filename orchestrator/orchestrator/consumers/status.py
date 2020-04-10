@@ -14,7 +14,7 @@ from ..docker.services import get_director_service_name, get_service_by_name
 from ..docker.utils import create_client
 from ..files import check_run_sh_exists
 from ..logs import DirectorSiteLogFollower
-from ..utils import cancel_remaining_tasks, wait_for_event
+from .utils import mainloop_auto_cancel, wait_for_event
 
 
 def serialize_service_status(site_id: int, service: Service) -> Dict[str, Any]:
@@ -61,14 +61,6 @@ async def status_handler(
         await websock.close()
         return
 
-    async def ping_loop() -> None:  # type: ignore
-        while True:
-            try:
-                await websock.ping()
-                await asyncio.sleep(30)
-            except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
-                break
-
     async def log_loop(log_follower: DirectorSiteLogFollower) -> None:
         try:
             async for line in log_follower.iter_lines():
@@ -101,17 +93,9 @@ async def status_handler(
         except websockets.exceptions.ConnectionClosed:
             return
 
-        ping_task = asyncio.Task(ping_loop())
-        wait_closed_task = asyncio.Task(websock.wait_closed())
-        log_task = asyncio.Task(log_loop(log_follower))
-        stop_event_task = asyncio.Task(wait_for_event(stop_event))
-
-        await asyncio.wait(
-            [ping_task, wait_closed_task, log_task, stop_event_task],  # type: ignore
-            return_when=asyncio.FIRST_COMPLETED,
+        await mainloop_auto_cancel(
+            [websock.wait_closed(), log_loop(log_follower), wait_for_event(stop_event)],
         )
-
-        await cancel_remaining_tasks([ping_task, wait_closed_task, log_task, stop_event_task])
 
     await websock.close()
 
@@ -135,14 +119,6 @@ async def multi_status_handler(  # pylint: disable=unused-argument
         if services[site_id] is None:
             await websock.close()
             return
-
-    async def ping_loop() -> None:  # type: ignore
-        while True:
-            try:
-                await websock.ping()
-                await asyncio.sleep(30)
-            except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
-                break
 
     async def log_loop(site_id: int, log_follower: DirectorSiteLogFollower) -> None:
         try:
@@ -177,26 +153,17 @@ async def multi_status_handler(  # pylint: disable=unused-argument
 
     log_followers: Dict[int, DirectorSiteLogFollower] = {}
 
-    for site_id in services:
-        log_followers[site_id] = DirectorSiteLogFollower(client, site_id)
-        await log_followers[site_id].start(since_time=time.time())
-        asyncio.ensure_future(wait_and_send_status(site_id, 0.0))
-
     try:
-        ping_task = asyncio.Task(ping_loop())
-        wait_closed_task = asyncio.Task(websock.wait_closed())
-        log_tasks = [
-            asyncio.Task(log_loop(site_id, log_follower))
-            for site_id, log_follower in log_followers.items()
+        for site_id in services:
+            log_followers[site_id] = DirectorSiteLogFollower(client, site_id)
+            await log_followers[site_id].start(since_time=time.time())
+            asyncio.ensure_future(wait_and_send_status(site_id, 0.0))
+
+        log_coros = [
+            log_loop(site_id, log_follower) for site_id, log_follower in log_followers.items()
         ]
-        stop_event_task = asyncio.Task(wait_for_event(stop_event))
 
-        await asyncio.wait(
-            [ping_task, wait_closed_task, *log_tasks, stop_event_task],  # type: ignore
-            return_when=asyncio.FIRST_COMPLETED,
-        )
-
-        await cancel_remaining_tasks([wait_closed_task, ping_task, *log_tasks, stop_event_task])
+        await mainloop_auto_cancel([websock.wait_closed(), *log_coros, wait_for_event(stop_event)])
     finally:
         for log_follower in log_followers.values():
             await log_follower.stop()

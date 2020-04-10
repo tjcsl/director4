@@ -11,7 +11,7 @@ import websockets
 
 from ..docker.utils import create_client
 from ..terminal import TerminalContainer
-from ..utils import cancel_remaining_tasks, wait_for_event
+from .utils import mainloop_auto_cancel, wait_for_event
 
 logger = logging.getLogger(__name__)
 
@@ -88,17 +88,9 @@ async def web_terminal_handler(  # pylint: disable=unused-argument
                 await terminal.close()
                 break
 
-    websock_task = asyncio.Task(websock_loop())
-    terminal_task = asyncio.Task(terminal_loop())
-    stop_event_task = asyncio.Task(wait_for_event(stop_event))
-
-    await asyncio.wait(
-        [websock_task, terminal_task, stop_event_task], return_when=asyncio.FIRST_COMPLETED,
-    )
+    await mainloop_auto_cancel([websock_loop(), terminal_loop(), wait_for_event(stop_event)])
 
     await terminal.close()
     await websock.close()
-
-    await cancel_remaining_tasks([websock_task, terminal_task, stop_event_task])
 
     client.close()

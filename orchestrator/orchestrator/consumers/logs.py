@@ -11,7 +11,7 @@ from docker.models.services import Service
 from ..docker.services import get_director_service_name, get_service_by_name
 from ..docker.utils import create_client
 from ..logs import DirectorSiteLogFollower
-from ..utils import cancel_remaining_tasks, wait_for_event
+from .utils import mainloop_auto_cancel, wait_for_event
 
 
 async def logs_handler(
@@ -55,14 +55,8 @@ async def logs_handler(
     async with DirectorSiteLogFollower(client, site_id) as log_follower:
         await log_follower.start(last_n=10)
 
-        echo_task = asyncio.Task(echo_loop())
-        log_task = asyncio.Task(log_loop(log_follower))
-        stop_event_task = asyncio.Task(wait_for_event(stop_event))
-
-        await asyncio.wait(
-            [echo_task, log_task, stop_event_task], return_when=asyncio.FIRST_COMPLETED,
+        await mainloop_auto_cancel(
+            [echo_loop(), log_loop(log_follower), wait_for_event(stop_event)]
         )
-
-        await cancel_remaining_tasks([echo_task, log_task, stop_event_task])
 
     await websock.close()

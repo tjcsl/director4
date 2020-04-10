@@ -4,7 +4,7 @@
 import asyncio
 import concurrent.futures
 import functools
-from typing import Any, Awaitable, Callable, Coroutine, Generator, List, Optional, Tuple, TypeVar
+from typing import Any, Awaitable, Callable, Coroutine, Generator, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
 U = TypeVar("U")  # pylint: disable=invalid-name
@@ -49,26 +49,6 @@ def run_in_executor(
         return wrapper
 
     return wrap
-
-
-async def cancel_remaining_tasks(tasks: List["asyncio.Task[Any]"]) -> None:
-    for task in tasks:
-        if not task.done():
-            task.cancel()
-            try:
-                await task
-            except (asyncio.CancelledError, concurrent.futures.CancelledError):
-                pass
-
-
-async def wait_for_event(event: asyncio.Event) -> None:
-    """Wraps asyncio.Event.wait(), but returns None.
-
-    This is needed due to oddities of mypy's annotations for ``asyncio.wait()``
-    and the code that waits for events.
-
-    """
-    await event.wait()
 
 
 def iter_chunks(stream: Any, bufsize: int) -> Generator[bytes, None, None]:
