@@ -53,6 +53,8 @@ def gen_director_service_params(  # pylint: disable=unused-argument
     # The killing of the child process is based off of
     # https://unix.stackexchange.com/a/146770/306760
     shell_command = """date +'DIRECTOR: Starting server at %Y-%m-%d %H:%M:%S %Z'
+# See docs/UMASK.md before touching this
+umask "$1"
 for path in /site/run.sh /site/private/run.sh /site/public/run.sh; do
     if [ -x "$path" ]; then
         term() {
@@ -75,7 +77,8 @@ exec sleep 2147483647"""
         {
             "name": get_director_service_name(site_id),
             "read_only": True,
-            "command": ["sh", "-c", shell_command],
+            # See docs/UMASK.md before touching this
+            "command": ["sh", "-c", shell_command, "sh", oct(settings.SITE_UMASK)[2:]],
             "workdir": "/site/public",
             "networks": ["director-sites"],
             "resources": Resources(

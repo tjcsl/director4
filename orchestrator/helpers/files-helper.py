@@ -192,7 +192,8 @@ def mkdir_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None)
     chroot_into(site_directory)
 
     try:
-        os.makedirs(relpath, mode=get_new_mode(0o755, mode_str), exist_ok=False)
+        # Keep the mode as 0o777! This is safe; the umask will be subtracted from it.
+        os.makedirs(relpath, mode=get_new_mode(0o777, mode_str), exist_ok=False)
     except OSError as ex:
         print(ex, file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
@@ -207,7 +208,8 @@ def create_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None
 
     try:
         # This combination of flags will make the call fail if the file already exists.
-        fd = os.open(relpath, os.O_RDWR | os.O_CREAT | os.O_EXCL, get_new_mode(0o644, mode_str))
+        # Keep the mode as 0o666! This is safe; the umask will be subtracted from it.
+        fd = os.open(relpath, os.O_RDWR | os.O_CREAT | os.O_EXCL, get_new_mode(0o666, mode_str))
     except OSError as ex:
         print(ex, file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
@@ -511,6 +513,10 @@ def main(argv: List[str]) -> None:
     if len(argv) < 2:
         print("Please specify a command", file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
+
+    # See docs/UMASK.md before touching this
+    assert os.environ["ORCHESTRATOR_HELPER_UMASK"][:2] == "0o", "Umask is incorrectly formatted"
+    os.umask(int(os.environ["ORCHESTRATOR_HELPER_UMASK"][2:], base=8))
 
     resource.setrlimit(resource.RLIMIT_AS, (200 * 1024 * 1024, 200 * 1024 * 1024))
 

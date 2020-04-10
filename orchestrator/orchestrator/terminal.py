@@ -106,7 +106,14 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
         env = gen_director_container_env(self.client, self.site_id, self.site_data)
 
-        args = ["sh", "-c", "if [ -x /bin/bash ]; then exec bash; fi; exec sh"]
+        # See docs/UMASK.md before touching this
+        args = [
+            "sh",
+            "-c",
+            'umask "$1"; if [ -x /bin/bash ]; then exec bash; fi; exec sh',
+            "sh",
+            oct(settings.SITE_UMASK)[2:],
+        ]
 
         self.exec_id = self.client.api.exec_create(
             self.container.id,

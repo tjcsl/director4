@@ -32,9 +32,18 @@ DOCKER_IMAGE_MAINTAINER = "CSL"
 # Main data directory
 DATA_DIRECTORY = "/data"
 # Where site files are stored
+# This should be owned by the user/group that Docker containers run as
+# (root by default, or the `userns-remap` user; see
+# https://docs.docker.com/engine/security/userns-remap/)
+# The permissions on this directory MUST be AT LEAST 770, preferably
+# more restrictive (700 is best).
 SITES_DIRECTORY = "/data/sites"
 # Where image Dockerifles are stored
 DOCKERFILE_DIRECTORY = "/data/images"
+
+# See docs/UMASK.md before touching this
+# MAKE SURE TO INCLUDE THE "0o" PREFIX!
+SITE_UMASK: int = 0o007
 
 # The prefix to add to commands being run to operate on files in SITES_DIRECTORY
 SITE_DIRECTORY_COMMAND_PREFIX: List[str] = []

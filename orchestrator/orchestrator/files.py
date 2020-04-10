@@ -124,6 +124,9 @@ def _run_helper_script_prog(
     for name, text in _load_vendor_modules(HELPER_SCRIPT_VENDOR_PATH):
         kwargs["env"]["ORCHESTRATOR_HELPER_VENDOR_" + name] = text
 
+    # See docs/UMASK.md before touching this
+    kwargs["env"]["ORCHESTRATOR_HELPER_UMASK"] = oct(settings.SITE_UMASK)
+
     return callback(real_args, kwargs)
 
 
@@ -149,7 +152,16 @@ def ensure_site_directories_exist(site_id: int) -> None:
     site_dir = get_site_directory_path(site_id)
 
     subprocess.run(
-        [*settings.SITE_DIRECTORY_COMMAND_PREFIX, "mkdir", "-p", "--", site_dir],
+        # See docs/UMASK.md before touching this
+        [
+            *settings.SITE_DIRECTORY_COMMAND_PREFIX,
+            "sh",
+            "-c",
+            'umask "$1" && mkdir -p -- "$2"',
+            "sh",
+            oct(settings.SITE_UMASK)[2:],
+            site_dir,
+        ],
         stdin=subprocess.DEVNULL,
         check=True,
     )
