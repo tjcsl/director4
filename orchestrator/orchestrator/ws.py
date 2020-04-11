@@ -23,7 +23,7 @@ from .consumers import (
     web_terminal_handler,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__package__)  # Since this is run with "python -m orchestrator.ws"
 
 
 def create_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLContext]:
