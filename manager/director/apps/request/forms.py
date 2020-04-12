@@ -13,7 +13,9 @@ class SiteRequestForm(forms.ModelForm):
     teacher = forms.ModelChoiceField(
         required=True,
         queryset=get_user_model().objects.filter(is_teacher=True),
-        help_text="This teacher will be emailed with instructions to approve your site request.",
+        help_text="This teacher will be emailed with instructions to approve your site request.\n"
+        "Teachers must log into Director before they are listed here. If you don't see your "
+        "activity's sponsor, ask them to log into Director first.",
     )
 
     student_agreement = forms.BooleanField(
