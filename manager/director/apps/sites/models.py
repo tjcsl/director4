@@ -113,6 +113,7 @@ class Site(models.Model):
             main_url = main_url.rstrip("/")
 
         return {
+            "id": self.id,
             "name": self.name,
             "type": self.type,
             "no_redirect_domains": list({split_domain(url) for url in self.list_urls()}),
