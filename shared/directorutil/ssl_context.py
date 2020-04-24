@@ -45,7 +45,7 @@ def create_internal_client_ssl_context(
     context.check_hostname = False
 
     if hasattr(ssl, "TLSVersion"):  # Added in Python 3.7
-        context.minimum_version = ssl.TLSVersion.TLSv1_2
+        context.minimum_version = ssl.TLSVersion.TLSv1_2  # type: ignore # pylint: disable=no-member
 
     client_certinfo = ssl_settings.get("client_cert", None)
     if client_certinfo is not None:
