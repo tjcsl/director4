@@ -6,6 +6,7 @@ import asyncio
 import concurrent.futures
 import logging
 import os
+import signal
 import sys
 from typing import List
 
@@ -13,6 +14,19 @@ from . import settings
 from .server import ShellSSHListener
 
 logger = logging.getLogger(__package__)
+
+
+stop_event = asyncio.Event()
+
+
+def sigterm_handler() -> None:
+    stop_event.set()
+    asyncio.get_event_loop().remove_signal_handler(signal.SIGTERM)
+
+
+def sigint_handler() -> None:
+    stop_event.set()
+    asyncio.get_event_loop().remove_signal_handler(signal.SIGINT)
 
 
 def main(argv: List[str]) -> None:
@@ -75,7 +89,12 @@ def main(argv: List[str]) -> None:
 
     loop.run_until_complete(listener.start())
 
-    loop.run_forever()
+    logger.info("Started server")
+    loop.run_until_complete(stop_event.wait())
+    logger.info("Stopping server")
+    listener.close()
+    loop.run_until_complete(listener.wait_closed())
+    logger.info("Stopped server")
 
 
 if __name__ == "__main__":

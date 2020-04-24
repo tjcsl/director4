@@ -33,14 +33,24 @@ class ShellSSHListener:
 
         self.servers: List[ShellSSHServer] = []
 
+        self.sock_server: Optional[asyncio.Server] = None
+
     async def start(self) -> None:
-        await asyncssh.listen(
+        self.sock_server = await asyncssh.listen(
             host=self.bind_host,
             port=self.bind_port,
             server_host_keys=self.server_host_keys,
             server_factory=self.create_server,
             line_editor=True,
         )
+
+    def close(self) -> None:
+        assert self.sock_server is not None
+        self.sock_server.close()
+
+    async def wait_closed(self) -> None:
+        assert self.sock_server is not None
+        await self.sock_server.wait_closed()
 
     def create_server(self) -> "ShellSSHServer":
         return ShellSSHServer(self)
