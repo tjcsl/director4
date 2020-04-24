@@ -12,11 +12,15 @@ env:
   global:
     - PIPENV_IGNORE_VIRTUALENVS=1
 install:
+- (cd shared && pipenv install --dev --deploy)
 - (cd manager && pipenv install --dev --deploy)
 - (cd orchestrator && pipenv install --dev --deploy)
 - (cd router && pipenv install --dev --deploy)
 - (cd shell && pipenv install --dev --deploy)
 script:
+- (cd shared && pipenv run ./scripts/format.sh)
+- (cd shared && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
+- (cd shared && pipenv run ./scripts/check.sh)
 - (cd manager && pipenv run ./scripts/format.sh)
 - (cd manager && pipenv run ./scripts/static_templates_format.sh)
 - (cd manager && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh or scripts/static_templates_format.sh
