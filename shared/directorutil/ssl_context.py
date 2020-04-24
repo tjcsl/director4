@@ -46,8 +46,8 @@ def create_internal_client_ssl_context(
 
     if hasattr(ssl, "TLSVersion"):  # Added in Python 3.7
         if not TYPE_CHECKING:
-            context.minimum_version = (  # pylint: disable=no-member,line-too-long # noqa
-                ssl.TLSVersion.TLSv1_2
+            context.minimum_version = (  # pylint: disable=no-member
+                ssl.TLSVersion.TLSv1_2  # pylint: disable=no-member
             )
 
     client_certinfo = ssl_settings.get("client_cert", None)
