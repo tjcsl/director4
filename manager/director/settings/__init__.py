@@ -251,10 +251,8 @@ DIRECTOR_APPSERVER_WS_HOSTS: List[str] = []
 #     "cafile": "<path to CA file used to verify appserver certificates>",
 #     "client_cert": {
 #         "certfile": "<path to client certificate file>",  # Required
-#         "keyfile": "<path to client private key file>",  # Taken from certfile
-#         # if not passed
-#         "password": "<private key password>",  # Required if private key is
-#         # encrypted
+#         "keyfile": "<path to client private key file>",  # Taken from certfile if not passed
+#         "password": "<private key password>",  # Required if private key is encryped
 #     },
 # }
 # Yes, the SSL settings must be the same for all appservers. This is by design.
