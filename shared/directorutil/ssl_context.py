@@ -4,6 +4,7 @@
 import ssl
 from typing import Any, Dict, Optional
 
+
 def create_internal_client_ssl_context(
     ssl_settings: Optional[Dict[str, Any]],
 ) -> Optional[ssl.SSLContext]:
