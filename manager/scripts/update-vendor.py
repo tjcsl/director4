@@ -201,7 +201,7 @@ class NpmVendoredDependency(VendoredDependency):
             req.raise_for_status()
 
             return req.json()["dist"]["tarball"]
-    
+
 
 def get_github_latest_release_name(repo: str) -> str:
     return requests.get("https://api.github.com/repos/" + repo + "/releases/latest").json()["tag_name"]
@@ -482,7 +482,7 @@ class MessengerVendoredDependency(VendoredDependency):
             extract_base_path=os.path.join(vendor_path, "js"),
             limit_files=["messenger.min.js", "messenger-theme-flat.js"],
         )
-    
+
 
 class ReconnectingWebsocketVendoredDependency(VendoredDependency):
     name = "reconnecting-websocket"
@@ -558,7 +558,19 @@ for dependency in VENDORED_DEPENDENCIES:
         # Remove old version
         if dependency.name in old_dependencies:
             print("Removing version " + old_dependencies[dependency.name])
-            shutil.rmtree(os.path.join(vendor_dir, dependency.name + "-" + old_dependencies[dependency.name]))
+
+            orig_fpath = os.path.join(vendor_dir, dependency.name + "-" + old_dependencies[dependency.name])
+            for suffix in ["", ".css", ".js", ".min.css", ".min.js"]:
+                fpath = orig_fpath + suffix
+                if os.path.exists(fpath):
+                    if os.path.isdir(fpath):
+                        shutil.rmtree(fpath)
+                    else:
+                        os.remove(fpath)
+
+                    break
+            else:
+                print("Error: could not find old version " + old_dependencies[dependency.name], file=sys.stderr)
 
         prefix = "{% static 'vendor/" + dependency.name + "-"
 
