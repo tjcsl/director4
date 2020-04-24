@@ -86,10 +86,13 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
         return True
 
     async def validate_password(self, username: str, password: str) -> bool:
-        assert username == self.raw_username
+        if not username or username != self.raw_username:
+            return False
+
+        result = False
 
         if username == "root":
-            return False
+            result = False
         else:
             if "/" in username:
                 username, self.site_name = username.split("/", 1)
@@ -98,7 +101,13 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
 
             self.username = username
 
-            return await run_default_executor(self._check_password_sync, self.username, password)
+            result = await run_default_executor(self._check_password_sync, self.username, password)
+
+        if result is not True:
+            await asyncio.sleep(3)
+            return False
+
+        return True
 
     def _check_password_sync(self, username: str, password: str) -> bool:
         try:
