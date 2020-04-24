@@ -6,7 +6,6 @@ import json
 import random
 import re
 import socket
-import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -14,27 +13,9 @@ from typing import Any, Dict, Iterator, Optional, Sequence, Tuple, Union
 
 from django.conf import settings
 
+from directorutil.ssl_context import create_internal_client_ssl_context
 
-def create_balancer_ssl_context() -> Optional[ssl.SSLContext]:
-    if settings.DIRECTOR_BALANCER_SSL is None:
-        return None
-
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    context.verify_mode = ssl.CERT_REQUIRED
-    context.load_verify_locations(cafile=settings.DIRECTOR_BALANCER_SSL["cafile"])
-
-    client_certinfo = settings.DIRECTOR_BALANCER_SSL.get("client_cert", None)
-    if client_certinfo is not None:
-        context.load_cert_chain(
-            certfile=client_certinfo["certfile"],
-            keyfile=client_certinfo.get("keyfile"),
-            password=lambda: client_certinfo["password"],
-        )
-
-    return context
-
-
-balancer_ssl_context = create_balancer_ssl_context()
+balancer_ssl_context = create_internal_client_ssl_context(settings.DIRECTOR_BALANCER_SSL)
 
 
 class BalancerRequestError(Exception):
