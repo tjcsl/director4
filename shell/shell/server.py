@@ -215,18 +215,21 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
     def break_received(self, msec: int) -> bool:
         if self.state == ShellSSHSessionState.PROXY:
             self.data_received(b"\x03", 0)
+            return True
+        else:
+            self.close()
+            return False
+
+    def eof_received(self) -> None:
+        if self.state == ShellSSHSessionState.PROXY:
+            self.data_received(b"\x04", 0)
         else:
             self.close()
 
         return False
 
     def soft_eof_received(self) -> bool:
-        self.data_received(b"\x04", 0)
-        return False
-
-    def eof_received(self) -> bool:
-        self.data_received(b"\x04", 0)
-        return False
+        return self.eof_received()
 
     def terminal_size_changed(
         self,
