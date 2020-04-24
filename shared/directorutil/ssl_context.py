@@ -2,7 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import ssl
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 
 def create_internal_client_ssl_context(
@@ -45,7 +45,10 @@ def create_internal_client_ssl_context(
     context.check_hostname = False
 
     if hasattr(ssl, "TLSVersion"):  # Added in Python 3.7
-        context.minimum_version = ssl.TLSVersion.TLSv1_2  # type: ignore # pylint: disable=no-member
+        if not TYPE_CHECKING:
+            context.minimum_version = (  # pylint: disable=no-member,line-too-long # noqa
+                ssl.TLSVersion.TLSv1_2
+            )
 
     client_certinfo = ssl_settings.get("client_cert", None)
     if client_certinfo is not None:
