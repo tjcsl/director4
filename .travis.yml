@@ -17,19 +17,24 @@ install:
 - (cd router && pipenv install --dev --deploy)
 - (cd shell && pipenv install --dev --deploy)
 script:
-- (cd shared && pipenv run ./scripts/format.sh)
+# shared
+- (cd manager && pipenv run ../shared/scripts/format.sh)
 - (cd shared && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
-- (cd shared && pipenv run ./scripts/check.sh)
+- (cd manager && pipenv run ../shared/scripts/check.sh)
+# manager
 - (cd manager && pipenv run ./scripts/format.sh)
 - (cd manager && pipenv run ./scripts/static_templates_format.sh)
 - (cd manager && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh or scripts/static_templates_format.sh
 - (cd manager && pipenv run ./scripts/check.sh)
+# orchestrator
 - (cd orchestrator && pipenv run ./scripts/format.sh)
 - (cd orchestrator && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
 - (cd orchestrator && pipenv run ./scripts/check.sh)
+# router
 - (cd router && pipenv run ./scripts/format.sh)
 - (cd router && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
 - (cd router && pipenv run ./scripts/check.sh)
+# shell
 - (cd shell && pipenv run ./scripts/format.sh)
 - (cd shell && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
 - (cd shell && pipenv run ./scripts/check.sh)
