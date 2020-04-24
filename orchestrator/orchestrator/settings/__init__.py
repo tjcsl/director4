@@ -4,6 +4,8 @@
 import logging
 from typing import List
 
+from ..crypto import import_rsa_key_from_file
+
 # Should be set to False in production
 DEBUG = True
 
@@ -48,9 +50,17 @@ SITE_UMASK: int = 0o007
 # The prefix to add to commands being run to operate on files in SITES_DIRECTORY
 SITE_DIRECTORY_COMMAND_PREFIX: List[str] = []
 
-# Maxiumum amount of time to keep the
-# site terminal open
+# Maxiumum amount of time to keep the site terminal open without receiving a heartbeat
 SITE_TERMINAL_KEEPALIVE_TIMEOUT = 6 * 60 * 60
+
+SHELL_SIGNING_TOKEN_PUBLIC_KEY_PATH = "/etc/director-shell-keys/shell-signing-token-pubkey.pem"
+SHELL_ENCRYPTION_TOKEN_PRIVATE_KEY_PATH = (
+    "/etc/director-shell-keys/shell-encryption-token-privkey.pem"
+)
+
+# Maximum amount of time that a single terminal connection (though the web interface or
+# the shell server) can remain open
+SHELL_TERMINAL_MAX_LIFETIME: int = 3 * 3600
 
 # Maximum size of files downloadable from & uploadable
 # to the orchestrator
@@ -81,3 +91,8 @@ try:
     from .secret import *  # noqa
 except ImportError:
     pass
+
+SHELL_SIGNING_TOKEN_PUBLIC_KEY = import_rsa_key_from_file(SHELL_SIGNING_TOKEN_PUBLIC_KEY_PATH)
+SHELL_ENCRYPTION_TOKEN_PRIVATE_KEY = import_rsa_key_from_file(
+    SHELL_ENCRYPTION_TOKEN_PRIVATE_KEY_PATH
+)

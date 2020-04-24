@@ -9,6 +9,7 @@ from typing import Any, Dict
 import docker
 import websockets
 
+from .. import settings
 from ..docker.utils import create_client
 from ..terminal import TerminalContainer
 from .utils import mainloop_auto_cancel, wait_for_event
@@ -88,7 +89,14 @@ async def web_terminal_handler(  # pylint: disable=unused-argument
                 await terminal.close()
                 break
 
-    await mainloop_auto_cancel([websock_loop(), terminal_loop(), wait_for_event(stop_event)])
+    await mainloop_auto_cancel(
+        [
+            websock_loop(),
+            terminal_loop(),
+            wait_for_event(stop_event),
+            asyncio.sleep(settings.SHELL_TERMINAL_MAX_LIFETIME),
+        ]
+    )
 
     await terminal.close()
     await websock.close()

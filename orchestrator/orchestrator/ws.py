@@ -19,6 +19,7 @@ from .consumers import (
     file_monitor_handler,
     logs_handler,
     multi_status_handler,
+    ssh_shell_handler,
     status_handler,
     web_terminal_handler,
 )
@@ -57,6 +58,7 @@ async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -
         (re.compile(r"^/ws/sites/(?P<site_id>\d+)/logs/?$"), logs_handler),
         (re.compile(r"^/ws/sites/build-docker-image/?$"), build_image_handler),
         (re.compile(r"^/ws/sites/multi-status/?$"), multi_status_handler),
+        (re.compile(r"^/ws/shell-server/(?P<site_id>\d+)/ssh-shell/?$"), ssh_shell_handler),
     ]
 
     for route_re, handler in routes:

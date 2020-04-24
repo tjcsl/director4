@@ -29,6 +29,7 @@ urlpatterns = [
     path("request/", include("director.apps.request.urls", namespace="request")),
     path("docs/", include("director.apps.docs.urls", namespace="docs")),
     path("users/", include("director.apps.users.urls", namespace="users")),
+    path("shell-server/", include("director.apps.shell_server.urls", namespace="shell-server")),
 ]
 
 if settings.DEBUG:

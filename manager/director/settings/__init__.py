@@ -11,7 +11,12 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import sys
 from typing import Container, Iterable, List, Pattern, Union
+
+import Crypto.PublicKey.RSA
+
+from ..utils.crypto import import_rsa_key_from_file
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -52,6 +57,7 @@ INSTALLED_APPS = [
     "director.apps.sites",
     "director.apps.request",
     "director.apps.docs",
+    "director.apps.shell_server",
 ]
 
 MIDDLEWARE = [
@@ -332,6 +338,14 @@ ENABLE_EMAIL_SEND = True
 
 DIRECTOR_CONTACT_EMAIL = "director@tjhsst.edu"
 
+SHELL_SIGNING_TOKEN_PRIVATE_KEY_PATH = "/etc/director-shell-keys/shell-signing-token-privkey.pem"
+SHELL_ENCRYPTION_TOKEN_PUBLIC_KEY_PATH = (
+    "/etc/director-shell-keys/shell-encryption-token-pubkey.pem"
+)
+
+SHELL_AUTH_KINIT_REALM = "CSL.TJHSST.EDU"
+SHELL_AUTH_KINIT_TIMEOUT: Union[int, float] = 15
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:
@@ -353,3 +367,23 @@ assert (
 
 DIRECTOR_NUM_APPSERVERS = len(DIRECTOR_APPSERVER_HOSTS) if DIRECTOR_APPSERVER_HOSTS else 0
 DIRECTOR_NUM_BALANCERS = len(DIRECTOR_BALANCER_HOSTS) if DIRECTOR_BALANCER_HOSTS else 0
+
+if os.path.basename(sys.argv[0]) == "mypy" or (
+    os.path.basename(sys.argv[0]) == "__main__.py"
+    and os.path.basename(os.path.dirname(sys.argv[0])) == "mypy"
+):
+    # The Mypy Django plugin that we use tries to extract important information by loading Django
+    # and performing some initialization.
+    # The problem is, we want to be able to perform type checking in situations where these keys
+    # are unavailable -- for example, in a repo set up for development but outside the Vagrant VM.
+    # So if we're running in Mypy, generate a random dummy key to use here.
+    # We can't check `typing.TYPE_CHECKING` because this is actually imported by the plugin, not
+    # during the type checking phase
+
+    SHELL_SIGNING_TOKEN_PRIVATE_KEY = Crypto.PublicKey.RSA.generate(1024)
+    SHELL_ENCRYPTION_TOKEN_PUBLIC_KEY = SHELL_SIGNING_TOKEN_PRIVATE_KEY.publickey()
+else:
+    SHELL_SIGNING_TOKEN_PRIVATE_KEY = import_rsa_key_from_file(SHELL_SIGNING_TOKEN_PRIVATE_KEY_PATH)
+    SHELL_ENCRYPTION_TOKEN_PUBLIC_KEY = import_rsa_key_from_file(
+        SHELL_ENCRYPTION_TOKEN_PUBLIC_KEY_PATH
+    )

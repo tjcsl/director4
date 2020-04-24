@@ -15,6 +15,9 @@ Vagrant.configure("2") do |config|
   # Balancer HTTP port
   config.vm.network "forwarded_port", guest: 80, host: 8081, host_ip: "127.0.0.1"
 
+  # Shell SSH port
+  config.vm.network "forwarded_port", guest: 2322, host: 2322, host_ip: "127.0.0.1"
+
   # Define the VM and set up some things
   config.vm.hostname = "directorvm"
   config.vm.define "director4-vagrant" do |v|

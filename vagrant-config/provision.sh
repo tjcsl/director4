@@ -22,8 +22,8 @@ timedatectl set-timezone America/New_York
 
 
 ## Dependencies
-# Pip for obvious reasons, tmux and expect for the launch script
-apt-get -y install python3-pip tmux expect
+# Pip for obvious reasons, tmux and expect for the launch script, and krb5-user for kinit
+apt-get -y install python3-pip tmux expect krb5-user
 # Development files
 apt-get -y install python3-dev libssl-dev libcrypto++-dev
 sudo pip3 install pipenv fabric
@@ -36,6 +36,17 @@ apt-get -y install htop
 ## Setup PostgreSQL
 # Install it
 apt-get -y install postgresql postgresql-contrib libpq-dev
+
+
+## Setup Kerberos
+cat <<EOF >/etc/krb5.conf
+[realms]
+    CSL.TJHSST.EDU = {
+        admin_server = kdc1.tjhsst.edu
+        kdc = kdc2.tjhsst.edu
+    }
+
+EOF
 
 # Create users and databases
 run_psql() {
@@ -217,6 +228,12 @@ else
     sudo -u vagrant git clone https://github.com/tjcsl/director4-docs.git /usr/local/www/director-docs
 fi
 
+# Generate shell server keys
+SHELL_SERVER_KEYS_DIR="/etc/director-shell-keys"
+mkdir -p "$SHELL_SERVER_KEYS_DIR"
+chown vagrant:vagrant "$SHELL_SERVER_KEYS_DIR"
+sudo -u vagrant bash -c "mkdir -p \"$SHELL_SERVER_KEYS_DIR/etc/ssh\" && ssh-keygen -A -f \"$SHELL_SERVER_KEYS_DIR\""
+
 ## Application setup
 # Setup secret.pys
 if [[ ! -e manager/director/settings/secret.py ]]; then
@@ -225,8 +242,19 @@ fi
 if [[ ! -e orchestrator/orchestrator/settings/secret.py ]]; then
     cp orchestrator/orchestrator/settings/secret.{sample,py}
 fi
+if [[ ! -e shell/shell/settings/secret.py ]]; then
+    cp shell/shell/settings/secret.{sample,py}
+fi
 
 sudo -H -u vagrant ./scripts/install_dependencies.sh
+
+# Create RSA keys for shell server token encryption
+if [[ ! -e /etc/director-shell-keys/shell-signing-token-privkey.pem ]]; then
+    (cd manager; sudo -H -u vagrant pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-signing-token-pubkey.pem /etc/director-shell-keys/shell-signing-token-privkey.pem)
+fi
+if [[ ! -e /etc/director-shell-keys/shell-encryption-token-privkey.pem ]]; then
+    (cd manager; sudo -H -u vagrant pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-encryption-token-pubkey.pem /etc/director-shell-keys/shell-encryption-token-privkey.pem)
+fi
 
 # Migrate database
 (cd manager; sudo -H -u vagrant pipenv run ./manage.py migrate)
