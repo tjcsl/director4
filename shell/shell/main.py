@@ -52,7 +52,16 @@ def main(argv: List[str]) -> None:
 
     options.server_host_keys.extend(options.extra_server_host_keys)
 
+    logger.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(asctime)s: %(levelname)s: %(message)s"))
+    logger.addHandler(handler)
+
     loop = asyncio.get_event_loop()
+
+    loop.add_signal_handler(signal.SIGTERM, sigterm_handler)
+    loop.add_signal_handler(signal.SIGINT, sigint_handler)
 
     loop.set_default_executor(
         concurrent.futures.ThreadPoolExecutor(max_workers=min(32, (os.cpu_count() or 2) * 2))
