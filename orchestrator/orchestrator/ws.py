@@ -27,7 +27,7 @@ from .consumers import (
 logger = logging.getLogger(__package__)  # Since this is run with "python -m orchestrator.ws"
 
 
-def create_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLContext]:
+def create_server_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLContext]:
     if options.ssl_certfile is None:
         return None
 
@@ -118,7 +118,7 @@ def main(argv: List[str]) -> None:
         print("Cannot specify --keyfile or --client-ca-file without --certfile", file=sys.stderr)
         sys.exit(1)
 
-    ssl_context = create_ssl_context(options)
+    ssl_context = create_server_ssl_context(options)
 
     logger.setLevel(logging.INFO)
 
