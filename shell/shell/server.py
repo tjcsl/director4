@@ -419,6 +419,21 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
         try:
             await websock.send(token)
 
+            frame = await websock.recv()
+            if isinstance(frame, str):
+                try:
+                    msg = json.loads(frame)
+                except json.JSONDecodeError:
+                    self.close()
+                    return
+                else:
+                    if not msg.get("connected"):
+                        self.close()
+                        return
+            else:
+                self.close()
+                return
+
             # Flush the buffer through to the socket
             buf, self.buffer = self.buffer, b""
             await websock.send(buf)
