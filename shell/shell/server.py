@@ -235,13 +235,20 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
     async def get_site_name(self) -> Optional[str]:
         assert self.chan is not None
 
-        if self.server.site_name:
-            return self.server.site_name
-
         if not self.server.sites:
-            self.write_bytes(b"You have no sites to connect to.\r\n")
+            self.write_stderr_bytes(b"You have no sites to connect to.\r\n")
 
             return None
+
+        if self.server.site_name:
+            if self.server.site_name not in self.server.sites:
+                self.write_stderr_bytes(
+                    b"The requested site does not exist or you do not have access to it.\r\n"
+                )
+
+                return None
+
+            return self.server.site_name
 
         data = (
             "Please select a site to connect to:\r\n- "
@@ -308,6 +315,14 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
             self.chan.write(data)
         else:
             self.chan.write(data.decode("latin-1"))
+
+    def write_stderr_bytes(self, data: bytes) -> None:
+        assert self.chan is not None
+
+        if self.chan.get_encoding()[0] is None:
+            self.chan.write_stderr(data)
+        else:
+            self.chan.write_stderr(data.decode("latin-1"))
 
     async def connect_websock(self, site_id: int, site_name: str, token: str) -> None:
         websock = None
