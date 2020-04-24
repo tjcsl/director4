@@ -61,6 +61,14 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
         self.listener = listener
         self.conn: Optional[asyncssh.SSHClientConnection] = None
 
+        # There's support here for a system where the username is specified in the format:
+        # <username>/<site name>
+        # The result is that it's possible to do things like "ssh user/site@host" and skip the
+        # site selection page.
+        # So here's what these variables mean:
+        # self.raw_username is the original, unparsed username as received from the client.
+        # self.username is the username to use to authenticate.
+        # self.site_name is the part after the "/" if this format is used. Otherwise it is None.
         self.raw_username: Optional[str] = None
         self.username: Optional[str] = None
         self.site_name: Optional[str] = None
@@ -68,6 +76,9 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
         self.sites: Optional[Dict[str, Tuple[int, str]]] = None
 
     def connection_made(self, conn: asyncssh.SSHClientConnection) -> None:
+        # This is called when a connection opens.
+        # Give the parent ShellSSHListener a reference to this object
+        # so it can keep track of open connections.
         self.listener.servers.append(self)
         self.conn = conn
 
@@ -79,6 +90,7 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
             self.listener.servers.remove(self)
 
     def begin_auth(self, username: str) -> bool:
+        # Record the usernane
         self.raw_username = username
         return True
 
@@ -94,6 +106,7 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
         if username == "root":
             result = False
         else:
+            # See the description of this format in __init__()
             if "/" in username:
                 username, self.site_name = username.split("/", 1)
             else:
@@ -145,6 +158,11 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
         self.chan: Optional[asyncssh.SSHServerChannel] = None
 
         self.buffer = b""
+        # This Event is fired whenever new data is made available on the buffer.
+        # It's also fired when the connection is closed, so anything using this
+        # should also check for that case.
+        # It is never clear()ed by the firing code, so if you're wait()ing for it
+        # you should immediately clear it
         self.buffer_update_event = asyncio.Event()
 
         self.websock: Optional[websockets.WebSocketClientProtocol] = None
@@ -192,20 +210,28 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
         asyncio.ensure_future(self.setup_connection())
 
     def data_received(self, data: Union[str, bytes], datatype: Any) -> None:
+        # We got some data from the server
+
+        # Make sure it's bytes
         if isinstance(data, str):
             data = data.encode()
 
+        # This should never happen, but let's check just to make sure
         if self.chan is None:
             return
 
         if self.state in {ShellSSHSessionState.BEGIN, ShellSSHSessionState.SELECT_SITE}:
+            # We haven't switched to proxying mode yet. Add the data to a "buffer".
             self.buffer += data
 
+            # Too much data, too soon! Abort.
             if len(self.buffer) > 1000:
                 self.close(exit_status=1)
 
+            # Signal that there's new data on the buffer.
             self.buffer_update_event.set()
         elif self.state == ShellSSHSessionState.PROXY:
+            # We're in proxy mode! Write directly to the websocket.
             if self.websock is not None:
                 asyncio.ensure_future(self.websock.send(data))
 
@@ -238,6 +264,7 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
         pixwidth: Optional[int] = None,
         pixheight: Optional[int] = None,
     ) -> None:
+        # Send the new size ASAP
         asyncio.ensure_future(self.send_new_tty_size())
 
     # Internal methods
@@ -274,9 +301,12 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
         self.state = ShellSSHSessionState.SELECT_SITE
 
         while True:
+            # Wait for new data on the buffer
             await self.buffer_update_event.wait()
             self.buffer_update_event.clear()
 
+            # close() signals on self.buffer_update_event.
+            # Did the connection just get closed?
             if self.chan is None:
                 return None
 
@@ -369,10 +399,13 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
         try:
             await websock.send(token)
 
+            # Flush the buffer through to the socket
             buf, self.buffer = self.buffer, b""
             await websock.send(buf)
+            # Now switch to proxy mode
             self.websock = websock
             self.state = ShellSSHSessionState.PROXY
+            # And flush the buffer again in case something got through
             await websock.send(self.buffer)
 
             if self.websock is None:
@@ -439,4 +472,5 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
             asyncio.ensure_future(self.websock.close())
             self.websock = None
 
+        # Unblock anything waiting for a buffer update.
         self.buffer_update_event.set()
