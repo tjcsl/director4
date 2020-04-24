@@ -495,6 +495,8 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
                 pass
 
     def close(self, *, exit_status: Optional[int] = None) -> None:
+        self.state = ShellSSHSessionState.CLOSED
+
         if self.chan is not None and not self.chan.is_closing():
             if exit_status is not None:
                 self.chan.exit(exit_status)
