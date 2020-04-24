@@ -183,11 +183,9 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
         return True
 
     def session_started(self) -> None:
-        assert self.chan is not None
-
         if not self.pty_opened:
             # Terminal not requested
-            self.chan.write(b"You must request a TTY.\n")
+            self.write_stderr_bytes(b"You must request a TTY.\n")
             self.close(exit_status=1)
             return
 
@@ -375,7 +373,7 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
             await websock.send(self.buffer)
 
             if self.websock is None:
-                self.chan.write_stderr(b"Internal connection error; please try again later\r\n")
+                self.write_stderr_bytes(b"Internal connection error; please try again later\r\n")
                 self.close(exit_status=1)
             else:
                 await self.send_new_tty_size()
@@ -423,7 +421,7 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
             try:
                 await self.websock.send(json.dumps({"size": [height, width]}))
             except websockets.WebSocketException:
-                return None
+                pass
 
     def close(self, *, exit_status: Optional[int] = None) -> None:
         if self.chan is not None and not self.chan.is_closing():
