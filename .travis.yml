@@ -12,7 +12,6 @@ env:
   global:
     - PIPENV_IGNORE_VIRTUALENVS=1
 install:
-- (cd shared && pipenv install --dev --deploy)
 - (cd manager && pipenv install --dev --deploy)
 - (cd orchestrator && pipenv install --dev --deploy)
 - (cd router && pipenv install --dev --deploy)
