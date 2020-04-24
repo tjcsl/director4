@@ -33,11 +33,13 @@ def create_server_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLCo
 
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 
-    context.load_verify_locations(cafile=options.ssl_cafile)
-
     context.load_cert_chain(
         certfile=options.ssl_certfile, keyfile=options.ssl_keyfile,
     )
+
+    if options.ssl_cafile:
+        context.load_verify_locations(cafile=options.ssl_cafile)
+        context.verify_mode = ssl.CERT_REQUIRED
 
     return context
 
