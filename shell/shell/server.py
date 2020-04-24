@@ -167,6 +167,8 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
 
         self.websock: Optional[websockets.WebSocketClientProtocol] = None
 
+        self.websock_send_lock = asyncio.Lock()
+
         self.pty_opened = False
 
         self.state: ShellSSHSessionState = ShellSSHSessionState.BEGIN
@@ -233,7 +235,7 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
         elif self.state == ShellSSHSessionState.PROXY:
             # We're in proxy mode! Write directly to the websocket.
             if self.websock is not None:
-                asyncio.ensure_future(self.websock.send(data))
+                asyncio.ensure_future(self.send_websock_data(data))
 
     def signal_received(self, signal: Any) -> None:
         pass
@@ -268,6 +270,24 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
         asyncio.ensure_future(self.send_new_tty_size())
 
     # Internal methods
+
+    async def send_websock_data(self, data: bytes) -> None:
+        """Sends the given data to self.websock, locking on self.websock_send_lock.
+
+        Once proxy mode has been entered and self.websock has been set, this should
+        be used to send all data to the underlying websocket, since it prevents race
+        conditions that could result in data being sent out of order.
+
+        """
+
+        try:
+            async with self.websock_send_lock:
+                if self.websock is None:
+                    return
+
+                await self.websock.send(data)
+        except websockets.WebSocketException:
+            self.close()
 
     async def get_site_name(self) -> Optional[str]:
         assert self.chan is not None
@@ -406,7 +426,7 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
             self.websock = websock
             self.state = ShellSSHSessionState.PROXY
             # And flush the buffer again in case something got through
-            await websock.send(self.buffer)
+            await self.send_websock_data(buf)
 
             if self.websock is None:
                 self.write_stderr_bytes(b"Internal connection error; please try again later\r\n")
