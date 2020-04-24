@@ -149,7 +149,7 @@ class ShellSSHSessionState(enum.Enum):
     CLOSED = 3
 
 
-class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
+class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore # pylint: disable=too-many-instance-attributes, line-too-long # noqa
     def __init__(self, server: ShellSSHServer) -> None:
         assert server.username is not None
         assert server.sites is not None
@@ -248,7 +248,7 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore
             self.close()
             return False
 
-    def eof_received(self) -> None:
+    def eof_received(self) -> bool:
         if self.state == ShellSSHSessionState.PROXY:
             self.data_received(b"\x04", 0)
         else:
