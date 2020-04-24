@@ -4,7 +4,7 @@
 import logging
 from typing import List
 
-from ..crypto import import_rsa_key_from_file
+from directorutil.crypto import import_rsa_key_from_file
 
 # Should be set to False in production
 DEBUG = True

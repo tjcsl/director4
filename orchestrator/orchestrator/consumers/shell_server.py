@@ -12,7 +12,9 @@ from typing import Any, Dict, cast
 import docker
 import websockets
 
-from .. import crypto, settings
+from directorutil import crypto
+
+from .. import settings
 from ..docker.utils import create_client
 from ..terminal import TerminalContainer
 from .utils import mainloop_auto_cancel, wait_for_event

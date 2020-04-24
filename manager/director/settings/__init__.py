@@ -16,7 +16,7 @@ from typing import Container, Iterable, List, Pattern, Union
 
 import Crypto.PublicKey.RSA
 
-from ..utils.crypto import import_rsa_key_from_file
+from directorutil.crypto import import_rsa_key_from_file
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

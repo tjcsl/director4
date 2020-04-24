@@ -12,7 +12,8 @@ import pexpect
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
-from ...utils import crypto
+from directorutil import crypto
+
 from ..sites.models import Site
 from ..users.models import User  # ONLY imported for type checks. Not for other use.
 
