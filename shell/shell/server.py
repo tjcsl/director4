@@ -73,7 +73,7 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         if exc is not None:
-            logger.error("Disconnected: %s: %s", exc.__class__, exc)
+            logger.error("Disconnected: %s: %s", exc.__class__.__name__, exc)
 
         if self in self.listener.servers:
             self.listener.servers.remove(self)
@@ -123,7 +123,7 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
             return True
 
     def session_requested(self) -> asyncssh.SSHServerSession:
-        if self.username == "root" and self.sites is not None:
+        if self.username == "root":
             return None
         else:
             return ShellSSHServerSession(self)
