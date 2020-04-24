@@ -178,9 +178,8 @@ class ZipFile(zipfile.ZipFile):
         self.paths_to_write = []
 
     def __iter__(self):
-        for kwargs in self.paths_to_write:
-            for data in self.__write(**kwargs):
-                yield data
+        for data in self.flush():
+            yield data
         for data in self.__close():
             yield data
 
@@ -189,6 +188,12 @@ class ZipFile(zipfile.ZipFile):
 
     def __exit__(self, type, value, traceback):
         self.close()
+
+    def flush(self):
+        while self.paths_to_write:
+            kwargs = self.paths_to_write.pop(0)
+            for data in self.__write(**kwargs):
+                yield data
 
     @property
     def comment(self):
@@ -215,20 +220,20 @@ class ZipFile(zipfile.ZipFile):
         kwargs = {'filename': filename, 'arcname': arcname, 'compress_type': compress_type}
         self.paths_to_write.append(kwargs)
 
-    def write_iter(self, arcname, iterable, compress_type=None):
+    def write_iter(self, arcname, iterable, compress_type=None, buffer_size=None):
         """Write the bytes iterable `iterable` to the archive under the name `arcname`."""
-        kwargs = {'arcname': arcname, 'iterable': iterable, 'compress_type': compress_type}
+        kwargs = {'arcname': arcname, 'iterable': iterable, 'compress_type': compress_type, 'buffer_size': buffer_size}
         self.paths_to_write.append(kwargs)
 
-    def writestr(self, arcname, data, compress_type=None):
+    def writestr(self, arcname, data, compress_type=None, buffer_size=None):
         """
         Writes a str into ZipFile by wrapping data as a generator
         """
         def _iterable():
             yield data
-        return self.write_iter(arcname, _iterable(), compress_type=compress_type)
+        return self.write_iter(arcname, _iterable(), compress_type=compress_type, buffer_size=buffer_size)
 
-    def __write(self, filename=None, iterable=None, arcname=None, compress_type=None):
+    def __write(self, filename=None, iterable=None, arcname=None, compress_type=None, buffer_size=None):
         """Put the bytes from filename into the archive under the name
         `arcname`."""
         if not self.fp:
@@ -265,7 +270,7 @@ class ZipFile(zipfile.ZipFile):
         if st:
             zinfo.file_size = st[6]
         else:
-            zinfo.file_size = 0
+            zinfo.file_size = buffer_size or 0
         zinfo.flag_bits = 0x00
         zinfo.flag_bits |= 0x08                 # ZIP flag bits, bit 3 indicates presence of data descriptor
         zinfo.header_offset = self.fp.tell()    # Start of header bytes

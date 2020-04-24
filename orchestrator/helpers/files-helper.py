@@ -343,6 +343,10 @@ def download_zip_cmd(
                     filename=fpath,
                     arcname=os.path.join(short_root, fname),
                 )
+
+                for chunk in zf.flush():
+                    sys.stdout.buffer.write(chunk)
+                    sys.stdout.buffer.flush()
     except OSError as ex:
         print(ex, file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
@@ -350,7 +354,7 @@ def download_zip_cmd(
     try:
         for chunk in zf:
             sys.stdout.buffer.write(chunk)
-            sys.stdout.flush()
+            sys.stdout.buffer.flush()
     except OSError as ex:
         print(ex, file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
