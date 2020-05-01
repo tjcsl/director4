@@ -5,7 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 flake8 = "~=3.7.9"
-pylint = "~=2.4.4"
+pylint = "~=2.5.0"
 isort = "~=4.3.21"
 black = "==19.10b0"
 typed-ast = "~=1.4.1"  # Required by black, but Pipenv doesn't pull it in correctly on 3.8
@@ -28,6 +28,6 @@ importlib-metadata = {version = "~=1.6.0",markers = "python_version < '3.8'"}
 websockets = "~=8.1"
 django-redis-cache = "~=2.1.1"
 markdown = "~=3.2.1"
-bleach = "~=3.1.4"
-redis = "~=3.4.1"
+bleach = "~=3.1.5"
+redis = "~=3.5.0"
 pycryptodome = "~=3.9.7"
