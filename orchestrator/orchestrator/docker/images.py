@@ -52,7 +52,7 @@ def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]) 
         raise OrchestratorActionError("Error writing Dockerfile: {}".format(ex))
 
     # We want to delete intermediate containers during the build process
-    image, build_logs = client.images.build(
+    client.images.build(
         path=image_directory, rm=True, dockerfile="Dockerfile", tag=image_name, pull=True
     )
 

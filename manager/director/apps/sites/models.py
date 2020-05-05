@@ -187,7 +187,7 @@ class Site(models.Model):
         if not is_site_name_allowed(self.name):
             raise ValidationError("This site name is not allowed.")
 
-    def save(self, *args: Any, **kwargs: Any) -> None:  # pylint: disable=arguments-differ
+    def save(self, *args: Any, **kwargs: Any) -> None:  # pylint: disable=signature-differs
         self.clean()
         super().save(*args, **kwargs)
 

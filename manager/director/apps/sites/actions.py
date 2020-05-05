@@ -156,7 +156,7 @@ def build_docker_image(site: Site, scope: Dict[str, Any]) -> Iterator[Union[Tupl
     appserver = random.choice(scope["pingable_appservers"])
 
     executor = build_docker_image_async(
-        site, scope, appserver, site.docker_image.serialize_for_appserver(),
+        appserver, site.docker_image.serialize_for_appserver(),
     )
 
     # Async generators are hard in synchronous code
@@ -172,7 +172,7 @@ def build_docker_image(site: Site, scope: Dict[str, Any]) -> Iterator[Union[Tupl
 
 
 async def build_docker_image_async(
-    site: Site, scope: Dict[str, Any], appserver_num: int, data: Dict[str, Any],
+    appserver_num: int, data: Dict[str, Any],
 ) -> AsyncGenerator[Union[Tuple[str, str], str], None]:
     yield "Connecting to appserver {} to build Docker image".format(appserver_num)
     websock = await asyncio.wait_for(
