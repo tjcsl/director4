@@ -5,7 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 flake8 = "~=3.7.9"
-pylint = "~=2.5.0"
+pylint = "~=2.5.2"
 isort = "~=4.3.21"
 black = "==19.10b0"
 typed-ast = "~=1.4.1"  # Required by black, but Pipenv doesn't pull it in correctly on 3.8

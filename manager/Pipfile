@@ -5,7 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 flake8 = "~=3.7.9"
-pylint = "~=2.5.0"
+pylint = "~=2.5.2"
 isort = "~=4.3.21"
 black = "==19.10b0"
 typed-ast = "~=1.4.1"  # Required by black, but Pipenv doesn't pull it in correctly on 3.8
@@ -18,7 +18,7 @@ django-stubs = "~=1.5.0"
 django = "~=2.2.12"
 social-auth-app-django = "~=3.1.0"
 psycopg2 = "~=2.8.5"
-ipython = "~=7.13.0"
+ipython = "~=7.14.0"
 django-extensions = "~=2.2.9"
 channels = "~=2.4.0"
 daphne = "~=2.5.0"
