@@ -155,9 +155,7 @@ def build_docker_image(site: Site, scope: Dict[str, Any]) -> Iterator[Union[Tupl
 
     appserver = random.choice(scope["pingable_appservers"])
 
-    executor = build_docker_image_async(
-        appserver, site.docker_image.serialize_for_appserver(),
-    )
+    executor = build_docker_image_async(appserver, site.docker_image.serialize_for_appserver())
 
     # Async generators are hard in synchronous code
     while True:
