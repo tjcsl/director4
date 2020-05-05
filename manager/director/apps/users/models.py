@@ -32,6 +32,8 @@ class User(AbstractBaseUser):
     last_name = models.CharField(max_length=70, null=False, blank=False)
     email = models.EmailField(max_length=50, null=False, blank=False)
 
+    graduation_year = models.PositiveSmallIntegerField(null=True, default=None, blank=True)
+
     is_active = models.BooleanField(default=True, null=False)
     is_service = models.BooleanField(default=False, null=False)
     is_student = models.BooleanField(default=False, null=False)

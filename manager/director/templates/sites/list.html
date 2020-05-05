@@ -22,6 +22,12 @@
 {% endblock %}
 
 {% block main %}
+    {% if is_graduating_soon %}
+        <div class="p-2" style="background-color: yellow;">
+            Please remember to download any important data from your Director sites before you graduate.
+        </div>
+    {% endif %}
+
     <div class="subheading clearfix">
         {% if query %}
         <h3 class="float-left d-none d-sm-block">Search Results From {% if show_all %}All{% else %}Your{% endif %} Sites</h3>

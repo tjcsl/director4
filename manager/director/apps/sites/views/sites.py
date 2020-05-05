@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 
@@ -112,6 +113,10 @@ def index_view(request: HttpRequest) -> HttpResponse:
         "page_num": page_num,
         "paginated_sites": paginated_sites,
         "page_links": page_links,
+        "is_graduating_soon": (
+            request.user.graduation_year is not None
+            and timezone.localtime().year == request.user.graduation_year
+        ),
     }
 
     return render(request, "sites/list.html", context)

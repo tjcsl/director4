@@ -32,7 +32,9 @@ class IonOauth2(BaseOAuth2):  # pylint: disable=abstract-method
         # fields used to populate/update User model
         data = {
             key: profile[key]
-            for key in ("first_name", "last_name", "id", "is_student", "is_teacher")
+            for key in (
+                "first_name", "last_name", "id", "is_student", "is_teacher", "graduation_year",
+            )
         }
         data["username"] = profile["ion_username"]
         data["email"] = profile["tj_email"]

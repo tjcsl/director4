@@ -124,6 +124,7 @@ SOCIAL_AUTH_USER_FIELDS = [
     "id",
     "is_teacher",
     "is_student",
+    "graduation_year",
 ]
 
 SOCIAL_AUTH_URL_NAMESPACE = "social"
