@@ -11,6 +11,7 @@ cache:
 env:
   global:
     - PIPENV_IGNORE_VIRTUALENVS=1
+    - PIPENV_PYUP_API_KEY=""
 install:
 - (cd manager && pipenv install --dev --deploy)
 - (cd orchestrator && pipenv install --dev --deploy)
