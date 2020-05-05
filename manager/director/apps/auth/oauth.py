@@ -33,7 +33,12 @@ class IonOauth2(BaseOAuth2):  # pylint: disable=abstract-method
         data = {
             key: profile[key]
             for key in (
-                "first_name", "last_name", "id", "is_student", "is_teacher", "graduation_year",
+                "first_name",
+                "last_name",
+                "id",
+                "is_student",
+                "is_teacher",
+                "graduation_year",
             )
         }
         data["username"] = profile["ion_username"]
