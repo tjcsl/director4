@@ -400,7 +400,11 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore # pylint
             try:
                 websock = await asyncio.wait_for(
                     websockets.connect(
-                        "ws://{}/ws/shell-server/{}/ssh-shell/".format(host, site_id),
+                        "ws{}://{}/ws/shell-server/{}/ssh-shell/".format(
+                            "s" if settings.APPSERVER_SSL_CONTEXT is not None else "",
+                            host,
+                            site_id,
+                        ),
                         ping_interval=30,
                         ping_timeout=10,
                         close_timeout=10,
