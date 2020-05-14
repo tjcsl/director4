@@ -81,8 +81,8 @@ systemctl enable redis-server
 
 ## Disable RabbitMQ
 # Not needed any more
-systemctl stop rabbitmq-server
-systemctl disable rabbitmq-server
+systemctl stop rabbitmq-server || true
+systemctl disable rabbitmq-server || true
 
 
 ## Setup Docker
