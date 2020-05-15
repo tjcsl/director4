@@ -253,13 +253,17 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         self.connected = True
         await self.accept()
 
-        await self.open_terminal_connection()
+        command = None
+        if self.scope["query_string"]:
+            command = urllib.parse.unquote_plus(self.scope["query_string"].decode()).split("\n")
+
+        await self.open_terminal_connection(command)
 
         if self.connected:
             loop = asyncio.get_event_loop()
             loop.create_task(self.mainloop())
 
-    async def open_terminal_connection(self) -> None:
+    async def open_terminal_connection(self, command: Optional[List[str]]) -> None:
         assert self.site is not None
 
         # This is a little tricky. We have two goals here:
@@ -303,6 +307,8 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
             await terminal_websock.send(
                 json.dumps(await database_sync_to_async(self.site.serialize_for_appserver)())
             )
+
+            await terminal_websock.send(json.dumps(command))
 
             # We wait until here to assign it to self.terminal_websock. Otherwise the client
             # could send JSON data really quickly and perhaps get that sent to the appserver

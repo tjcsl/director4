@@ -44,7 +44,7 @@
     <script>
     $(document).ready(function() {
         setupTerminal(
-            location.protocol.replace(/^http/, "ws") + location.host +  "{% url 'sites:terminal' site.id %}",
+            location.protocol.replace(/^http/, "ws") + location.host +  "{% url 'sites:terminal' site.id %}?{{ command_str }}",
             $("#console"),
             {
                 autoFocus: true,

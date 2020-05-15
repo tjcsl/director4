@@ -3,6 +3,7 @@
 
 import json
 import re
+import urllib.parse
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -127,8 +128,28 @@ def index_view(request: HttpRequest) -> HttpResponse:
 def terminal_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
+    if request.GET.get("sql") and site.has_database and site.docker_image.is_custom:
+        if site.database.db_type == "mysql":
+            command = [
+                "sh",
+                "-c",
+                "exec mysql "
+                '--host="$DIRECTOR_DATABASE_HOST" '
+                '--port="$DIRECTOR_DATABASE_PORT" '
+                '--user="$DIRECTOR_DATABASE_USERNAME" '
+                '--password="$DIRECTOR_DATABASE_PASSWORD" '
+                '"$DIRECTOR_DATABASE_NAME"',
+            ]
+        else:
+            command = ["sh", "-c", 'exec psql "$DIRECTOR_DATABASE_URL"']
+
+        command_str = urllib.parse.quote_plus("\n".join(command))
+    else:
+        command_str = ""
+
     context = {
         "site": site,
+        "command_str": command_str,
     }
 
     return render(request, "sites/terminal.html", context)

@@ -25,6 +25,7 @@ async def web_terminal_handler(  # pylint: disable=unused-argument
     site_id = int(params["site_id"])
     try:
         site_data = json.loads(await websock.recv())
+        command = json.loads(await websock.recv())
         await websock.send(json.dumps({"connected": True}))
     except websockets.exceptions.ConnectionClosed:
         logger.info("Websocket connection for site %s terminal closed early", site_id)
@@ -36,7 +37,7 @@ async def web_terminal_handler(  # pylint: disable=unused-argument
 
     try:
         terminal = TerminalContainer(client, site_id, site_data)
-        await terminal.start()
+        await terminal.start(command=command)
     except docker.errors.APIError as ex:
         logger.error("Error opening terminal for site %d: %s", site_id, ex)
         return

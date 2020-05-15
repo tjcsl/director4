@@ -3,7 +3,7 @@
 
 import asyncio
 import socket
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from docker.client import DockerClient
 from docker.errors import ImageNotFound, NotFound
@@ -42,8 +42,8 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
         self.closed = False
 
-    async def start(self) -> None:
-        await self._start_attach()
+    async def start(self, *, command: Optional[List[str]] = None) -> None:
+        await self._start_attach(command)
 
         assert self.socket is not None
         # The default timeout is 60 seconds, which is way too low
@@ -60,7 +60,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         await self.heartbeat()
 
     @run_in_executor(None)
-    def _start_attach(self) -> None:
+    def _start_attach(self, command: Optional[List[str]]) -> None:
         """Internal function that runs in an executor and performs all the long-running synchronous
         operations needed to create the container (if necessary) and attach to it."""
         run_params = containers.gen_director_container_params(
@@ -106,14 +106,24 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
         env = gen_director_container_env(self.client, self.site_id, self.site_data)
 
-        # See docs/UMASK.md before touching this
-        args = [
-            "sh",
-            "-c",
-            'umask "$1"; if [ -x /bin/bash ]; then exec bash; fi; exec sh',
-            "sh",
-            oct(settings.SITE_UMASK)[2:],
-        ]
+        # See docs/UMASK.md before changing the umask setup
+        if command is None:
+            args = [
+                "sh",
+                "-c",
+                'umask "$1"; if [ -x /bin/bash ]; then exec bash; fi; exec sh',
+                "sh",
+                oct(settings.SITE_UMASK)[2:],
+            ]
+        else:
+            args = [
+                "sh",
+                "-c",
+                'umask "$1"; shift; exec "$@"',
+                "sh",
+                oct(settings.SITE_UMASK)[2:],
+                *command,
+            ]
 
         self.exec_id = self.client.api.exec_create(
             self.container.id,

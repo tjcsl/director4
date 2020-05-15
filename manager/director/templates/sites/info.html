@@ -76,6 +76,7 @@
                 </div>
                 <p>WARNING: You may feel tempted to copy/paste this URL into your site's database configuration. <strong>Do not do this.</strong> Instead, your code should use the <code>DIRECTOR_DATABASE_URL</code> environmental variable to connect to your site's database.<br>For more information, see the documentation.</p>
                 <a href="{% url 'sites:database_shell' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Database shell</a>
+                <a href="{% url 'sites:terminal' site.id %}?sql=1" class="btn btn-ion"><i class="fa fa-terminal"></i> Alternate shell</a>
                 <a href="{% url 'sites:delete_database' site.id %}" class="btn btn-ion btn-danger"><i class="far fa-trash-alt"></i> Delete Database</a>
             </div>
             <div id="no-database-info"{% if site.database %} style="display: none"{% endif %}>
