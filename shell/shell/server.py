@@ -15,6 +15,7 @@ import asyncssh
 import websockets
 
 from . import manager_interface, settings
+from .root_shell import RootShellSession
 from .util import run_default_executor
 
 logger = logging.getLogger(__name__)
@@ -106,16 +107,16 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
 
         result = False
 
+        self.username = username
+
         if username == "root":
-            result = False
+            result = bool(password)
         else:
             # See the description of this format in __init__()
             if "/" in username:
                 username, self.site_name = username.split("/", 1)
             else:
                 self.site_name = None
-
-            self.username = username
 
             result = await run_default_executor(self._check_password_sync, self.username, password)
 
@@ -140,7 +141,7 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
 
     def session_requested(self) -> asyncssh.SSHServerSession:
         if self.username == "root":
-            return None
+            return RootShellSession()
         else:
             return ShellSSHServerSession(self)
 
