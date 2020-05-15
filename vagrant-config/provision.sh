@@ -284,9 +284,9 @@ databases = [
         'hostname': 'director-mysql',
         'port': 3306,
         'dbms': 'mysql',
-        'admin_hostname': 'localhost',
+        'admin_hostname': '127.0.0.1',
         'admin_port': 3307,
-        'admin_username': 'admin',
+        'admin_username': 'root',
         'admin_password': 'pwd',
     },
 ]
