@@ -69,7 +69,7 @@ def main(argv: List[str]) -> None:
     logger.setLevel(logging.INFO)
 
     handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("%(asctime)s: %(levelname)s: %(message)s"))
+    handler.setFormatter(logging.Formatter("%(asctime)s: %(levelname)7s: %(message)s"))
     logger.addHandler(handler)
 
     loop = asyncio.get_event_loop()
