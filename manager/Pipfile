@@ -4,7 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-flake8 = "~=3.7.9"
+flake8 = "~=3.8.1"
 pylint = "~=2.5.2"
 isort = "~=4.3.21"
 black = "==19.10b0"
@@ -27,7 +27,7 @@ channels-redis = "~=2.4.2"
 importlib-metadata = {version = "~=1.6.0",markers = "python_version < '3.8'"}
 websockets = "~=8.1"
 django-redis-cache = "~=2.1.1"
-markdown = "~=3.2.1"
+markdown = "~=3.2.2"
 bleach = "~=3.1.5"
-redis = "~=3.5.0"
+redis = "~=3.5.2"
 pycryptodome = "~=3.9.7"
