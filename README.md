@@ -3,7 +3,7 @@
 [![Travis CI](https://api.travis-ci.com/tjresearch/research-theo_john.svg?branch=master)](https://travis-ci.com/tjresearch/research-theo_john)
 
 ## Overview
-Our project is to develop a website management and hosting platform (based on the [current Director platform](https://github.com/tjcsl/director)) that is designed to scale. It is intended to replace the current Director platform which has problems.
+Our project is to develop a website management and hosting platform (based on the [current Director platform](https://github.com/tjcsl/director)) that is designed to scale. It is intended to replace the current Director platform which has problems with performance, scalability, and ease of use.
 
 It is composed of three primary components:
 * `orchestrator`: The code that orchestrates the Docker containers
