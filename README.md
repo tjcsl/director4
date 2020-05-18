@@ -38,7 +38,8 @@ We use Vagrant for providing a partial replica of a production environment. See 
 
 ## Screenshots
 
-*IN PROGRESS*
+![Code Editor](images/editor.png)
+![Customize Docker Image Page](images/customize-docker.png)
 
 ## Licensing
 This code is released under the MIT License as described in [LICENSE](LICENSE).
