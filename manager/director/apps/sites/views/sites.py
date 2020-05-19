@@ -77,8 +77,8 @@ def index_view(request: HttpRequest) -> HttpResponse:
     # Show results from other sites too if they're a superuser and:
     # - They requested to be shown other sites
     # - OR they entered search terms but nothing matched
-    show_all = bool(
-        request.user.is_superuser and (request.GET.get("all") or (query and not own_sites.exists()))
+    show_all = request.user.is_superuser and bool(
+        request.GET.get("all") or (query and not own_sites.exists())
     )
 
     # Actually add the sites to the query
@@ -114,6 +114,7 @@ def index_view(request: HttpRequest) -> HttpResponse:
         "page_num": page_num,
         "paginated_sites": paginated_sites,
         "page_links": page_links,
+        # Show a banner if the user is graduating soon
         "is_graduating_soon": (
             request.user.graduation_year is not None
             and timezone.localtime().year == request.user.graduation_year
