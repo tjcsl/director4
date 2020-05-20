@@ -5,4 +5,7 @@ from django.apps import AppConfig
 
 
 class SitesConfig(AppConfig):
-    name = "sites"
+    name = "director.apps.sites"
+
+    def ready(self):
+        from . import signals  # noqa # pylint: disable=unused-import,import-outside-toplevel

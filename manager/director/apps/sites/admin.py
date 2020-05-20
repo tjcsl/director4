@@ -13,6 +13,7 @@ from .models import (
     Domain,
     Operation,
     Site,
+    SitePendingUser,
     SiteResourceLimits,
 )
 
@@ -25,6 +26,7 @@ admin.site.register(DatabaseHost)
 admin.site.register(Database)
 
 admin.site.register(Site)
+admin.site.register(SitePendingUser)
 admin.site.register(SiteResourceLimits)
 
 admin.site.register(Operation)

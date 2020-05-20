@@ -54,7 +54,9 @@ INSTALLED_APPS = [
     "django_extensions",
     "director.apps.auth",
     "director.apps.users",
-    "director.apps.sites",
+    # We need to specify the full path to the config class
+    # because it does some custom initialization.
+    "director.apps.sites.apps.SitesConfig",
     "director.apps.request",
     "director.apps.docs",
     "director.apps.shell_server",

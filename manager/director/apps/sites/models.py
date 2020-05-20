@@ -198,6 +198,26 @@ class Site(models.Model):
         return "<Site: " + str(self) + ">"
 
 
+class SitePendingUser(models.Model):
+    sites = models.ManyToManyField(Site, blank=False, related_name="pending_users")
+
+    username = models.CharField(max_length=80, null=False, blank=False, unique=True)
+
+    @classmethod
+    def add_user_site(cls, username: str, site: Site) -> None:
+        assert isinstance(username, str)
+        pending_user = cls.objects.get_or_create(username=username)[0]
+        pending_user.sites.add(site)
+
+    def process_and_delete(self, user) -> None:
+        assert user.username == self.username
+
+        for site in self.sites.all():
+            site.users.add(user)
+
+        self.delete()
+
+
 class SiteResourceLimitsQuerySet(models.query.QuerySet):
     def filter_has_custom_limits(self) -> "models.query.QuerySet[SiteResourceLimits]":
         """Filters this QuerySet to only the SiteResourceLimits objects with values that
