@@ -78,10 +78,6 @@ class Site(models.Model):
     # Tell Pylint about the implicit related field
     resource_limits: "SiteResourceLimits"
 
-    @property
-    def site_path(self) -> str:
-        return "/web/site-{}".format(self.id)
-
     def list_urls(self) -> List[str]:
         urls = [
             ("https://" + domain) for domain in self.domain_set.values_list("domain", flat=True)
