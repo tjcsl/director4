@@ -387,9 +387,22 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             loop = asyncio.get_event_loop()
             for monitor_websock in self.monitor_websocks:
                 loop.create_task(self.monitor_mainloop(monitor_websock))
+
+            # If we've connected to all the appservers, trigger a close after 1 hour.
+            # Otherwise, trigger it after 5 minutes (so if an appserver comes back online soon
+            # we get reconnected soon).
+            loop.create_task(
+                self.sleep_and_close(
+                    3600 if len(self.monitor_websocks) == settings.DIRECTOR_NUM_APPSERVERS else 300
+                )
+            )
         else:
             self.connected = False
             await self.close()
+
+    async def sleep_and_close(self, timeout: Union[int, float]) -> None:
+        await asyncio.sleep(timeout)
+        await self.close()
 
     async def open_monitor_connections(self) -> None:
         assert self.site is not None
