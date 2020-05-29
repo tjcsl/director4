@@ -51,7 +51,6 @@
                     <th>Status</th>
                     <th>Before state</th>
                     <th>After state</th>
-                    <th>Equivalent command</th>
                     <th>Output</th>
                 </tr>
             {% for action in operation.list_actions_in_order %}
@@ -72,7 +71,6 @@
                     </td>
                     <td>{{ action.before_state }}</td>
                     <td>{{ action.after_state }}</td>
-                    <td><code><pre>{{ action.equivalent_command }}</pre></code></td>
                     <td><code><pre>{{ action.message }}</pre></code></td>
                 </tr>
             {% endfor %}

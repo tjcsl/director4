@@ -27,7 +27,6 @@ class OperationWrapper:
         name: str,
         *,
         slug: Optional[str] = None,
-        equivalent_command: str = "",
         user_recoverable: bool = False,
     ) -> Callable[[ActionCallback], ActionCallback]:
         ...
@@ -39,7 +38,6 @@ class OperationWrapper:
         callback: ActionCallback,
         *,
         slug: Optional[str] = None,
-        equivalent_command: str = "",
         user_recoverable: bool = False,
     ) -> ActionCallback:
         ...
@@ -50,7 +48,6 @@ class OperationWrapper:
         callback: Optional[ActionCallback] = None,
         *,
         slug: Optional[str] = None,
-        equivalent_command: str = "",
         user_recoverable: bool = False,
     ) -> Union[ActionCallback, Callable[[ActionCallback], ActionCallback]]:
         created = False
@@ -64,7 +61,6 @@ class OperationWrapper:
                 operation=self.operation,
                 slug=slug if slug is not None else callback.__name__,
                 name=name,
-                equivalent_command=equivalent_command,
                 user_recoverable=user_recoverable,
             )
 

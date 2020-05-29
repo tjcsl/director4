@@ -800,11 +800,6 @@ class Action(models.Model):
     before_state = models.CharField(max_length=255, null=False, blank=True)
     after_state = models.CharField(max_length=255, null=False, blank=True)
 
-    # This indicates a command that is roughly equivalent to the task this Action performs.
-    # Example:
-    # An empty string indicates N/A (for things like connecting to the appserver or asking the
-    # appserver to generate a config file)
-    equivalent_command = models.CharField(max_length=200, null=False, blank=True)
     # None=Not finished, True=Successful, False=Failed
     result = models.BooleanField(null=True, default=None)
     # Some kind of message describing the actions taken or anything that failed in further detail.

@@ -218,7 +218,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
                         ),
                         "result": action.result,
                         # The following fields are intentionally omitted:
-                        # before_state, after_state, equivalent_command, message
+                        # before_state, after_state, message
                         # Do not add them in.
                     }
                     for action in self.site.operation.list_actions_in_order()
