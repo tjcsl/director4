@@ -241,13 +241,38 @@ def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
 def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
-    if site.has_operation:
-        messages.error(request, "An operation is already being performed on this site")
-        return redirect("sites:info", site.id)
+    # This logic blocks the user from trying to change the image if an operation is running.
+    # However, if the operation has failed and the cause of the failure was an error while
+    # building the Docker image, we make a special exception and allow the user to change
+    # the image.
+    override_failed_operation = False
+    operation = site.get_operation()
+
+    if operation is not None:
+        if (
+            # The operation failed
+            operation.has_failed
+            # The failure is recoverable by the user
+            and operation.is_failure_user_recoverable
+            # The operation has no failed recoverable actions that do not have the
+            # `build_docker_image` slug.
+            # i.e. the Action that failed was `build_docker_image`.
+            and not operation.action_set.filter(result=False, user_recoverable=False)
+            .exclude(slug="build_docker_image")
+            .exists()
+        ):
+            override_failed_operation = True
+        else:
+            messages.error(request, "An operation is already being performed on this site")
+            return redirect("sites:info", site.id)
 
     if request.method == "POST":
         form = ImageSelectForm(request.POST)
         if form.is_valid():
+            if override_failed_operation and operation is not None:
+                operation.action_set.all().delete()
+                operation.delete()
+
             operations.update_image(
                 site,
                 form.cleaned_data["image"],
@@ -279,6 +304,7 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
         image_subwidgets_and_objs.append((subwidget, image))
 
     context = {
+        "override_failed_operation": override_failed_operation,
         "site": site,
         "form": form,
         "image_subwidgets_and_objs": image_subwidgets_and_objs,
@@ -292,6 +318,7 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
             }
         ),
     }
+
     return render(request, "sites/image_select.html", context)
 
 

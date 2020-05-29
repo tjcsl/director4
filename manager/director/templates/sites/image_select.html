@@ -112,6 +112,10 @@
 {% endblock %}
 
 {% block main %}
+    {% if override_failed_operation %}
+        <p><strong>Building the Docker image has failed.</strong> This may be due to incorrect package names; please check your spelling and try again.</p>
+    {% endif %}
+
     {% include "table_form_header.html" with form=form form_submit_text="Save image" %}
 
     </div>

@@ -304,7 +304,9 @@ def update_image_task(
 
             yield "Models updated"
 
-        wrapper.add_action("Building Docker image", actions.build_docker_image)
+        wrapper.add_action(
+            "Building Docker image", actions.build_docker_image, user_recoverable=True,
+        )
 
         if scope["write_run_sh_file"]:
 
@@ -434,7 +436,9 @@ def fix_site_task(operation_id: int) -> None:
 
             wrapper.add_action("Regenerating database password", actions.regen_database_password)
 
-        wrapper.add_action("Building Docker image", actions.build_docker_image)
+        wrapper.add_action(
+            "Building Docker image", actions.build_docker_image, user_recoverable=True,
+        )
 
         wrapper.add_action("Ensuring site directories exist", actions.ensure_site_directories_exist)
 

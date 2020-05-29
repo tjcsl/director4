@@ -169,6 +169,12 @@ class Site(models.Model):
     def has_operation(self) -> bool:
         return Operation.objects.filter(site__id=self.id).exists()
 
+    def get_operation(self) -> Optional["Operation"]:
+        try:
+            return self.operation  # pylint: disable=no-member
+        except Operation.DoesNotExist:
+            return None
+
     @property
     def has_database(self) -> bool:
         return Database.objects.filter(site__id=self.id).exists()
@@ -731,6 +737,14 @@ class Operation(models.Model):
     def has_failed(self) -> bool:
         return self.action_set.filter(result=False).exists()
 
+    @property
+    def is_failure_user_recoverable(self) -> bool:
+        if not self.has_failed:
+            return False
+
+        # Return True if there is at least one failed action that is not recoverable.
+        return not self.action_set.filter(result=False, user_recoverable=False).exists()
+
     def start_operation(self) -> None:
         self.started_time = timezone.localtime()
         self.save(update_fields=["started_time"])
@@ -799,6 +813,16 @@ class Action(models.Model):
     # of the command run to check the Nginx config.
     # Should always be set for failed actions. Optional, but encouraged, for successful actions.
     message = models.TextField(null=False, blank=True)
+
+    # If this is True, it indicates that the user is capable of recovering from a failure in this
+    # action by interacting with the UI.
+    # Operations that fail because of failures in Actions with this field set to True will not
+    # be exported in the Prometheus metrics, and they will have a special note on the operations
+    # page.
+    # The main practical use of this is for building the Docker image, which will fail if the user
+    # enters an incorrect package name. The image selection UI specially accounts for this case
+    # and allows the user to re-submit and delete the operation.
+    user_recoverable = models.BooleanField(null=False, default=False)
 
     @property
     def has_started(self) -> bool:

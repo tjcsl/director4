@@ -224,6 +224,50 @@ $(function() {
 
             $(".site-status").text(status_text);
         }
+        else if(data.failed_operation_recoverable !== undefined) {
+            if($("#site-failed-operation-modal.show").length) {
+                return;
+            }
+
+            var operation_type = data.failed_operation_recoverable;
+            var msg;
+
+            switch(operation_type) {
+                case "update_docker_image":
+                    msg = [
+                        "The Docker image has failed to build. This is usually due to incorrect package names (though there may be other causes).",
+                        $("<br>"),
+                        "Please go to ",
+                        $("<a>").attr("href", "image/select").text("the image selection page"),
+                        " and try again.",
+                    ];
+                    break;
+                default:
+                    msg = "An operation on your site has failed, but you can recover from it. Try navigating back to the last page you were on and repeating what you were trying to do.";
+            }
+
+            var modal_div = $("<div>").addClass("modal").attr("role", "dialog").attr("id", "site-failed-operation-modal");
+
+            var modal_dialog = $("<div>").addClass("modal-dialog").appendTo(modal_div);
+            var modal_content = $("<div>").addClass("modal-content").appendTo(modal_dialog);
+
+            var modal_header = $("<div>").addClass("modal-header").appendTo(modal_content);
+
+            $("<h5>").addClass("modal-title").text("Recovering from failed operation").appendTo(modal_header);
+            $("<button>").attr(
+                {"type": "button", "class": "close", "data-dismiss": "modal"}
+            ).append(
+                $("<i>").addClass("fa fa-times")
+            ).appendTo(modal_header);
+
+            $("<div>").addClass("modal-body").append(msg).appendTo(modal_content);
+
+            modal_div.modal({
+                backdrop: true,
+                keyboard: false,
+                show: true,
+            });
+        }
     });
 
     $(window).on("beforeunload", function() {

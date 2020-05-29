@@ -136,6 +136,15 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
     ) -> None:
         await self.send_site_info()
 
+        if self.connected and self.site is not None:
+            operation = self.site.get_operation()
+            if (
+                operation is not None
+                and operation.has_failed
+                and operation.is_failure_user_recoverable
+            ):
+                await self.send_json({"failed_operation_recoverable": operation.type})
+
     @database_sync_to_async
     def dump_site_info(self) -> Union[Dict[str, Any], None, bool]:
         # If this method returns:

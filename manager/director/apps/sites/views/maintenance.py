@@ -13,6 +13,7 @@ from ...auth.decorators import (
 )
 from .. import operations
 from ..forms import SiteResourceLimitsForm
+from ..helpers import send_operation_updated_message
 from ..models import Action, Operation, Site, SiteResourceLimits
 
 # WARNING: Allowing non-superusers to access ANY of the views here presents a major security
@@ -30,7 +31,11 @@ def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
     if (
         request.user.is_authenticated and request.user.is_superuser
     ) or remote_addr in settings.ALLOWED_METRIC_SCRAPE_IPS:
-        metrics = {"director4_sites_failed_actions": Action.objects.filter(result=False).count()}
+        metrics = {
+            "director4_sites_failed_actions": Action.objects.filter(
+                result=False, user_recoverable=False,
+            ).count(),
+        }
 
         return render(
             request, "prometheus-metrics.txt", {"metrics": metrics}, content_type="text/plain"

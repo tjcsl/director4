@@ -23,7 +23,12 @@ class OperationWrapper:
 
     @overload
     def add_action(  # pylint: disable=no-self-use # noqa
-        self, name: str, *, slug: Optional[str] = None, equivalent_command: str = ""
+        self,
+        name: str,
+        *,
+        slug: Optional[str] = None,
+        equivalent_command: str = "",
+        user_recoverable: bool = False,
     ) -> Callable[[ActionCallback], ActionCallback]:
         ...
 
@@ -35,6 +40,7 @@ class OperationWrapper:
         *,
         slug: Optional[str] = None,
         equivalent_command: str = "",
+        user_recoverable: bool = False,
     ) -> ActionCallback:
         ...
 
@@ -45,6 +51,7 @@ class OperationWrapper:
         *,
         slug: Optional[str] = None,
         equivalent_command: str = "",
+        user_recoverable: bool = False,
     ) -> Union[ActionCallback, Callable[[ActionCallback], ActionCallback]]:
         created = False
 
@@ -58,6 +65,7 @@ class OperationWrapper:
                 slug=slug if slug is not None else callback.__name__,
                 name=name,
                 equivalent_command=equivalent_command,
+                user_recoverable=user_recoverable,
             )
 
             self.actions.append((action, callback))

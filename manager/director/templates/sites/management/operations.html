@@ -34,7 +34,7 @@
 
     {% for operation in operations %}
         <div>
-            <h2>{{ operation.site.name }} (id {{ operation.site.id }})</h2>
+            <h2>{{ operation.site.name }} (id {{ operation.site.id }}){% if operation.has_failed and operation.is_failure_recoverable %} (user can recover from failure){% endif %}</h2>
 
             {% if operation.has_failed %}
             <form method="POST" action="{% url 'sites:operation-delete-fix' operation.id %}">
