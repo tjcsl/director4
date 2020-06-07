@@ -9,14 +9,14 @@ pylint = "~=2.5.2"
 isort = "~=4.3.21"
 black = "==19.10b0"
 typed-ast = "~=1.4.1"  # Required by black, but Pipenv doesn't pull it in correctly on 3.8
-autopep8 = "~=1.5.2"
-mypy = "~=0.770"
-importlib-metadata = {version = "~=1.6.0",markers = "python_version < '3.8'"}
+autopep8 = "~=1.5.3"
+mypy = "~=0.780"
+importlib-metadata = {version = "~=1.6.1",markers = "python_version < '3.8'"}
 
 [packages]
 flask = "~=1.1.2"
 gunicorn = "~=20.0.4"
-docker = "~=4.2.0"
+docker = "~=4.2.1"
 websockets = "~=8.1"
 psycopg2 = "~=2.8.5"
 mysqlclient = "~=1.4.6"
