@@ -22,12 +22,12 @@ script:
 - (cd manager && pipenv run ../shared/scripts/format.sh)
 - (cd shared && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
 - (cd manager && pipenv run ../shared/scripts/check.sh)
-- (cd manager && pipenv check)
 # manager
 - (cd manager && pipenv run ./scripts/format.sh)
 - (cd manager && pipenv run ./scripts/static_templates_format.sh)
 - (cd manager && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh or scripts/static_templates_format.sh
 - (cd manager && pipenv run ./scripts/check.sh)
+- (cd manager && pipenv check)
 # orchestrator
 - (cd orchestrator && pipenv run ./scripts/format.sh)
 - (cd orchestrator && test -z "$(git status --porcelain=v1 .)")  # If this fails, you forgot to run scripts/format.sh
