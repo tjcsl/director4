@@ -25,6 +25,8 @@ daphne = "~=2.5.0"
 celery = "~=4.4.5"
 channels-redis = "~=2.4.2"
 importlib-metadata = {version = "~=1.6.1",markers = "python_version < '3.8'"}
+# Required by importlib-metadata, but Pipenv doesn't pull it in correctly
+zipp = {version = "~=3.1.0", markers = "python_version < '3.8'"}
 websockets = "~=8.1"
 django-redis-cache = "~=2.1.1"
 markdown = "~=3.2.2"

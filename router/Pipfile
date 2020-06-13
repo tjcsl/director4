@@ -12,6 +12,8 @@ typed-ast = "~=1.4.1"  # Required by black, but Pipenv doesn't pull it in correc
 autopep8 = "~=1.5.3"
 mypy = "~=0.780"
 importlib-metadata = {version = "~=1.6.1",markers = "python_version < '3.8'"}
+# Required by importlib-metadata, but Pipenv doesn't pull it in correctly
+zipp = {version = "~=3.1.0", markers = "python_version < '3.8'"}
 
 [packages]
 flask = "~=1.1.2"
