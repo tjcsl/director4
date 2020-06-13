@@ -34,7 +34,7 @@ class ShellSSHListener:
 
         self.servers: List[ShellSSHServer] = []
 
-        self.sock_server: Optional[asyncio.Server] = None
+        self.sock_server: Optional[asyncio.base_events.Server] = None
 
     async def start(self) -> None:
         self.sock_server = await asyncssh.listen(
