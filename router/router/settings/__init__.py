@@ -16,3 +16,8 @@ LOG_LEVEL = logging.INFO
 LOG_FILE = None
 LOG_FILE_ROTATE_SIZE = 10 * 1000 * 1000  # Rotate at 10M
 LOG_FILE_MAX_BACKUPS = 10
+
+try:
+    from .secret import *  # noqa # pylint: disable=wildcard-import
+except ImportError:
+    pass
