@@ -79,7 +79,12 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
                 for form in domains_formset.forms
                 if form.cleaned_data.get("domain")
             ]
-            if Domain.objects.filter(domain__in=domains).exclude(site__id=site.id).exists():
+            if (
+                Domain.objects.filter(domain__in=domains)
+                .exclude(site__id=site.id)
+                .exclude(status="deleted")
+                .exists()
+            ):
                 messages.error(
                     request,
                     "The following domain(s) you requested are already in use: {}".format(
