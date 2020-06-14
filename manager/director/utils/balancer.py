@@ -9,7 +9,7 @@ import socket
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any, Dict, Iterator, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterable, Iterator, Optional, Sequence, Tuple, Union
 
 from django.conf import settings
 
@@ -181,7 +181,10 @@ def balancer_open_http_request(
         "?" + urllib.parse.urlencode(params) if params else "",
     )
 
-    request = urllib.request.Request(full_url, method=method, data=data, headers=headers)
+    request = urllib.request.Request(
+        full_url, method=method, data=data, headers=headers  # type: ignore
+    )
+
     try:
         response = urllib.request.urlopen(request, timeout=timeout, context=balancer_ssl_context)
     except urllib.error.HTTPError as ex:
