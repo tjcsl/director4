@@ -2,14 +2,27 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import json
+import logging
+import logging.handlers
 import traceback
 from typing import Tuple, Union
 
 from flask import Flask, request
 
-from . import certbot, nginx
+from . import certbot, nginx, settings
 
 app = Flask(__name__)
+
+if settings.LOG_FILE is not None:
+    file_handler = logging.handlers.RotatingFileHandler(
+        settings.LOG_FILE,
+        maxBytes=settings.LOG_FILE_ROTATE_SIZE,
+        backupCount=settings.LOG_FILE_MAX_BACKUPS,
+    )
+    file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)-8s]: %(message)s"))
+    file_handler.setLevel(settings.LOG_LEVEL)
+
+    app.logger.addHandler(file_handler)  # pylint: disable=no-member
 
 
 @app.route("/ping")
