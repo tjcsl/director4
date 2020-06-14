@@ -132,7 +132,7 @@ def balancer_open_http_request(
     *,
     method: str = "GET",
     params: Union[Dict[str, str], Sequence[Tuple[str, str]], None] = None,
-    data: Optional[bytes] = None,
+    data: Union[bytes, Dict[str, str], Iterable[bytes], None] = None,
     headers: Optional[Dict[str, str]] = None,
     timeout: Union[int, float] = settings.DIRECTOR_BALANCER_DEFAULT_TIMEOUT,
 ) -> BalancerHTTPResponse:
@@ -170,6 +170,9 @@ def balancer_open_http_request(
 
     if method == "POST" and data is None:
         data = b""
+
+    if isinstance(data, dict):
+        data = urllib.parse.urlencode(data).encode()
 
     full_url = "{}://{}{}{}".format(
         "https" if settings.DIRECTOR_BALANCER_SSL else "http",
