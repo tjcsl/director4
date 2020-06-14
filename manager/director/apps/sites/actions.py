@@ -246,7 +246,7 @@ def update_balancer_nginx_config(  # pylint: disable=unused-argument
         balancer_open_http_request(
             i,
             "/sites/{}/update-nginx".format(site.id),
-            params={"data": json.dumps(site.serialize_for_balancer())},
+            data={"data": json.dumps(site.serialize_for_balancer())},
             method="POST",
         )
         yield "Updated balancer {}".format(i)
@@ -273,7 +273,7 @@ def update_balancer_certbot(  # pylint: disable=unused-argument
         balancer_open_http_request(
             0,
             "/sites/{}/certbot-setup".format(site.id),
-            params={"data": json.dumps(site.serialize_for_balancer())},
+            data={"data": json.dumps(site.serialize_for_balancer())},
             method="POST",
         )
 
@@ -281,7 +281,7 @@ def update_balancer_certbot(  # pylint: disable=unused-argument
         balancer_open_http_request(
             0,
             "/sites/certbot-remove-old-domains",
-            params={
+            data={
                 "domains": json.dumps(
                     list(Domain.objects.exclude(status="active").values_list("domain", flat=True))
                 ),
