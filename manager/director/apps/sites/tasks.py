@@ -434,8 +434,6 @@ def fix_site_task(operation_id: int) -> None:
         if site.database is not None:
             wrapper.add_action("Creating/updating database", actions.create_real_site_database)
 
-            wrapper.add_action("Regenerating database password", actions.regen_database_password)
-
         wrapper.add_action(
             "Building Docker image", actions.build_docker_image, user_recoverable=True,
         )
