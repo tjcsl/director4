@@ -48,7 +48,11 @@ def rename_site_task(operation_id: int, new_name: str) -> None:
         )
 
         if not settings.DEBUG:
-            wrapper.add_action("Updating balancer certbot setup", actions.update_balancer_certbot)
+            wrapper.add_action(
+                "Updating balancer certbot setup",
+                actions.update_balancer_certbot,
+                user_recoverable=True,
+            )
 
             wrapper.add_action(
                 "Updating balancer configuration", actions.update_balancer_nginx_config
@@ -112,7 +116,11 @@ def edit_site_names_task(
         )
 
         if not settings.DEBUG:
-            wrapper.add_action("Updating balancer certbot setup", actions.update_balancer_certbot)
+            wrapper.add_action(
+                "Updating balancer certbot setup",
+                actions.update_balancer_certbot,
+                user_recoverable=True,
+            )
 
             wrapper.add_action(
                 "Updating balancer configuration", actions.update_balancer_nginx_config
@@ -462,7 +470,11 @@ def fix_site_task(operation_id: int) -> None:
         )
 
         if not settings.DEBUG:
-            wrapper.add_action("Updating balancer certbot setup", actions.update_balancer_certbot)
+            wrapper.add_action(
+                "Updating balancer certbot setup",
+                actions.update_balancer_certbot,
+                user_recoverable=True,
+            )
 
             wrapper.add_action(
                 "Updating balancer Nginx configuration", actions.update_balancer_nginx_config
