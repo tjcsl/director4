@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+import os
 from typing import Any, Dict, Mapping, Optional, Tuple, Union
 
 import requests
@@ -23,7 +24,15 @@ def make_registry_request(
     scheme = "https://"
     url = scheme + settings.DOCKER_REGISTRY_URL + "/v2" + path
 
-    ssl_path = "/etc/docker/certs.d/{}/ca.crt".format(settings.DOCKER_REGISTRY_URL)
+    ssl_cert_path = "/etc/docker/certs.d/{}/client.cert".format(settings.DOCKER_REGISTRY_URL)
+    ssl_key_path = "/etc/docker/certs.d/{}/client.key".format(settings.DOCKER_REGISTRY_URL)
+    ssl_ca_path = "/etc/docker/certs.d/{}/ca.crt".format(settings.DOCKER_REGISTRY_URL)
+
+    if os.path.exists(ssl_cert_path) and os.path.exists(ssl_key_path):
+        cert_paths = (ssl_cert_path, ssl_key_path)
+    else:
+        cert_paths = None
+
     try:
         if method not in {"GET", "POST", "DELETE"}:
             raise OrchestratorActionError("Invalid method")
@@ -34,7 +43,8 @@ def make_registry_request(
             data=data,
             headers=headers,
             timeout=settings.DOCKER_REGISTRY_TIMEOUT,
-            verify=ssl_path,
+            cert=cert_paths,
+            verify=ssl_ca_path,
         )
     except requests.exceptions.Timeout:
         raise OrchestratorActionError("Timeout on request to {}".format(path))
