@@ -19,18 +19,6 @@ def create_database(database: Database) -> None:
     )
 
 
-def update_password(database: Database) -> None:
-    appserver_num = next(iter(iter_random_pingable_appservers()))
-
-    appserver_open_http_request(
-        appserver_num,
-        "/sites/databases/update-password",
-        method="POST",
-        data={"data": json.dumps(database.serialize_for_appserver())},
-        timeout=30,
-    )
-
-
 def delete_database(database: Database) -> None:
     appserver_num = next(iter(iter_random_pingable_appservers()))
 

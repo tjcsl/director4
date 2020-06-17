@@ -174,29 +174,6 @@ def create_database(database_info: Dict[str, Any]) -> None:
         raise ValueError("Unknown DBMS {!r}".format(database_info["db_type"]))
 
 
-def update_password(database_info: Dict[str, Any]) -> None:
-    if database_info["db_type"] == "postgres":
-        with open_admin_cursor(database_info["host"], dbname="postgres") as cursor:
-            cursor.execute(
-                psql.SQL("ALTER USER {} WITH PASSWORD %s").format(
-                    psql.Identifier(database_info["username"])
-                ),
-                (database_info["password"],),
-            )
-    elif database_info["db_type"] == "mysql":
-        with open_admin_cursor(database_info["host"], dbname="mysql") as cursor:
-            cursor.execute(
-                "SET PASSWORD FOR {}@'%%' = PASSWORD(%s);".format(
-                    mysql_clean_identifier(database_info["username"])
-                ),
-                (database_info["password"],),
-            )
-
-            cursor.execute("FLUSH PRIVILEGES;")
-    else:
-        raise ValueError("Unknown DBMS {!r}".format(database_info["db_type"]))
-
-
 def delete_database(database_info: Dict[str, Any]) -> None:
     if database_info["db_type"] == "postgres":
         with open_admin_cursor(database_info["host"], dbname="postgres") as cursor:

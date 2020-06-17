@@ -320,4 +320,4 @@ def regen_database_password(site: Site, scope: Dict[str, Any]):  # pylint: disab
 
     yield "Updating real password"
 
-    database_utils.update_password(site.database)
+    database_utils.create_database(site.database)
