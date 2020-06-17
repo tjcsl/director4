@@ -64,6 +64,28 @@ def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
 def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
 
+    # See image_select_view() in views/sites.py
+    override_failed_operation = False
+    operation = site.get_operation()
+
+    if operation is not None:
+        if (
+            # The operation failed
+            operation.has_failed
+            # The failure is recoverable by the user
+            and operation.is_failure_user_recoverable
+            # The operation has no failed recoverable actions that do not have the
+            # `update_balancer_certbot` slug.
+            # i.e. the Action that failed was `update_balancer_certbot`.
+            and not operation.action_set.filter(result=False, user_recoverable=False)
+            .exclude(slug="update_balancer_certbot")
+            .exists()
+        ):
+            override_failed_operation = True
+        else:
+            messages.error(request, "An operation is already being performed on this site")
+            return redirect("sites:info", site.id)
+
     if request.method == "POST":
         names_form = SiteNamesForm(request.POST, site=site)
         domains_formset = DomainFormSet(
@@ -71,14 +93,14 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
             prefix="domains",
             form_kwargs={"user_is_superuser": request.user.is_superuser},
         )
-        if site.has_operation:
-            messages.error(request, "An operation is already being performed on this site")
-        elif names_form.is_valid() and domains_formset.is_valid():
+
+        if names_form.is_valid() and domains_formset.is_valid():
             domains = [
                 form.cleaned_data["domain"]
                 for form in domains_formset.forms
                 if form.cleaned_data.get("domain")
             ]
+
             if (
                 Domain.objects.filter(domain__in=domains)
                 .exclude(site__id=site.id)
@@ -102,6 +124,10 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
             ):
                 messages.error(request, "There is another site with the name you have requested")
             else:
+                if override_failed_operation and operation is not None:
+                    operation.action_set.all().delete()
+                    operation.delete()
+
                 operations.edit_site_names(
                     site,
                     new_name=names_form.cleaned_data["name"],
