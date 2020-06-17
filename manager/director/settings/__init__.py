@@ -347,6 +347,16 @@ SHELL_ENCRYPTION_TOKEN_PUBLIC_KEY_PATH = (
 SHELL_AUTH_KINIT_REALM = "CSL.TJHSST.EDU"
 SHELL_AUTH_KINIT_TIMEOUT: Union[int, float] = 15
 
+# These options control what is removed when a site is deleted.
+# If SITE_DELETION_REMOVE_FILES is True, all of the site's files are removed. (It
+# may make sense to set this to False so users' files can be recovered later, though
+# the site ID would need to be known.)
+# If SITE_DELETION_REMOVE_DATABASE is True, the site's database is removed. (It is
+# strongly recommended to leave this as True to avoid clogging up the database
+# server.)
+SITE_DELETION_REMOVE_FILES: bool = True
+SITE_DELETION_REMOVE_DATABASE: bool = True
+
 try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:

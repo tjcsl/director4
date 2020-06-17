@@ -370,7 +370,18 @@ def delete_site_task(operation_id: int) -> None:
         wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
 
         if site.database is not None:
-            wrapper.add_action("Deleting database", actions.delete_site_database_and_object)
+            if settings.SITE_DELETION_REMOVE_DATABASE:
+                wrapper.add_action("Deleting database", actions.delete_site_database_and_object)
+            else:
+
+                @wrapper.add_action("Deleting database object")
+                def delete_site_database_object(  # pylint: disable=unused-argument
+                    site: Site, scope: Dict[str, Any],
+                ) -> Iterator[Union[Tuple[str, str], str]]:
+                    yield "Deleting database object in model (leaving real database intact)"
+
+                    if site.database is not None:
+                        site.database.delete()
 
         # These tasks are idempotent, so we can safely run them unconditionally
         # We are just blindly wiping everything
@@ -387,7 +398,8 @@ def delete_site_task(operation_id: int) -> None:
                 "Removing balancer Nginx configuration", actions.remove_balancer_nginx_config
             )
 
-        wrapper.add_action("Removing site files", actions.remove_all_site_files_dangerous)
+        if settings.SITE_DELETION_REMOVE_FILES:
+            wrapper.add_action("Removing site files", actions.remove_all_site_files_dangerous)
 
     site.delete()
 
