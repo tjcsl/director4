@@ -41,7 +41,7 @@ def index_view(request: HttpRequest) -> HttpResponse:
     ]
 
     # Construct the Site query
-    filtered_sites = Site.objects.all()
+    filtered_sites = Site.objects.listable_by_user(request.user)
     for word in query_words:
         # Try to look for fields
         if word.startswith("id:"):
@@ -127,7 +127,7 @@ def index_view(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def terminal_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if request.GET.get("sql") and site.has_database and site.docker_image.is_custom:
         if site.database.db_type == "mysql":
@@ -159,7 +159,7 @@ def terminal_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def regen_nginx_config_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if site.has_operation:
         messages.error(request, "An operation is already being performed on this site")
@@ -203,7 +203,7 @@ def create_webdocs_view(request: HttpRequest) -> HttpResponse:
     if request.user.is_superuser:
         return redirect("sites:create")
 
-    webdocs_site = Site.objects.filter_for_user(request.user).filter(purpose="user").first()
+    webdocs_site = Site.objects.listable_by_user(request.user).filter(purpose="user").first()
     if webdocs_site is not None:
         return redirect("sites:info", webdocs_site.id)
 
@@ -230,16 +230,19 @@ def create_webdocs_view(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def info_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    # WARNING: Because we use listable_by_user() instead of editable_by_user() here,
+    # we have to check site.can_be_edited_by() manually and handle that accordingly.
 
-    context = {"site": site}
+    site = get_object_or_404(Site.objects.listable_by_user(request.user), id=site_id)
+
+    context = {"site": site, "can_edit": site.can_be_edited_by(request.user)}
     return render(request, "sites/info.html", context)
 
 
 @login_required
 @require_accept_guidelines
 def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     # This logic blocks the user from trying to change the image if an operation is running.
     # However, if the operation has failed and the cause of the failure was an error while
@@ -326,7 +329,7 @@ def image_select_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def regenerate_secrets_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if site.has_operation:
         messages.error(request, "An operation is already being performed on this site")
@@ -341,7 +344,7 @@ def regenerate_secrets_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def restart_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if site.has_operation:
         messages.error(request, "An operation is already being performed on this site")
@@ -356,7 +359,7 @@ def restart_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def restart_raw_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if site.has_operation:
         return HttpResponse("An operation is already being performed on this site", status=500)
@@ -369,7 +372,7 @@ def restart_raw_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def delete_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if site.has_operation:
         messages.error(request, "An operation is already being performed on this site")

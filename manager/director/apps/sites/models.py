@@ -21,11 +21,30 @@ from ...utils.site_names import is_site_name_allowed
 
 
 class SiteQuerySet(models.query.QuerySet):
-    def filter_for_user(self, user) -> "models.query.QuerySet[Site]":
+    def listable_by_user(self, user) -> "models.query.QuerySet[Site]":
+        """WARNING: Use editable_by_user() for permission checks instead, unless
+        you immediately check site.can_be_edited_by(user) and handle accordingly.
+
+        The purpose of this function is that if a site has been disabled, the users
+        who have access to it should be able to see that it is still present (i.e.
+        it doesn't "disappear"). However, all other permissions checks for
+        viewing/editing information use `editable_by_user()`, which only allows access
+        if the site is not disabled.
+
+        """
+
         if user.is_superuser:
             return self.all()
         else:
             return self.filter(users=user)
+
+    def editable_by_user(self, user) -> "models.query.QuerySet[Site]":
+        query = self.listable_by_user(user)
+
+        if not user.is_superuser:
+            query = query.filter(availability__in=["enabled", "not-served"])
+
+        return query
 
 
 class Site(models.Model):
@@ -40,6 +59,12 @@ class Site(models.Model):
         ("project", "Project"),
         ("activity", "Activity"),
         ("other", "Other"),
+    ]
+
+    AVAILABILITIES = [
+        ("enabled", "Enabled (fully functional)"),
+        ("not-served", "Not served publicly"),
+        ("disabled", "Disabled (not served, only viewable/editable by admins)"),
     ]
 
     objects: Any = SiteQuerySet.as_manager()
@@ -75,8 +100,36 @@ class Site(models.Model):
         "Database", null=True, blank=True, on_delete=models.SET_NULL, related_name="site"
     )
 
+    availability = models.CharField(
+        max_length=max(len(item[0]) for item in AVAILABILITIES),
+        choices=AVAILABILITIES,
+        default="enabled",
+        help_text="Controls availability of the site (whether it is served publicly and whether it "
+        "is editable)",
+    )
+
+    admin_comments = models.TextField(
+        null=False,
+        blank=True,
+        help_text="Administrative comments. All users who have access to the site will always be "
+        "able to see this, even if the site's 'availability' is 'disabled'.",
+    )
+
     # Tell Pylint about the implicit related field
     resource_limits: "SiteResourceLimits"
+
+    def can_be_edited_by(self, user) -> bool:
+        return user.is_authenticated and (
+            user.is_superuser
+            or (
+                self.users.filter(id=user.id).exists()
+                and self.availability in ["enabled", "not-served"]
+            )
+        )
+
+    @property
+    def is_being_served(self) -> bool:
+        return self.availability == "enabled"
 
     def list_urls(self) -> List[str]:
         urls = [
@@ -112,6 +165,7 @@ class Site(models.Model):
             "id": self.id,
             "name": self.name,
             "type": self.type,
+            "is_being_served": self.is_being_served,
             "no_redirect_domains": list({split_domain(url) for url in self.list_urls()}),
             "primary_url_base": main_url,
             "database_info": (

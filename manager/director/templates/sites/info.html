@@ -9,81 +9,105 @@
 {% endblock %}
 
 {% block main %}
-    <div class="row">
-        <div class="col-md-6">
-            <h3 class="site-info" data-key="name">{{ site.name }}</h3>
-
-            <div class="tbl" style="width: 100%">
-                <div class="tbl-row" style="width: 100%">
-                    <p class="tbl-cell">
-                        <b>URL:</b> <span class="site-info" data-key="main_url" data-type="link_blank">{% if site.main_url %}<a href="{{ site.main_url }}" target="_blank">{{ site.main_url }}</a>{% else %}None{% endif %}</span><br />
-                        <b>Type:</b> <span class="site-info" data-key="purpose_display">{{ site.get_purpose_display }}</span> - <span class="site-info" data-key="type_display">{{ site.get_type_display }}</span><br />
-                        <b>Description:</b> <span class="site-info" data-key="description">{{ site.description|default:"None" }}</span><br />
-                        <b>Users:</b> <span class="site-info" data-key="users">{{ site.users.all|join:", "|default:"None" }}</span><br />
-                        <span class="site-status-container"><strong>Process status:</strong> <span class="site-status"><span class="italic">Loading</span></span><br></span>
-                        <br>
-                    </p>
-
-                    <div id="operation-info" class="tbl-cell"></div>
-                </div>
-            </div>
-
-
-            <p>
-                <a href="{% url 'sites:terminal' site.id %}" class="btn btn-ion"><i class="fa fa-terminal"></i> Web Terminal</a>
-                <a href="{% url 'sites:editor' site.id %}" class="btn btn-ion"><i class="fa fa-folder-open"></i> Online Editor</a>
-            </p>
-
-            <p>
-                {% if site.type == "dynamic" %}
-                <form style="display:inline-block" method="POST" action="{% url 'sites:restart_service' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-retweet"></i> Restart process</button></form>
-                {% endif %}
-                <form style="display:inline-block" method="POST" action="{% url 'sites:regen_nginx_config' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-sync-alt"></i> Rewrite Configuration</button></form>
-                <form style="display:inline-block" method="POST" action="{% url 'sites:regenerate_secrets' site.id %}">
-                    {% csrf_token %}
-                    <button id="regenerate-secrets" class="btn btn-ion"><i class="fa fa-key"></i> Regenerate secrets</a></button>
-                    <span style="font-size: 70%">(such as the database password)</span>
-                </form>
-            </p>
-
-            <p>
-                <a href="{% url 'sites:image_select' site.id %}" class="btn btn-ion"><i class="fab fa-docker"></i> Customize Docker image</a>
-                {% if request.user.is_superuser %}
-                <a href="{% url 'sites:resource_limits' site.id %}" class="btn btn-ion"><i class="fas fa-microchip"></i> Customize resource limits</a>
-                {% endif %}
-            </p>
-
-            <p>
-                <a href="{% url 'auth:index' %}" class="btn btn-ion"><i class="fa fa-undo-alt"></i> Back</a>
-                <a href="{% url 'sites:edit' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Configure Site</a>
-                {% if request.user.is_superuser or site.purpose == "project" %}
-                <a href="{% url 'sites:delete' site.id %}" class="btn btn-ion btn-danger"><i class="far fa-trash-alt"></i> Delete Site</a>
-                {% endif %}
-            </p>
+    {% if can_edit %}
+        <div id="not-served-notify" class="p-2" style="background-color: yellow; {% if site.is_being_served %} display: none;{% endif %}">
+            A Director administrator has disabled this site; it is not being served publicly.
         </div>
-        <div class="col-md-6">
-            {% if site.type != "static" or site.database %}
-            <h4><i class="fa fa-database"></i> Databases</h4>
-            <div id="database-info"{% if not site.database %} style="display: none"{% endif %}>
-                <p>This site has a <b>{{ site.database.get_category_display }}</b> database associated with it.</p>
-                <div class="form-group">
-                    <div id="database-url" class="form-control" tabindex="0" title="{{ site.database.db_url }}">
-                        {% with d=site.database %}
-                            <span class="site-info" data-key="database.db_type">{{ d.db_type }}</span>://<span class="site-info" data-key="database.username">{{ d.username }}</span>:<span id="database-pass" class="hide"><span class="site-info" data-key="database.password">{{ d.password }}</span></span>@<span class="site-info" data-key="database.db_host">{{ d.db_host }}</span>:<span class="site-info" data-key="database.db_port">{{ d.db_port }}</span>/<span class="site-info" data-key="database.db_name">{{ d.db_name }}</span>
-                        {% endwith %}
+
+        {% if site.admin_comments.strip %}
+            <div class="p-2" style="background-color: yellow;">
+                The following comments have been left by a Director administrator:<br>
+                {{ site.admin_comments.strip }}
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <h3 class="site-info" data-key="name">{{ site.name }}</h3>
+
+                <div class="tbl" style="width: 100%">
+                    <div class="tbl-row" style="width: 100%">
+                        <p class="tbl-cell">
+                            <b>URL:</b> <span class="site-info" data-key="main_url" data-type="link_blank">{% if site.main_url %}<a href="{{ site.main_url }}" target="_blank">{{ site.main_url }}</a>{% else %}None{% endif %}</span><br />
+                            <b>Type:</b> <span class="site-info" data-key="purpose_display">{{ site.get_purpose_display }}</span> - <span class="site-info" data-key="type_display">{{ site.get_type_display }}</span><br />
+                            <b>Description:</b> <span class="site-info" data-key="description">{{ site.description|default:"None" }}</span><br />
+                            <b>Users:</b> <span class="site-info" data-key="users">{{ site.users.all|join:", "|default:"None" }}</span><br />
+                            <span class="site-status-container"><strong>Process status:</strong> <span class="site-status"><span class="italic">Loading</span></span><br></span>
+                            <br>
+                        </p>
+
+                        <div id="operation-info" class="tbl-cell"></div>
                     </div>
-                    <span class="help-text"><small>&lt;type&gt;://&lt;username&gt;:&lt;password&gt;@&lt;server&gt;:&lt;port&gt;/&lt;database&gt;</small></span>
                 </div>
-                <p>WARNING: You may feel tempted to copy/paste this URL into your site's database configuration. <strong>Do not do this.</strong> Instead, your code should use the <code>DIRECTOR_DATABASE_URL</code> environmental variable to connect to your site's database.<br>For more information, see the documentation.</p>
-                <a href="{% url 'sites:database_shell' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Database shell</a>
-                <a href="{% url 'sites:terminal' site.id %}?sql=1" class="btn btn-ion"><i class="fa fa-terminal"></i> Alternate shell</a>
-                <a href="{% url 'sites:delete_database' site.id %}" class="btn btn-ion btn-danger"><i class="far fa-trash-alt"></i> Delete Database</a>
+
+
+                <p>
+                    <a href="{% url 'sites:terminal' site.id %}" class="btn btn-ion"><i class="fa fa-terminal"></i> Web Terminal</a>
+                    <a href="{% url 'sites:editor' site.id %}" class="btn btn-ion"><i class="fa fa-folder-open"></i> Online Editor</a>
+                </p>
+
+                <p>
+                    {% if site.type == "dynamic" %}
+                    <form style="display:inline-block" method="POST" action="{% url 'sites:restart_service' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-retweet"></i> Restart process</button></form>
+                    {% endif %}
+                    <form style="display:inline-block" method="POST" action="{% url 'sites:regen_nginx_config' site.id %}">{% csrf_token %}<button class="btn btn-ion"><i class="fas fa-sync-alt"></i> Rewrite Configuration</button></form>
+                    <form style="display:inline-block" method="POST" action="{% url 'sites:regenerate_secrets' site.id %}">
+                        {% csrf_token %}
+                        <button id="regenerate-secrets" class="btn btn-ion"><i class="fa fa-key"></i> Regenerate secrets</a></button>
+                        <span style="font-size: 70%">(such as the database password)</span>
+                    </form>
+                </p>
+
+                <p>
+                    <a href="{% url 'sites:image_select' site.id %}" class="btn btn-ion"><i class="fab fa-docker"></i> Customize Docker image</a>
+                    {% if request.user.is_superuser %}
+                    <a href="{% url 'sites:resource_limits' site.id %}" class="btn btn-ion"><i class="fas fa-microchip"></i> Customize resource limits</a>
+                    <a href="{% url 'sites:availability' site.id %}" class="btn btn-ion"><i class="far fa-file"></i> Edit site availability</a>
+                    {% endif %}
+                </p>
+
+                <p>
+                    <a href="{% url 'auth:index' %}" class="btn btn-ion"><i class="fa fa-undo-alt"></i> Back</a>
+                    <a href="{% url 'sites:edit' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Configure Site</a>
+                    {% if request.user.is_superuser or site.purpose == "project" %}
+                    <a href="{% url 'sites:delete' site.id %}" class="btn btn-ion btn-danger"><i class="far fa-trash-alt"></i> Delete Site</a>
+                    {% endif %}
+                </p>
             </div>
-            <div id="no-database-info"{% if site.database %} style="display: none"{% endif %}>
-                <p>This site has no databases associated with it.</p>
-                <a href="{% url 'sites:create_database' site.id %}" class="btn btn-ion"><i class="fa fa-plus"></i> Add Database</a>
+            <div class="col-md-6">
+                {% if site.type != "static" or site.database %}
+                <h4><i class="fa fa-database"></i> Databases</h4>
+                <div id="database-info"{% if not site.database %} style="display: none"{% endif %}>
+                    <p>This site has a <b>{{ site.database.get_category_display }}</b> database associated with it.</p>
+                    <div class="form-group">
+                        <div id="database-url" class="form-control" tabindex="0" title="{{ site.database.db_url }}">
+                            {% with d=site.database %}
+                                <span class="site-info" data-key="database.db_type">{{ d.db_type }}</span>://<span class="site-info" data-key="database.username">{{ d.username }}</span>:<span id="database-pass" class="hide"><span class="site-info" data-key="database.password">{{ d.password }}</span></span>@<span class="site-info" data-key="database.db_host">{{ d.db_host }}</span>:<span class="site-info" data-key="database.db_port">{{ d.db_port }}</span>/<span class="site-info" data-key="database.db_name">{{ d.db_name }}</span>
+                            {% endwith %}
+                        </div>
+                        <span class="help-text"><small>&lt;type&gt;://&lt;username&gt;:&lt;password&gt;@&lt;server&gt;:&lt;port&gt;/&lt;database&gt;</small></span>
+                    </div>
+                    <p>WARNING: You may feel tempted to copy/paste this URL into your site's database configuration. <strong>Do not do this.</strong> Instead, your code should use the <code>DIRECTOR_DATABASE_URL</code> environmental variable to connect to your site's database.<br>For more information, see the documentation.</p>
+                    <a href="{% url 'sites:database_shell' site.id %}" class="btn btn-ion"><i class="fa fa-pencil-alt"></i> Database shell</a>
+                    <a href="{% url 'sites:terminal' site.id %}?sql=1" class="btn btn-ion"><i class="fa fa-terminal"></i> Alternate shell</a>
+                    <a href="{% url 'sites:delete_database' site.id %}" class="btn btn-ion btn-danger"><i class="far fa-trash-alt"></i> Delete Database</a>
+                </div>
+                <div id="no-database-info"{% if site.database %} style="display: none"{% endif %}>
+                    <p>This site has no databases associated with it.</p>
+                    <a href="{% url 'sites:create_database' site.id %}" class="btn btn-ion"><i class="fa fa-plus"></i> Add Database</a>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
-    </div>
+
+    {% else %}
+        <h2>Site disabled</h2>
+
+        <p>A Director admin has disabled your site{% if site.admin_comments.strip %} and left the following comments:{% else %}.{% endif %}</p>
+
+        {% if site.admin_comments.strip %}
+        <p>{{ site.admin_comments.strip }}</p>
+        {% endif %}
+
+    {% endif %}
 {% endblock %}

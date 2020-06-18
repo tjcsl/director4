@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block titlesuffix %} - Availability of {{ site.name }}{% endblock %}
+
+{% block main %}
+    <h1>{{ site.name }}</h1>
+
+    {% include "table_form.html" with form=form form_submit_text="Save" %}
+{% endblock %}

@@ -216,6 +216,34 @@ def update_resource_limits_task(
 
 
 @shared_task
+def update_availability_task(operation_id: int, availability: str) -> None:
+    scope: Dict[str, Any] = {
+        "availability": availability,
+    }
+
+    site = Site.objects.get(operation__id=operation_id)
+
+    with auto_run_operation_wrapper(operation_id, scope) as wrapper:
+        wrapper.add_action("Pinging appservers", actions.find_pingable_appservers)
+
+        @wrapper.add_action("Updating availability")
+        def update_availability(
+            site: Site, scope: Dict[str, Any],
+        ) -> Iterator[Union[Tuple[str, str], str]]:
+            yield ("before_state", site.availability)
+            yield ("after_state", scope["availability"])
+            site.availability = scope["availability"]
+            site.save()
+
+        wrapper.add_action(
+            "Updating appserver configuration", actions.update_appserver_nginx_config
+        )
+
+        if site.type == "dynamic":
+            wrapper.add_action("Updating Docker service", actions.update_docker_service)
+
+
+@shared_task
 def regen_site_secrets_task(operation_id: int) -> None:
     scope: Dict[str, Any] = {}
 

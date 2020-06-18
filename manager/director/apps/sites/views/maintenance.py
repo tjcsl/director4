@@ -12,7 +12,7 @@ from ...auth.decorators import (
     superuser_required,
 )
 from .. import operations
-from ..forms import SiteResourceLimitsForm
+from ..forms import SiteAvailabilityForm, SiteResourceLimitsForm
 from ..models import Action, Operation, Site, SiteResourceLimits
 
 # WARNING: Allowing non-superusers to access ANY of the views here presents a major security
@@ -141,3 +141,31 @@ def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
     context = {"site": site, "form": form}
 
     return render(request, "sites/management/resource_limits.html", context)
+
+
+@superuser_required
+@require_accept_guidelines
+def availability_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    site = Site.objects.get(id=site_id)
+
+    if request.method == "POST":
+        form = SiteAvailabilityForm(request.POST)
+
+        if site.has_operation:
+            messages.error(request, "An operation is already being performed on this site")
+        else:
+            if form.is_valid():
+                operations.update_availability(
+                    site, form.cleaned_data["availability"],
+                )
+
+                if "next" in request.GET:
+                    return redirect(request.GET["next"])
+
+                return redirect("sites:info", site.id)
+    else:
+        form = SiteAvailabilityForm(initial={"availability": site.availability})
+
+    context = {"site": site, "form": form}
+
+    return render(request, "sites/management/availability.html", context)

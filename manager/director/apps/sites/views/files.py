@@ -22,7 +22,7 @@ from ..models import Site
 @login_required
 @require_accept_guidelines
 def editor_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     context = {
         "site": site,
@@ -35,7 +35,7 @@ def editor_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines_no_redirect
 def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, StreamingHttpResponse]:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if "path" not in request.GET:
         return HttpResponse(status=400)
@@ -79,7 +79,7 @@ def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, Str
 def download_zip_view(
     request: HttpRequest, site_id: int
 ) -> Union[HttpResponse, StreamingHttpResponse]:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if "path" not in request.GET:
         return HttpResponse(status=400)
@@ -122,7 +122,7 @@ def download_zip_view(
 @login_required
 @require_accept_guidelines_no_redirect
 def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     try:
         appserver = next(iter_random_pingable_appservers(timeout=0.5))
@@ -174,7 +174,7 @@ def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines_no_redirect
 def create_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if "path" not in request.GET:
         return HttpResponse(status=400)
@@ -206,7 +206,7 @@ def create_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines_no_redirect
 def remove_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if "path" not in request.GET:
         return HttpResponse(status=400)
@@ -236,7 +236,7 @@ def remove_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines_no_redirect
 def remove_directory_recur_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if "path" not in request.GET:
         return HttpResponse(status=400)
@@ -266,7 +266,7 @@ def remove_directory_recur_view(request: HttpRequest, site_id: int) -> HttpRespo
 @login_required
 @require_accept_guidelines_no_redirect
 def make_directory_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if "path" not in request.GET:
         return HttpResponse(status=400)
@@ -298,7 +298,7 @@ def make_directory_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines_no_redirect
 def chmod_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if "path" not in request.GET:
         return HttpResponse(status=400)
@@ -331,7 +331,7 @@ def chmod_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines_no_redirect
 def rename_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if "oldpath" not in request.GET:
         return HttpResponse(status=400)

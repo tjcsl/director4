@@ -17,6 +17,7 @@ from .tasks import (
     regen_site_secrets_task,
     rename_site_task,
     restart_service_task,
+    update_availability_task,
     update_image_task,
     update_resource_limits_task,
 )
@@ -80,6 +81,13 @@ def update_resource_limits(
 ) -> None:
     operation = Operation.objects.create(site=site, type="update_resource_limits")
     update_resource_limits_task.delay(operation.id, cpus, mem_limit, client_body_limit, notes)
+
+    send_operation_updated_message(site)
+
+
+def update_availability(site: Site, availability: str) -> None:
+    operation = Operation.objects.create(site=site, type="update_availability")
+    update_availability_task.delay(operation.id, availability)
 
     send_operation_updated_message(site)
 

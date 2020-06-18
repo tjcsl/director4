@@ -155,6 +155,13 @@ $(function() {
                 $(".site-status-container").show();
             }
 
+            if(data.site_info.is_being_served) {
+                $("#not-served-notify").css("display", "none");
+            }
+            else {
+                $("#not-served-notify").css("display", "block");
+            }
+
             var operation_div = $("#operation-info");
             if(data.site_info.operation != null) {
                 operation_div.empty();

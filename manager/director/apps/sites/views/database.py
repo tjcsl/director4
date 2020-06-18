@@ -18,7 +18,7 @@ from ..models import Site
 @login_required
 @require_accept_guidelines
 def create_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if site.database is not None:
         return redirect("sites:info", site.id)
@@ -41,7 +41,7 @@ def create_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def delete_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if site.has_operation:
         messages.error(request, "An operation is already being performed on this site")
@@ -58,7 +58,7 @@ def delete_database_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def database_shell_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if site.database is None:
         return redirect("sites:info", site.id)

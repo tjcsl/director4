@@ -16,7 +16,7 @@ from ..models import Domain, Site
 @login_required
 @require_accept_guidelines
 def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     context = {
         "site": site,
@@ -34,7 +34,7 @@ def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if request.method == "POST":
         meta_form = SiteMetaForm(request.POST, instance=site, user=request.user)
@@ -62,7 +62,7 @@ def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     # See image_select_view() in views/sites.py
     override_failed_operation = False
@@ -147,7 +147,7 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def edit_type_view(request: HttpRequest, site_id: int) -> HttpResponse:
-    site = get_object_or_404(Site.objects.filter_for_user(request.user), id=site_id)
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if request.method == "POST":
         type_form = SiteTypeForm(request.POST)

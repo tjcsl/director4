@@ -163,6 +163,9 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         except Site.DoesNotExist:
             return None
 
+        if not self.site.can_be_edited_by(self.scope["user"]):
+            return False
+
         if self.site.type != old_type:
             return False
 
@@ -175,6 +178,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
             "type": self.site.type,
             "type_display": self.site.get_type_display(),
             "users": list(self.site.users.values_list("username", flat=True)),
+            "is_being_served": self.site.is_being_served,
         }
 
         if self.site.has_database:
@@ -258,6 +262,11 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         except Site.DoesNotExist:
             await self.close()
             return
+
+        assert self.site is not None
+        await self.channel_layer.group_add(
+            self.site.channels_group_name, self.channel_name,
+        )
 
         self.connected = True
         await self.accept()
@@ -343,6 +352,18 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
             elif isinstance(msg, str):
                 await self.send(text_data=msg)
 
+    async def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
+        if self.site is not None:
+            await database_sync_to_async(self.site.refresh_from_db)()
+
+            if not database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
+                await self.close()
+
+    async def operation_updated(
+        self, event: Dict[str, Any]  # pylint: disable=unused-argument
+    ) -> None:
+        pass
+
     async def disconnect(self, code: int) -> None:  # pylint: disable=unused-argument
         # Clean up
 
@@ -386,6 +407,11 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
         except Site.DoesNotExist:
             await self.close()
             return
+
+        assert self.site is not None
+        await self.channel_layer.group_add(
+            self.site.channels_group_name, self.channel_name,
+        )
 
         self.connected = True
         await self.accept()
@@ -444,6 +470,18 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             elif isinstance(msg, str):
                 await self.send(text_data=msg)
 
+    async def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
+        if self.site is not None:
+            await database_sync_to_async(self.site.refresh_from_db)()
+
+            if not database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
+                await self.close()
+
+    async def operation_updated(
+        self, event: Dict[str, Any]  # pylint: disable=unused-argument
+    ) -> None:
+        pass
+
     async def disconnect(self, code: int) -> None:  # pylint: disable=unused-argument
         self.site = None
         self.connected = False
@@ -487,6 +525,11 @@ class SiteLogsConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
+        assert self.site is not None
+        await self.channel_layer.group_add(
+            self.site.channels_group_name, self.channel_name,
+        )
+
         await self.open_log_connection()
 
         if self.logs_websock is None:
@@ -525,6 +568,18 @@ class SiteLogsConsumer(AsyncWebsocketConsumer):
                 await self.send(bytes_data=msg)
             elif isinstance(msg, str):
                 await self.send(text_data=msg)
+
+    async def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
+        if self.site is not None:
+            await database_sync_to_async(self.site.refresh_from_db)()
+
+            if not database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
+                await self.close()
+
+    async def operation_updated(
+        self, event: Dict[str, Any]  # pylint: disable=unused-argument
+    ) -> None:
+        pass
 
     async def disconnect(self, code: int) -> None:  # pylint: disable=unused-argument
         self.site = None
@@ -572,10 +627,14 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
 
         for site_id in self.site_ids:
             try:
-                await get_site_for_user(self.scope["user"], id=site_id)
+                site = await get_site_for_user(self.scope["user"], id=site_id)
             except Site.DoesNotExist:
                 await self.close()
                 return
+            else:
+                await self.channel_layer.group_add(
+                    site.channels_group_name, self.channel_name,
+                )
 
         self.connected = True
         await self.accept()
@@ -620,6 +679,20 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
             elif isinstance(msg, str):
                 await self.send(text_data=msg)
 
+    async def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
+        for site_id in self.site_ids:
+            site = Site.objects.get(id=site_id)
+
+            await database_sync_to_async(site.refresh_from_db)()
+
+            if not database_sync_to_async(site.can_be_edited_by)(self.scope["user"]):
+                await self.close()
+
+    async def operation_updated(
+        self, event: Dict[str, Any]  # pylint: disable=unused-argument
+    ) -> None:
+        pass
+
     async def disconnect(self, code: int) -> None:  # pylint: disable=unused-argument
         self.site_ids.clear()
         self.connected = False
@@ -630,4 +703,4 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
 
 @database_sync_to_async
 def get_site_for_user(user, **kwargs: Any) -> Site:
-    return cast(Site, Site.objects.filter_for_user(user).get(**kwargs))
+    return cast(Site, Site.objects.editable_by_user(user).get(**kwargs))

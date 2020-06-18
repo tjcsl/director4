@@ -276,6 +276,14 @@ class SiteResourceLimitsForm(forms.Form):
     )
 
 
+class SiteAvailabilityForm(forms.Form):
+    availability = forms.ChoiceField(
+        required=False,
+        choices=Site.AVAILABILITIES,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+
+
 class DockerImageForm(forms.ModelForm):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)

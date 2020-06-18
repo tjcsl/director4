@@ -96,7 +96,9 @@ exec sleep 2147483647"""
             "hosts": params.pop("extra_hosts"),
             "stop_grace_period": 3,
             "endpoint_spec": EndpointSpec(mode="vip", ports={}),
-            "mode": ServiceMode(mode="replicated", replicas=1),
+            "mode": ServiceMode(
+                mode="replicated", replicas=1 if site_data["is_being_served"] else 0
+            ),
             "restart_policy": RestartPolicy(condition="any", delay=5, max_attempts=0, window=0),
             "update_config": UpdateConfig(
                 parallelism=1,
@@ -115,7 +117,7 @@ exec sleep 2147483647"""
 
 def update_director_service(
     client: DockerClient, site_id: int, site_data: Dict[str, Any]
-) -> Service:
+) -> Optional[Service]:
     service = get_service_by_name(client, get_director_service_name(site_id))
 
     if service is None:
