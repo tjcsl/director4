@@ -108,10 +108,11 @@ def resource_limits_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = Site.objects.get(id=site_id)
 
     if request.method == "POST":
+        form = SiteResourceLimitsForm(request.POST)
+
         if site.has_operation:
             messages.error(request, "An operation is already being performed on this site")
         else:
-            form = SiteResourceLimitsForm(request.POST)
             if form.is_valid():
                 operations.update_resource_limits(
                     site,
