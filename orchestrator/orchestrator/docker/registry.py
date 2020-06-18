@@ -28,6 +28,7 @@ def make_registry_request(
     ssl_key_path = "/etc/docker/certs.d/{}/client.key".format(settings.DOCKER_REGISTRY_URL)
     ssl_ca_path = "/etc/docker/certs.d/{}/ca.crt".format(settings.DOCKER_REGISTRY_URL)
 
+    cert_paths: Optional[Tuple[str, str]]
     if os.path.exists(ssl_cert_path) and os.path.exists(ssl_key_path):
         cert_paths = (ssl_cert_path, ssl_key_path)
     else:
