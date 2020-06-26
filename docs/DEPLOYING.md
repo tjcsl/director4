@@ -78,8 +78,6 @@ sudo -u director pipenv install
 
 After this, you will need to restart Nginx.
 
-Now you can start Celery with `pipenv run celery worker -A director --pool solo --concurrency=1`, and Daphne with `pipenv run daphne -b 127.0.0.1 -p 9000 director.asgi:application`. Both should be run as the user you created in the previous step (if you ran the commands immediately above, this is the `director` user). You may wish to launch them using [supervisor](http://supervisord.org/) or your distribution's init system.
+Now you can start Celery with `pipenv run celery worker -A director --pool solo`, and Daphne with `pipenv run daphne -b 127.0.0.1 -p 9000 director.asgi:application`. Both should be run as the user you created in the previous step (if you ran the commands immediately above, this is the `director` user). You may wish to launch them using [supervisor](http://supervisord.org/) or your distribution's init system.
 
-**WARNING: The sole Celery worker is intentional. Multiple tasks from different websites can conflict. For example, one user may be trying to rename a website from "a" to "b," and another user may be trying to create a site named "b." While every effort is made to avoid this type of conflict, there is no guarantee that it will not occur if multiple Celery workers are launched.**
-
-However, you *can* run multiple Daphne workers. In fact, this is done in the current production. See [Nginx HTTP Load Balancing](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/) for more information on how to set up Nginx to handle this.
+Note that you can run multiple Daphne workers. See [Nginx HTTP Load Balancing](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/) for more information on how to set up Nginx to handle this.
