@@ -1031,7 +1031,7 @@ function ItemInfo(info) {
                 this.faIcon = "far fa-file-code";
             }
             else if(info.fname.match(/\.(txt|log)$/) != null) {
-                this.faIcon = "far fa-file-text";
+                this.faIcon = "far fa-file-alt";
             }
             else if(info.fname.match(/\.(zip|rar|gz|tar|7z|bz2|xz|tgz)$/) != null) {
                 this.faIcon = "far fa-file-archive";
