@@ -1,9 +1,9 @@
 # Director 4.0: Scaling Website Management for the Masses
 
-[![Travis CI](https://api.travis-ci.com/tjresearch/research-theo_john.svg?branch=master)](https://travis-ci.com/tjresearch/research-theo_john)
+[![Travis CI](https://travis-ci.com/tjcsl/director4.svg?branch=master)](https://travis-ci.com/tjcsl/director4)
 
 ## Overview
-Our project is to develop a website management and hosting platform (based on the [current Director platform](https://github.com/tjcsl/director)) that is designed to scale. It is intended to replace the current Director platform which has problems with performance, scalability, and ease of use.
+Director 4.0 is a website management and hosting platform (based on the [former Director platform](https://github.com/tjcsl/director)) that is designed to scale. It replaces the former Director platform which has problems with performance, scalability, and ease of use.
 
 It is composed of three primary components:
 * `orchestrator`: The code that orchestrates the Docker containers
