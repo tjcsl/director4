@@ -10,8 +10,11 @@ from director.apps.sites.operations import fix_site
 class Command(BaseCommand):
     help = "Run 'fix' operations on all sites"
 
+    def add_arguments(self, parser):
+        parser.add_argument("--start-id", type=int, default=1)
+
     def handle(self, *args: Any, **options: Any) -> None:
-        for site in Site.objects.all().order_by("id"):
+        for site in Site.objects.filter(id__gte=options["start_id"]).order_by("id"):
             if Operation.objects.filter(site=site).exists():
                 self.stdout.write(
                     "Site {} (id {}) already has an operation running; waiting for "
