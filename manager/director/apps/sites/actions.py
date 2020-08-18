@@ -8,7 +8,6 @@ from typing import Any, AsyncGenerator, Dict, Iterator, Tuple, Union
 
 from django.conf import settings
 
-from ...utils import database as database_utils
 from ...utils.appserver import (
     AppserverProtocolError,
     appserver_open_http_request,
@@ -295,19 +294,35 @@ def delete_site_database_and_object(  # pylint: disable=unused-argument
 ) -> Iterator[Union[Tuple[str, str], str]]:
     assert site.database is not None
 
-    yield "Deleting real database"
-    database_utils.delete_database(site.database)
+    appserver_num = random.choice(scope["pingable_appservers"])
+
+    yield "Connecting to appserver {} to delete real database".format(appserver_num)
+    appserver_open_http_request(
+        appserver_num,
+        "/sites/databases/delete",
+        method="POST",
+        data={"data": json.dumps(site.database.serialize_for_appserver())},
+        timeout=30,
+    )
 
     yield "Deleting database object in model"
     site.database.delete()
 
 
 def create_real_site_database(site: Site, scope: Dict[str, Any]):  # pylint: disable=unused-argument
-    yield "Creating real site database"
-
     assert site.database is not None
 
-    database_utils.create_database(site.database)
+    appserver_num = random.choice(scope["pingable_appservers"])
+
+    yield "Connecting to appserver {} to create real site database".format(appserver_num)
+
+    appserver_open_http_request(
+        appserver_num,
+        "/sites/databases/create",
+        method="POST",
+        data={"data": json.dumps(site.database.serialize_for_appserver())},
+        timeout=30,
+    )
 
 
 def regen_database_password(site: Site, scope: Dict[str, Any]):  # pylint: disable=unused-argument
@@ -318,6 +333,14 @@ def regen_database_password(site: Site, scope: Dict[str, Any]):  # pylint: disab
     site.database.password = gen_database_password()
     site.database.save()
 
-    yield "Updating real password"
+    appserver_num = random.choice(scope["pingable_appservers"])
 
-    database_utils.create_database(site.database)
+    yield "Connecting to appserver {} to update real password".format(appserver_num)
+
+    appserver_open_http_request(
+        appserver_num,
+        "/sites/databases/create",
+        method="POST",
+        data={"data": json.dumps(site.database.serialize_for_appserver())},
+        timeout=30,
+    )
