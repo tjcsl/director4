@@ -49,6 +49,8 @@ def _open_cursor(
 
         try:
             yield conn.cursor()
+
+            conn.commit()
         finally:
             conn.close()
     else:
@@ -216,11 +218,13 @@ def run_single_query(database_info: Dict[str, Any], sql: str) -> str:
             cursor.execute(sql)
         except psycopg2.DatabaseError as ex:
             return str(ex)
+        except MySQLdb.Error as ex:  # pylint: disable=no-member
+            return str(ex.args[-1])
         else:
             if cursor.description is None:
                 return ""
             else:
-                result = "\t".join(column.name for column in cursor.description)
+                result = "\t".join(column[0] for column in cursor.description)
                 for row in cursor:
                     result += "\n" + "\t".join(map(str, row))
 
