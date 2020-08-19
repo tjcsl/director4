@@ -99,7 +99,7 @@ exec sleep 2147483647"""
             "mode": ServiceMode(
                 mode="replicated", replicas=1 if site_data["is_being_served"] else 0
             ),
-            "restart_policy": RestartPolicy(condition="any", delay=5, max_attempts=0, window=0),
+            "restart_policy": RestartPolicy(condition="any", delay=5, max_attempts=5, window=0),
             "update_config": UpdateConfig(
                 parallelism=1,
                 order="stop-first",
