@@ -29,6 +29,11 @@
     {% endif %}
 
     <div class="subheading clearfix">
+        {% if DJANGO_SETTINGS.GLOBAL_MESSAGE %}
+            <div class="alert alert-warning">
+                {{ DJANGO_SETTINGS.GLOBAL_MESSAGE |safe }}
+            </div>
+        {% endif %}
         {% if query %}
         <h3 class="float-left d-none d-sm-block">Search Results From {% if show_all %}All{% else %}Your{% endif %} Sites</h3>
         {% else %}

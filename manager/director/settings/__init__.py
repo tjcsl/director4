@@ -398,3 +398,8 @@ else:
     SHELL_ENCRYPTION_TOKEN_PUBLIC_KEY = import_rsa_key_from_file(
         SHELL_ENCRYPTION_TOKEN_PUBLIC_KEY_PATH
     )
+
+# A message to show on every page
+# If no message, leave as None
+GLOBAL_MESSAGE = None
+
