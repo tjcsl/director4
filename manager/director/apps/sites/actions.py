@@ -152,7 +152,10 @@ def build_docker_image(site: Site, scope: Dict[str, Any]) -> Iterator[Union[Tupl
         yield "Site does not have a custom Docker image; skipping"
         return
 
-    appserver = random.choice(scope["pingable_appservers"])
+    appserver = hash(str(site.id) + site.name) % settings.DIRECTOR_NUM_APPSERVERS
+
+    if appserver not in scope["pingable_appservers"]:
+        appserver = random.choice(scope["pingable_appservers"])
 
     executor = build_docker_image_async(appserver, site.docker_image.serialize_for_appserver())
 
