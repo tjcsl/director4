@@ -75,10 +75,6 @@ MAX_ZIP_FILES = 1000
 # Size of individual chunks
 FILE_STREAM_BUFSIZE = 4096
 
-FLASK_CONFIG = {
-    "MAX_CONTENT_LENGTH": MAX_FILE_UPLOAD_BYTES,  # 10MB
-}
-
 TIMEZONE = "America/New_York"
 
 # Logging configuration
@@ -87,10 +83,15 @@ LOG_FILE = None
 LOG_FILE_ROTATE_SIZE = 10 * 1000 * 1000  # Rotate at 10M
 LOG_FILE_MAX_BACKUPS = 10
 
+FLASK_CONFIG = {}
+
+
 try:
     from .secret import *  # noqa
 except ImportError:
     pass
+
+FLASK_CONFIG.setdefault("MAX_CONTENT_LENGTH", MAX_FILE_UPLOAD_BYTES)
 
 SHELL_SIGNING_TOKEN_PUBLIC_KEY = import_rsa_key_from_file(SHELL_SIGNING_TOKEN_PUBLIC_KEY_PATH)
 SHELL_ENCRYPTION_TOKEN_PRIVATE_KEY = import_rsa_key_from_file(
