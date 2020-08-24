@@ -2,7 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import logging
-from typing import List
+from typing import Any, Dict, List
 
 from directorutil.crypto import import_rsa_key_from_file
 
@@ -83,7 +83,7 @@ LOG_FILE = None
 LOG_FILE_ROTATE_SIZE = 10 * 1000 * 1000  # Rotate at 10M
 LOG_FILE_MAX_BACKUPS = 10
 
-FLASK_CONFIG = {}
+FLASK_CONFIG: Dict[str, Any] = {}
 
 TMP_TMPFS_SIZE = 10 * 1000 * 1000  # 10 MB
 RUN_TMPFS_SIZE = 10 * 1000 * 1000  # 10 MB
