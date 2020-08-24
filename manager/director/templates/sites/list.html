@@ -22,9 +22,13 @@
 {% endblock %}
 
 {% block main %}
-    {% if is_graduating_soon %}
+    {% if is_graduating_soon or DJANGO_SETTINGS.HOMEPAGE_BANNER %}
         <div class="p-2" style="background-color: yellow;">
-            Please remember to download any important data from your Director sites before you graduate.
+            {% if is_graduating_soon %}
+            Please remember to download any important data from your Director sites before you graduate.<br>
+            {% endif %}
+
+            {{ DJANGO_SETTINGS.HOMEPAGE_BANNER|safe }}
         </div>
     {% endif %}
 

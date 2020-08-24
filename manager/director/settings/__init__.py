@@ -205,6 +205,9 @@ CACHES = {
 
 # Director-related stuff
 
+# This can contain HTML and it will be rendered. Be careful!
+HOMEPAGE_BANNER: str = ""
+
 # Site name blacklisting/whitelisting
 
 # Sites with these names will be allowed, even if they are blacklisted below.
