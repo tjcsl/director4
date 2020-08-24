@@ -85,6 +85,8 @@ LOG_FILE_MAX_BACKUPS = 10
 
 FLASK_CONFIG = {}
 
+TMP_TMPFS_SIZE = 10 * 1000 * 1000  # 10 MB
+RUN_TMPFS_SIZE = 10 * 1000 * 1000  # 10 MB
 
 try:
     from .secret import *  # noqa

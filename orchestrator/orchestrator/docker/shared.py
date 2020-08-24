@@ -61,7 +61,7 @@ def gen_director_shared_params(
                 source=None,
                 target="/tmp",
                 read_only=False,
-                tmpfs_size="10m",
+                tmpfs_size=settings.TMP_TMPFS_SIZE,
                 tmpfs_mode=0o1777,
             ),
             Mount(
@@ -69,7 +69,7 @@ def gen_director_shared_params(
                 source=None,
                 target="/run",
                 read_only=False,
-                tmpfs_size="5m",
+                tmpfs_size=settings.RUN_TMPFS_SIZE,
                 tmpfs_mode=0o1777,
             ),
         ],
