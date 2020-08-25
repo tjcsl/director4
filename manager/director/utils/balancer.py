@@ -233,7 +233,7 @@ def ping_balancer(balancer: Union[int, str], *, timeout: Union[int, float] = 2) 
     except BalancerRequestError:
         return False
     else:
-        return response.content == message.encode() + b"\n"
+        return response.content == message.encode()
 
 
 def iter_pingable_balancers(*, timeout: Union[int, float] = 2) -> Iterator[int]:
