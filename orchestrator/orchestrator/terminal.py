@@ -89,7 +89,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         assert self.container is not None
 
         try:
-            image = self.client.images.get(run_params["image"])
+            image = self.client.images.pull(run_params["image"], "latest")
         except ImageNotFound:
             pass
         else:
