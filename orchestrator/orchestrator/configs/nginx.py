@@ -28,6 +28,7 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> None:
         "type",
         "resource_limits",
         "is_being_served",
+        "custom_nginx_config",
     ]:
         if key not in data:
             raise OrchestratorActionError("Missing key {!r}".format(key))

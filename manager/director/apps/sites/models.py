@@ -115,6 +115,12 @@ class Site(models.Model):
         "able to see this, even if the site's 'availability' is 'disabled'.",
     )
 
+    custom_nginx_config = models.TextField(
+        null=False,
+        blank=True,
+        help_text="Custom rules to add to the Nginx config (in the location /) block",
+    )
+
     # Tell Pylint about the implicit related field
     resource_limits: "SiteResourceLimits"
 
@@ -183,6 +189,7 @@ class Site(models.Model):
             ),
             "docker_image": self.docker_image.serialize_for_appserver(),
             "resource_limits": self.serialize_resource_limits(),
+            "custom_nginx_config": self.custom_nginx_config,
         }
 
     def serialize_for_balancer(self) -> Dict[str, Any]:
