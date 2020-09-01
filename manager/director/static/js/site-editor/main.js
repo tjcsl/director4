@@ -274,6 +274,11 @@ $(function() {
 });
 
 function restartProcess() {
+    Messenger().info({
+        message: "Restarting server",
+        hideAfter: 5,
+        showCloseButton: true,
+    });
     $.post({
         url: restart_endpoint,
     }).fail(function(data) {
