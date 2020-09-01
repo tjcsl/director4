@@ -356,17 +356,18 @@ def create_site_file(site_id: int, relpath: str, *, mode_str: Optional[str] = No
     raise_for_process_result(proc.returncode, stderr)
 
 
-def remove_all_site_files_dangerous(site_id: int) -> None:
+async def remove_all_site_files_dangerous(site_id: int) -> None:
     site_dir = get_site_directory_path(site_id)
-    proc = run_helper_script_prog(
+    proc = await run_helper_script_prog_async(
         ["remove-all-site-files-dangerous", site_dir],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
 
-    _, stderr = proc.communicate()
+    _, stderr = await proc.communicate()
 
+    assert proc.returncode is not None
     raise_for_process_result(proc.returncode, stderr)
 
 

@@ -15,7 +15,6 @@ from ..files import (
     download_zip_site_dir,
     ensure_site_directories_exist,
     make_site_directory,
-    remove_all_site_files_dangerous,
     remove_site_directory_recur,
     remove_site_file,
     rename_path,
@@ -237,20 +236,6 @@ def remove_directory_recur_page(site_id: int) -> Union[str, Tuple[str, int]]:
 
     try:
         remove_site_directory_recur(site_id, request.args["path"])
-    except SiteFilesUserViewableException as ex:
-        current_app.logger.error("%s", traceback.format_exc())
-        return str(ex), 500
-    except BaseException:  # pylint: disable=broad-except
-        current_app.logger.error("%s", traceback.format_exc())
-        return "Internal error", 500
-    else:
-        return "Success"
-
-
-@files.route("/sites/<int:site_id>/remove-all-site-files-dangerous", methods=["POST"])
-def remove_all_site_files_dangerous_page(site_id: int) -> Union[str, Tuple[str, int]]:
-    try:
-        remove_all_site_files_dangerous(site_id)
     except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())
         return str(ex), 500

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from .files import file_monitor_handler
+from .files import file_monitor_handler, remove_all_site_files_dangerous_handler
 from .images import build_image_handler
 from .logs import logs_handler
 from .shell_server import ssh_shell_handler
@@ -13,6 +13,7 @@ __all__ = (
     "file_monitor_handler",
     "logs_handler",
     "multi_status_handler",
+    "remove_all_site_files_dangerous_handler",
     "ssh_shell_handler",
     "status_handler",
     "web_terminal_handler",
