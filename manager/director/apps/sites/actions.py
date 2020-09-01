@@ -223,14 +223,29 @@ def ensure_site_directories_exist(
     )
 
 
+async def remove_all_site_files_dangerous_async(appserver_num: int, site_id: int) -> None:
+    websock = await asyncio.wait_for(
+        appserver_open_websocket(
+            appserver_num, "/ws/sites/{}/files/remove-all-site-files-dangerous".format(site_id),
+        ),
+        timeout=1,
+    )
+
+    result = json.loads(await websock.recv())
+
+    if not result["successful"]:
+        raise Exception(result["msg"])
+
+
 def remove_all_site_files_dangerous(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
     appserver = random.choice(scope["pingable_appservers"])
 
     yield "Connecting to appserver {} to remove site files".format(appserver)
-    appserver_open_http_request(
-        appserver, "/sites/{}/remove-all-site-files-dangerous".format(site.id), method="POST",
+
+    asyncio.get_event_loop().run_until_complete(
+        remove_all_site_files_dangerous_async(appserver, site.id)
     )
 
     yield "Removed site files"
