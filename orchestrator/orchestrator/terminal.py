@@ -3,10 +3,11 @@
 
 import asyncio
 import socket
+import time
 from typing import Any, Dict, List, Optional
 
 from docker.client import DockerClient
-from docker.errors import NotFound
+from docker.errors import APIError, NotFound
 from docker.models.containers import Container
 
 from . import settings
@@ -59,6 +60,22 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
         await self.heartbeat()
 
+    def _launch_container(self, run_params: Dict[str, Any]) -> None:
+        while True:
+            try:
+                self.container = containers.get_or_create_container(
+                    self.client, self.container_name, run_params=run_params,
+                )
+            except APIError as ex:
+                msg = str(ex).lower()
+                if "conflict" in msg and "already in use" in msg:
+                    # The container is in the process of being launched; sleep and try again
+                    time.sleep(2)
+                else:
+                    raise
+            else:
+                break
+
     @run_in_executor(None)
     def _start_attach(self, command: Optional[List[str]]) -> None:
         """Internal function that runs in an executor and performs all the long-running synchronous
@@ -82,9 +99,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
             }
         )
 
-        self.container = containers.get_or_create_container(
-            self.client, self.container_name, run_params=run_params,
-        )
+        self._launch_container(run_params)
 
         assert self.container is not None
 
@@ -128,9 +143,7 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
             except NotFound:
                 pass
 
-            self.container = containers.get_or_create_container(
-                self.client, self.container_name, run_params=run_params,
-            )
+            self._launch_container(run_params)
 
         env = gen_director_container_env(self.client, self.site_id, self.site_data)
 
