@@ -6,7 +6,7 @@ import socket
 from typing import Any, Dict, List, Optional
 
 from docker.client import DockerClient
-from docker.errors import ImageNotFound, NotFound
+from docker.errors import NotFound
 from docker.models.containers import Container
 
 from . import settings
@@ -88,21 +88,49 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
         assert self.container is not None
 
-        try:
-            image = self.client.images.pull(run_params["image"], "latest")
-        except ImageNotFound:
-            pass
-        else:
-            if self.container.image.id != image.id:
-                self.container.stop()
-                try:
-                    self.container.wait()
-                except NotFound:
-                    pass
+        orig_image_name = run_params["image"]
 
-                self.container = containers.get_or_create_container(
-                    self.client, self.container_name, run_params=run_params,
-                )
+        if "/" in orig_image_name:
+            # One of these formats:
+            # - hostname/image
+            # - hostname:port/image
+            # - hostname/image:tag
+            # - hostname:port/image:tag
+
+            # Split out the hostname/port combo if present
+            server, image_name_with_tag = orig_image_name.split("/")
+
+            if ":" in image_name_with_tag:
+                # It has a tag name
+                image_name, tag_name = image_name_with_tag.split(":")
+                image_name = server + "/" + image_name
+            else:
+                # No tag name
+                image_name = orig_image_name
+                tag_name = "latest"
+        else:
+            # One of these formats:
+            # - image
+            # - image:tag
+
+            if ":" in orig_image_name:
+                image_name, tag_name = orig_image_name.split(":")
+            else:
+                image_name = orig_image_name
+                tag_name = "latest"
+
+        image = self.client.images.pull(image_name, tag_name)
+
+        if self.container.image.id != image.id:
+            self.container.stop()
+            try:
+                self.container.wait()
+            except NotFound:
+                pass
+
+            self.container = containers.get_or_create_container(
+                self.client, self.container_name, run_params=run_params,
+            )
 
         env = gen_director_container_env(self.client, self.site_id, self.site_data)
 
