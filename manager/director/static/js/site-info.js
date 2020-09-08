@@ -166,7 +166,8 @@ $(function() {
             if(data.site_info.operation != null) {
                 operation_div.empty();
 
-                $("<h6>").text("Ongoing operation").appendTo(operation_div);
+                var operation_header = $("<h6>").text("Ongoing operation").appendTo(operation_div);
+                var operation_subhead = $("<p>").appendTo(operation_div);
 
                 if(data.site_info.operation.started_time != null) {
                     var actions_container = $("<ul>").addClass("actions").appendTo(operation_div);
@@ -178,6 +179,12 @@ $(function() {
                         }
                         else if(action.result == false) {
                             action_elem.addClass("failed")
+                            operation_header.text("OPERATION FAILED");
+                            operation_subhead.addClass("small").append([
+                                "Please contact a Director administrator at ",
+                                $("<a>").attr("href", "mailto:" + DIRECTOR_CONTACT_EMAIL).text(DIRECTOR_CONTACT_EMAIL),
+                                " for assistance."
+                            ]);
                         }
                         else if(action.started_time != null) {
                             action_elem.addClass("started")
