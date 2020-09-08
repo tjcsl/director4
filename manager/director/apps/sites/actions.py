@@ -176,7 +176,7 @@ async def build_docker_image_async(
 ) -> AsyncGenerator[Union[Tuple[str, str], str], None]:
     yield "Connecting to appserver {} to build Docker image".format(appserver_num)
     websock = await asyncio.wait_for(
-        appserver_open_websocket(appserver_num, "/ws/sites/build-docker-image"), timeout=1,
+        appserver_open_websocket(appserver_num, "/ws/sites/build-docker-image"), timeout=10,
     )
 
     await websock.send(json.dumps(data))
@@ -228,7 +228,7 @@ async def remove_all_site_files_dangerous_async(appserver_num: int, site_id: int
         appserver_open_websocket(
             appserver_num, "/ws/sites/{}/files/remove-all-site-files-dangerous".format(site_id),
         ),
-        timeout=1,
+        timeout=10,
     )
 
     result = json.loads(await websock.recv())
