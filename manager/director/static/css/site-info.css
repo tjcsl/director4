@@ -43,9 +43,13 @@
 }
 
 #operation-info li {
-    padding: 10px 25px;
-    margin-bottom: 20px;
+    padding: 7px;
+    margin-bottom: 7px;
     border-radius: 10px;
+}
+
+#operation-info li:last-child {
+    margin-bottom: -50px;
 }
 
 #operation-info .action.succeeded {
@@ -68,6 +72,7 @@
     font-style: italic;
     border: 2px solid #ff0000;
     background-color:#ffb3ba;
+    color: red;
 }
 
 
