@@ -37,19 +37,50 @@
     width: 30%;
     padding: 0px 10px;
 }
+.actions {
+    list-style: none;
+    padding: 0;
+}
+
+#operation-info li {
+    padding: 10px 25px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+}
 
 #operation-info .action.succeeded {
     font-size: 70%;
-}
-#operation-info .action.failed {
-    font-size: 70%;
-    color: red;
-}
-#operation-info .action.started {
+    font-style: italic;
     font-weight: bold;
-    font-size: 80%;
+    border: 2px solid #b1ffb1;
+    background-color: #d8ffd8;
+
 }
+
+#operation-info .action.failed::before {
+    font-style: normal;
+    content: "Failed: ";
+}
+
+#operation-info .action.failed {
+    font-size: 80%;
+    font-weight: bold;
+    font-style: italic;
+    border: 2px solid #ff0000;
+    background-color:#ffb3ba;
+}
+
+
+#operation-info .action.started {
+    font-size: 80%;
+    font-weight: bold;
+    border: 2px solid #ffffb1;
+    background-color: #ffffd8;
+}
+
 #operation-info .action.pending {
     font-style: italic;
     font-size: 70%;
+    border: 2px solid #a9a9a9;
+    background-color: #d0d0d0;
 }
