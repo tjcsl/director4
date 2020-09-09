@@ -1,5 +1,13 @@
 # Umask settings
 
+# WARNING WARNING WARNING: ALL OF THE INFORMATION ON THIS PAGE IS OUT OF DATE
+
+Director 4.0 now does something completely different for PHP sites. Changing the umask to something like `022`, `027`, or `077` would not be a big deal anymore.
+
+This page is nevertheless preserved for legacy reasons, in case you want to understand the reasoning behind Director 4.0's special handling of umasks.
+
+---
+
 **TL;DR**: Director sets umasks to `007` by default to fix weird permission issues.
 
 *First, if you are not familiar with umasks, read up on them (one source is [here](https://www.cyberciti.biz/tips/understanding-linux-unix-umask-value-usage.html)). Basically, it specifies permissions to remove when creating files/directories, so a umask of `022` results in files being created with mode `644` and directories with mode `755`.*
