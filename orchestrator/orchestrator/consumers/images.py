@@ -6,7 +6,7 @@ import concurrent.futures
 import json
 import logging
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Iterator, Optional, TypeVar, cast
 
 import websockets
 
@@ -21,6 +21,15 @@ logger = logging.getLogger(__name__)
 image_executor = concurrent.futures.ThreadPoolExecutor(
     max_workers=min(32, (os.cpu_count() or 2) * 2)
 )
+
+T = TypeVar("T")
+
+
+def next_or_none(item_it: Iterator[T]) -> Optional[T]:
+    try:
+        return next(item_it)
+    except StopIteration:
+        return None
 
 
 async def build_image_handler(  # pylint: disable=unused-argument
@@ -54,19 +63,31 @@ async def build_image_handler(  # pylint: disable=unused-argument
     else:
         logger.info("Built image %s", build_data["name"])
 
-    try:
-        await websock.send(json.dumps(result))
-    except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
-        pass
-
     if result["successful"]:
         try:
-            output = await asyncio.get_event_loop().run_in_executor(
+            logger.info("Pushing image %s", build_data["name"])
+
+            output_generator = await asyncio.get_event_loop().run_in_executor(
                 image_executor, push_custom_docker_image, client, build_data["name"],
             )
 
-            logger.info("Pushed image %s", build_data["name"])
-            logger.info("Output from pushing image %s: %s", build_data["name"], output)
+            failed = False
+            while True:
+                data = cast(
+                    Optional[Dict[str, str]],
+                    await asyncio.get_event_loop().run_in_executor(
+                        image_executor, next_or_none, output_generator
+                    ),
+                )
+
+                if data is None:
+                    break
+
+                logger.info("Output from pushing image %s: %s", build_data["name"], data)
+
+                if "errorDetail" in data:
+                    failed = True
+
         except OrchestratorActionError as ex:
             logger.error(
                 "Error pushing image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
@@ -78,9 +99,13 @@ async def build_image_handler(  # pylint: disable=unused-argument
             )
             result = {"successful": False, "msg": "Error pushing image"}
         else:
-            logger.info("Pushed image %s", build_data["name"])
+            if failed:
+                result = {"successful": False, "msg": "Error pushing image"}
+                logger.info("Failed to push image %s", build_data["name"])
+            else:
+                logger.info("Pushed image %s", build_data["name"])
 
-        try:
-            await websock.send(json.dumps(result))
-        except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
-            pass
+    try:
+        await websock.send(json.dumps(result))
+    except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+        pass

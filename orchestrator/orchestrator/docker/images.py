@@ -2,7 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import os
-from typing import Any, Dict, cast
+from typing import Any, Dict, Iterator, cast
 
 import jinja2
 from docker.client import DockerClient
@@ -65,7 +65,7 @@ def remove_docker_image(client: DockerClient, name: str) -> None:
         pass
 
 
-def push_custom_docker_image(client: DockerClient, image_name: str) -> str:
+def push_custom_docker_image(client: DockerClient, image_name: str) -> Iterator[Dict[str, str]]:
     try:
         img = client.images.get(image_name)
     except ImageNotFound:
@@ -79,5 +79,11 @@ def push_custom_docker_image(client: DockerClient, image_name: str) -> str:
 
     # Long-running
     return cast(
-        str, client.images.push(remote_repository, auth_config=settings.DOCKER_REGISTRY_AUTH_CONFIG)
+        Iterator[Dict[str, str]],
+        client.images.push(
+            remote_repository,
+            auth_config=settings.DOCKER_REGISTRY_AUTH_CONFIG,
+            stream=True,
+            decode=True,
+        ),
     )
