@@ -302,6 +302,8 @@ def download_zip_site_dir(site_id: int, relpath: str) -> Generator[bytes, None, 
 
     errors += proc.stderr.read().decode()
 
+    proc.wait()
+
     raise_for_process_result(proc.returncode, errors)
 
 
