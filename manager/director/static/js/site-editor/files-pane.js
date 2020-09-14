@@ -631,7 +631,10 @@ function FilesPane(container, uri, callbacks) {
                 "Downloading a folder as a zip file can take a long time, especially if there are a lot of files in it. ",
                 "In addition, it may fail if any programs attempt to modify files in the directory while the zip file ",
                 "is being downloaded.",
-                "<br>Are you sure you want to proceed?",
+                "<br>Are you sure you want to proceed?<br>",
+                $("<strong>").text("WARNING"),
+                ": If the folder has too many files in it, or if the files are too large, this will fail and the zip file will be corrupted. ",
+                "Be sure to open the zip file after you download it and make sure everything looks OK."
             ),
             function(result) {
                 if(!result) {
