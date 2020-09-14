@@ -209,26 +209,10 @@ def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]
     assert proc.stderr is not None
     assert proc.stdout is not None
 
-    line = proc.stderr.readline().strip()
-    if line != b"OK":
-        try:
-            proc.terminate()
-        except ProcessLookupError:
-            pass
+    errors = proc.stderr.readline().strip().decode()
 
-        try:
-            proc.wait(timeout=0.5)
-        except subprocess.TimeoutExpired:
-            try:
-                proc.kill()
-            except ProcessLookupError:
-                pass
-
-        proc.wait()
-
-        raise_for_process_result(proc.returncode, line + b"\n" + proc.stderr.read())
-
-    errors = ""
+    # Was downloading the file (initially) successful?
+    success = (errors == "OK")
 
     selector = selectors.DefaultSelector()
     selector.register(proc.stdout, selectors.EVENT_READ)
@@ -243,7 +227,10 @@ def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]
                 if not buf:
                     break
 
-                yield buf
+                if success:
+                    # Only yield the data if successful
+                    yield buf
+
             elif key.fileobj == proc.stderr:
                 errors += proc.stderr.read(BUFSIZE).decode()
 
@@ -252,11 +239,19 @@ def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]
         if not buf:
             break
 
-        yield buf
+        if success:
+            # Only yield the data if successful
+            yield buf
 
     errors += proc.stderr.read().decode()
 
+    proc.wait()
+
     raise_for_process_result(proc.returncode, errors)
+
+    # Ensure an error gets raised
+    if not success:
+        raise SiteFilesException(errors.strip())
 
 
 def download_zip_site_dir(site_id: int, relpath: str) -> Generator[bytes, None, None]:
