@@ -64,9 +64,9 @@ SHELL_TERMINAL_MAX_LIFETIME: int = 3 * 3600
 
 # Maximum size of files downloadable from & uploadable
 # to the orchestrator
-MAX_FILE_DOWNLOAD_BYTES = 10 * 1000 * 1000  # 10MB
+MAX_FILE_DOWNLOAD_BYTES = 100 * 1000 * 1000  # 100MB
 
-MAX_FILE_UPLOAD_BYTES = 10 * 1000 * 1000  # 10MB
+MAX_FILE_UPLOAD_BYTES = 100 * 1000 * 1000  # 100MB
 
 # No more than this many files in a zip file
 # Each file is also limited to MAX_FILE_DOWNLOAD_BYTES
