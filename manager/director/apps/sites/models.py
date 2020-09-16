@@ -618,9 +618,10 @@ class Domain(models.Model):
         max_length=255,
         validators=[
             RegexValidator(
-                regex=r"^(?!(.*\.)?sites\.tjhsst\.edu$)[0-9a-zA-Z_\- .]+$",
-                message="You can only have one sites.tjhsst.edu domain, and it must match the name "
-                "of your site.",
+                regex=r"^(?!(.*\.)?sites\.tjhsst\.edu$)"
+                r"[a-z0-9]+(-[a-z0-9]+)*(\.[a-z0-9]+(-[a-z0-9]+)*)+$$",
+                message="Invalid domain. (Note: You can only have one sites.tjhsst.edu domain, and "
+                "it must match the name of your site.)",
             )
         ],
     )
