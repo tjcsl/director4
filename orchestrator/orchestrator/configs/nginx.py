@@ -54,7 +54,7 @@ def update_nginx_config(site_id: int, data: Dict[str, Any]) -> None:
         raise OrchestratorActionError("Invalid 'no redirect' domains")
     for domain in new_data["no_redirect_domains"]:
         if not isinstance(domain, str) or (
-            re.search(r"^[a-z0-9]*(-[a-z0-9]+)*(\.[a-z][a-z0-9]*(-[a-z0-9]+)*)+$", domain) is None
+            re.search(r"^[a-z0-9]*(-[a-z0-9]+)*(\.[a-z0-9]+(-[a-z0-9]+)*)+$", domain) is None
             and re.search(r"^((\d+\.){3}\d+|([0-9a-fA-F]|:):[0-9a-fA-F:]*)$", domain) is None
         ):
             raise OrchestratorActionError("Invalid 'no redirect' domain {!r}".format(domain))
