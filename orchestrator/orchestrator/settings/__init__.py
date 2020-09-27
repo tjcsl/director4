@@ -77,6 +77,11 @@ FILE_STREAM_BUFSIZE = 4096
 
 TIMEZONE = "America/New_York"
 
+# The path to the terminal keepalive program
+# Here, it is set to None, and is defined in secret.py
+# If set to None, it will use a sh script instead of a C program
+TERMINAL_KEEPALIVE_PROGRAM_PATH = None
+
 # Logging configuration
 LOG_LEVEL = logging.INFO
 LOG_FILE = None
