@@ -212,7 +212,7 @@ def stream_site_file(site_id: int, relpath: str) -> Generator[bytes, None, None]
     errors = proc.stderr.readline().strip().decode()
 
     # Was downloading the file (initially) successful?
-    success = (errors == "OK")
+    success = errors == "OK"
 
     selector = selectors.DefaultSelector()
     selector.register(proc.stdout, selectors.EVENT_READ)
