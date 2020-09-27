@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 from docker.client import DockerClient
 from docker.errors import APIError, NotFound
 from docker.models.containers import Container
+from docker.types import Mount
 
 from . import settings
 from .docker import containers
@@ -84,15 +85,34 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
             self.client, self.site_id, self.site_data
         )
 
+        # Allows for the use of a C program to perform keepalive instead of using `sh`
+        # Using a C program allows greater control of low-level interactions
+        # (e.g. niceness, disk I/O priority).
+        if settings.TERMINAL_KEEPALIVE_PROGRAM_PATH is not None:
+            keepalive_command = [
+                "/terminal-keepalive",
+                str(settings.SITE_TERMINAL_KEEPALIVE_TIMEOUT),
+            ]
+            run_params["mounts"].append(
+                Mount(
+                    "/terminal-keepalive",
+                    settings.TERMINAL_KEEPALIVE_PROGRAM_PATH,
+                    type="bind",
+                    read_only=True,
+                )
+            )
+        else:
+            keepalive_command = [
+                "sh",
+                "-c",
+                'while timeout "$1" head -n 1 &>/dev/null; do true; done',
+                "sh",
+                str(settings.SITE_TERMINAL_KEEPALIVE_TIMEOUT),
+            ]
+
         run_params.update(
             {
-                "command": [
-                    "sh",
-                    "-c",
-                    'while timeout "$1" head -n 1 &>/dev/null; do true; done',
-                    "sh",
-                    str(settings.SITE_TERMINAL_KEEPALIVE_TIMEOUT),
-                ],
+                "command": keepalive_command,
                 "read_only": True,
                 "auto_remove": True,
                 "stdin_open": True,
