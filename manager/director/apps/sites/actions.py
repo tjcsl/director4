@@ -108,6 +108,10 @@ def remove_appserver_nginx_config(
 def update_docker_service(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
+    if site.availability == "disabled":
+        yield from remove_docker_service(site, scope)
+        return
+
     appserver = random.choice(scope["pingable_appservers"])
 
     yield "Connecting to appserver {} to create/update Docker service".format(appserver)
@@ -124,6 +128,10 @@ def update_docker_service(
 def restart_docker_service(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
+    if site.availability == "disabled":
+        yield "Site disabled; skipping"
+        return
+
     appserver = random.choice(scope["pingable_appservers"])
 
     yield "Connecting to appserver {} to restart Docker service".format(appserver)
