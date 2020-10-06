@@ -4,14 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-flake8 = "~=3.8.3"
-pylint = "~=2.5.3"
-isort = "~=4.3.21"
+autopep8 = "~=1.5.4"
 black = "==19.10b0"
-typed-ast = "~=1.4.1"  # Required by black, but Pipenv doesn't pull it in correctly on 3.8
-autopep8 = "~=1.5.3"
-mypy = "~=0.780"
+flake8 = "~=3.8.4"
 importlib-metadata = {version = "~=1.6.1",markers = "python_version < '3.8'"}
+isort = "~=4.3.21"
+mypy = "~=0.790"
+pylint = "~=2.5.3"
+typed-ast = "~=1.4.1"  # Required by black, but Pipenv doesn't pull it in correctly on 3.8
 # Required by importlib-metadata, but Pipenv doesn't pull it in correctly
 zipp = {version = "~=3.1.0", markers = "python_version < '3.8'"}
 
