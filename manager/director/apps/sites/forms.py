@@ -45,12 +45,13 @@ class SiteCreateForm(forms.ModelForm):
             self.fields["purpose"].initial = self.initial_purpose
             self.fields["purpose"].disabled = True
 
+            self.fields["users"].initial = [user]
+
             if self.initial_purpose == "user":
                 # And for user-specific sites, they cannot edit the name or the user list.
                 self.fields["name"].initial = user.username
                 self.fields["name"].disabled = True
 
-                self.fields["users"].initial = [user]
                 self.fields["users"].disabled = True
         else:
             self.initial_purpose = None
