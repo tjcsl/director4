@@ -32,6 +32,8 @@ class SiteCreateForm(forms.ModelForm):
     def __init__(self, *args: Any, user: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
 
+        self.user = user
+
         if not user.is_superuser:
             # Non-superusers cannot edit the site purpose.
             try:
@@ -64,6 +66,16 @@ class SiteCreateForm(forms.ModelForm):
             and cleaned_data.get("purpose", self.initial_purpose) != "user"
         ):
             self.add_error("name", "Project site names cannot start with a number")
+
+        if len(cleaned_data.get("users", [])) == 0:
+            self.add_error("users", "You must select at least one user for this site")
+
+        if (
+            "users" in cleaned_data.keys()
+            and self.user not in cleaned_data["users"]
+            and not self.user.is_superuser
+        ):
+            self.add_error("users", "You must include yourself as a user for this site")
 
         return cleaned_data
 
