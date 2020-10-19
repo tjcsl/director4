@@ -115,6 +115,7 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
             # See the description of this format in __init__()
             if "/" in username:
                 username, self.site_name = username.split("/", 1)
+                self.username = username
             else:
                 self.site_name = None
 
