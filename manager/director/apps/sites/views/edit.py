@@ -149,6 +149,10 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
 def edit_type_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
+    if site.has_operation:
+        messages.error(request, "An operation is already being performed on this site")
+        return redirect("sites:info", site.id)
+
     if request.method == "POST":
         type_form = SiteTypeForm(request.POST)
         if type_form.is_valid():
