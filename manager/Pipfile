@@ -13,6 +13,8 @@ mypy = "~=0.770"
 pylint = "~=2.5.3"
 pylint-django = "~=2.0.15"
 typed-ast = "~=1.4.1"  # Required by black, but Pipenv doesn't pull it in correctly on 3.8
+coverage = "*"
+coveralls = "*"
 
 [packages]
 bleach = "~=3.1.5"

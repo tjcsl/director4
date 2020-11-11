@@ -1,0 +1,195 @@
+name: CI
+
+on:
+  - push
+  - pull_request
+
+defaults:
+  run:
+    shell: bash
+
+.anchors:
+  python_versions: &python_versions
+    - 3.6
+    - 3.7
+    - 3.8
+
+  python_setup: &python_setup
+    name: Set up Python ${{ matrix.python-version }}
+    uses: actions/setup-python@v2
+    with:
+      python-version: ${{ matrix.python-version }}
+
+  repo_setup: &repo_setup
+    name: Set up repo
+    uses: actions/checkout@v2
+
+  setup_cache: &setup_cache
+    name: Set up cache
+    uses: actions/cache@v2
+    with:
+      path: | 
+        ~/.cache/pip
+        ~/.cache/pipenv
+      key: ${{ matrix.python-version }}
+
+  install_pipenv: &install_pipenv
+    name: Install pipenv
+    run: pip install pipenv
+
+  install_manager_dependencies: &install_manager_dependencies
+    name: Install manager dependencies
+    working-directory: ./manager
+    run: pipenv install --dev --deploy
+    
+  install_orchestrator_dependencies: &install_orchestrator_dependencies
+    name: Install orchestrator dependencies
+    working-directory: ./orchestrator
+    run: pipenv install --dev --deploy
+    
+  install_router_dependencies: &install_router_dependencies
+    name: Install router dependencies
+    working-directory: ./router
+    run: pipenv install --dev --deploy
+    
+  install_shell_dependencies: &install_shell_dependencies
+    name: Install shell dependencies
+    working-directory: ./shell
+    run: pipenv install --dev --deploy
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: *python_versions
+
+    steps:
+      - *repo_setup
+      - *python_setup
+      - *setup_cache
+      - *install_pipenv
+      - *install_manager_dependencies
+      - *install_orchestrator_dependencies
+      - *install_router_dependencies
+      - *install_shell_dependencies
+
+      # Shared
+      - name: Check shared formatting with format.sh
+        run: cd manager && pipenv run ../shared/scripts/format.sh && cd ../shared && test -z "$(git status --porcelain=v1 .)"
+
+      - name: check shared formatting with check.sh
+        working-directory: ./manager
+        run: pipenv run ../shared/scripts/check.sh
+
+      # Manager
+      - name: Check manager formatting with format.sh and static_templates_format.sh
+        working-directory: ./manager
+        run: pipenv run ./scripts/format.sh && pipenv run ./scripts/static_templates_format.sh && test -z "$(git status --porcelain=v1 .)"
+
+      - name: Check manager formatting with check.sh
+        working-directory: ./manager
+        run: pipenv run ./scripts/check.sh
+
+      - name: Check manager dependencies against PyUp and PEP 508
+        working-directory: ./manager
+        run: pipenv check
+
+      # Orchestrator
+      - name: Check orchestrator formatting with format.sh
+        working-directory: ./orchestrator
+        run: pipenv run ./scripts/format.sh && test -z "$(git status --porcelain=v1 .)"
+
+      - name: Check orchestrator formatting with check.sh
+        working-directory: ./orchestrator
+        run: pipenv run ./scripts/check.sh
+
+      - name: Check orchestrator dependencies against PyUp and PEP 508
+        working-directory: ./orchestrator
+        run: pipenv check
+
+      # Router
+      - name: Check router formatting with format.sh
+        working-directory: ./router
+        run: pipenv run ./scripts/format.sh && test -z "$(git status --porcelain=v1 .)"
+
+      - name: Check router formatting with check.sh
+        working-directory: ./router
+        run: pipenv run ./scripts/check.sh
+
+      - name: Check router dependencies against PyUp and PEP 508
+        working-directory: ./router
+        run: pipenv check
+
+      # Shell
+      - name: Check shell formatting with format.sh
+        working-directory: ./shell
+        run: pipenv run ./scripts/format.sh && test -z "$(git status --porcelain=v1 .)"
+
+      - name: Check shell formatting with check.sh
+        working-directory: ./shell
+        run: pipenv run ./scripts/check.sh
+
+      - name: Check shell dependencies against PyUp and PEP 508
+        working-directory: ./shell
+        run: pipenv check
+  
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: *python_versions
+
+    steps:
+      - *repo_setup
+      - *python_setup
+      - *setup_cache
+      - *install_pipenv
+      - *install_manager_dependencies
+      - *install_orchestrator_dependencies
+      - *install_router_dependencies
+      - *install_shell_dependencies
+
+      - name: generate shell signing keys
+        working-directory: ./manager
+        run: |
+          sudo mkdir -p /etc/director-shell-keys
+          sudo chown $USER:$(id -gn) /etc/director-shell-keys
+          pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-signing-token-pubkey.pem /etc/director-shell-keys/shell-signing-token-privkey.pem
+          pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-encryption-token-pubkey.pem /etc/director-shell-keys/shell-encryption-token-privkey.pem
+      
+      # Manager
+      - name: run Manager test suite
+        working-directory: ./manager
+        run: pipenv run coverage run --source .. manage.py test
+
+      # TODO: implement other test suites here when they are added.
+    
+      - name: Combine coverage reports
+        run: | 
+          pip3 install coverage
+          coverage combine manager/.coverage
+
+      - name: Report combined coverage report to Coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_FLAG_NAME: ${{ matrix.python-version }}
+          COVERALLS_PARALLEL: true
+        run: |
+          pip3 install coveralls
+          coveralls
+
+  finish_success:
+    needs:
+      - lint
+      - test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Tell Coveralls that parallel jobs have finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
+
