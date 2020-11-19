@@ -53,7 +53,7 @@ def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]) 
 
     # We want to delete intermediate containers during the build process
     client.images.build(
-        path=image_directory, rm=True, dockerfile="Dockerfile", tag=image_name, pull=True
+        path=image_directory, rm=True, dockerfile="Dockerfile", tag=image_name, pull=False
     )
 
 
