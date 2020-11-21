@@ -161,14 +161,29 @@ jobs:
       # Manager
       - name: run Manager test suite
         working-directory: ./manager
-        run: pipenv run coverage run --source .. manage.py test
+        run: pipenv run coverage run --source ..,director manage.py test
 
-      # TODO: implement other test suites here when they are added.
+      # Orchestrator
+      - name: run Orchestrator test suite
+        working-directory: ./orchestrator
+        run: pipenv run coverage run --source ..,orchestrator -m unittest discover
+
+      # Router
+      - name: run Router test suite
+        working-directory: ./router
+        run: pipenv run coverage run --source ..,router -m unittest discover
+
+      # Shell
+      - name: run Shell test suite
+        working-directory: ./shell
+        run: |
+          cp shell/settings/secret_dev.py shell/settings/secret.py
+          pipenv run coverage run --source ..,shell -m unittest discover
     
       - name: Combine coverage reports
         run: | 
           pip3 install coverage
-          coverage combine manager/.coverage
+          coverage combine manager/.coverage orchestrator/.coverage router/.coverage shell/.coverage
 
       - name: Report combined coverage report to Coveralls
         env:

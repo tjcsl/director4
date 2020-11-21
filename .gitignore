@@ -135,3 +135,7 @@ secret.py
 
 # Vagrant
 .vagrant/
+
+# PyCharm
+.idea/
+
