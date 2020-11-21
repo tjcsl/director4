@@ -7,7 +7,7 @@ import time
 from typing import Any, Dict, List, Optional
 
 from docker.client import DockerClient
-from docker.errors import APIError, NotFound
+from docker.errors import APIError, ImageNotFound, NotFound
 from docker.models.containers import Container
 from docker.types import Mount
 
@@ -143,6 +143,10 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
                 # No tag name
                 image_name = orig_image_name
                 tag_name = "latest"
+
+            # This format means it's from our custom registry. Unconditionally pull so we always get
+            # the latest built image.
+            image = self.client.images.pull(image_name, tag_name)
         else:
             # One of these formats:
             # - image
@@ -154,7 +158,12 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
                 image_name = orig_image_name
                 tag_name = "latest"
 
-        image = self.client.images.pull(image_name, tag_name)
+            # This format means it's from DockerHub. To avoid hitting the rate limit, only pull if
+            # it's not present.
+            try:
+                image = self.client.images.get(orig_image_name)
+            except ImageNotFound:
+                image = self.client.images.pull(image_name, tag_name)
 
         if self.container.image.id != image.id:
             self.container.stop()
