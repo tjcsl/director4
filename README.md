@@ -1,6 +1,6 @@
 # Director 4.0: Scaling Website Management for the Masses
 
-[![Travis CI](https://travis-ci.com/tjcsl/director4.svg?branch=master)](https://travis-ci.com/tjcsl/director4)
+![CI](https://github.com/tjcsl/director4/workflows/CI/badge.svg?branch=master&event=push) [![Coverage Status](https://coveralls.io/repos/github/tjcsl/director4/badge.svg?branch=master)](https://coveralls.io/github/tjcsl/director4?branch=master)
 
 ## Overview
 Director 4.0 is a website management and hosting platform (based on the [former Director platform](https://github.com/tjcsl/director)) that is designed to scale. It replaces the former Director platform which has problems with performance, scalability, and ease of use.
