@@ -18,6 +18,14 @@
     opacity: 0.5;
 }
 
+.files-pane > .items.disabled > .children:empty::before {
+    content: "Loading...";
+    margin-left: 10px;
+    color: black;
+    font-style: italic;
+}
+
+
 .files-pane .root-drop-container {
     flex: 1 1;
     min-height: 30px;
