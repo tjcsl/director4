@@ -388,7 +388,7 @@ class DockerImage(models.Model):
     # For non-custom images (parent images), these should always be ":latest" images.
     # Weird things will happen if they aren't.
     name = models.CharField(
-        max_length=32,
+        max_length=75,
         blank=False,
         null=False,
         unique=True,
