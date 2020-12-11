@@ -64,6 +64,7 @@ class SiteCreateForm(forms.ModelForm):
         if (
             cleaned_data["name"][0] in string.digits
             and cleaned_data.get("purpose", self.initial_purpose) != "user"
+            and not self.user.is_superuser
         ):
             self.add_error("name", "Project site names cannot start with a number")
 
