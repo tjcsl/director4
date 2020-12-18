@@ -60,7 +60,9 @@ def zipfile_extract(
         if limit_files is not None:
             found = False
             for limit_fname in limit_files:
-                limit_fname = os.path.normpath(limit_fname) + ("/" if limit_fname.endswith("/") else "")
+                limit_fname = os.path.normpath(limit_fname) + (
+                    "/" if limit_fname.endswith("/") else ""
+                )
                 if limit_fname.endswith("/"):
                     if extract_fname.startswith(limit_fname):
                         found = True
@@ -117,7 +119,9 @@ def tarfile_extract(
         if limit_files is not None:
             found = False
             for limit_fname in limit_files:
-                limit_fname = os.path.normpath(limit_fname) + ("/" if limit_fname.endswith("/") else "")
+                limit_fname = os.path.normpath(limit_fname) + (
+                    "/" if limit_fname.endswith("/") else ""
+                )
                 if limit_fname.endswith("/"):
                     if extract_fname.startswith(limit_fname):
                         found = True
@@ -138,9 +142,7 @@ def tarfile_extract(
     return extracted_files
 
 
-def tarfile_extract_single_file(
-    tf: tarfile.TarFile, member: str, extract_path: str
-):
+def tarfile_extract_single_file(tf: tarfile.TarFile, member: str, extract_path: str):
     print("Extracting {} to {}".format(member, extract_path))
 
     with tf.extractfile(member) as f_obj:
@@ -204,7 +206,9 @@ class NpmVendoredDependency(VendoredDependency):
 
 
 def get_github_latest_release_name(repo: str) -> str:
-    return requests.get("https://api.github.com/repos/" + repo + "/releases/latest").json()["tag_name"]
+    return requests.get("https://api.github.com/repos/" + repo + "/releases/latest").json()[
+        "tag_name"
+    ]
 
 
 def get_github_latest_tag_name(repo: str) -> str:
@@ -212,14 +216,16 @@ def get_github_latest_tag_name(repo: str) -> str:
 
 
 def get_github_asset_download_url(repo: str, tag: str, name_match: Union[str, re.Pattern]) -> str:
-    release_info = requests.get("https://api.github.com/repos/" + repo + "/releases/tags/" + tag).json()
+    release_info = requests.get(
+        "https://api.github.com/repos/" + repo + "/releases/tags/" + tag
+    ).json()
 
     return match_single_item(
         release_info["assets"],
         lambda asset_info: (
             asset_info["name"] == name_match
-            if isinstance(name_match, str) else
-            name_match.search(asset_info["name"]) is not None
+            if isinstance(name_match, str)
+            else name_match.search(asset_info["name"]) is not None
         ),
     )["browser_download_url"]
 
@@ -231,10 +237,7 @@ class BootstrapVendoredDependency(NpmVendoredDependency):
         tf = tarfile_url_load_mem(self.get_tarball_url(version))
 
         tarfile_extract(
-            tf,
-            tarfile_base_path="package",
-            extract_base_path=vendor_path,
-            limit_files=["LICENSE"],
+            tf, tarfile_base_path="package", extract_base_path=vendor_path, limit_files=["LICENSE"],
         )
 
         tarfile_extract(
@@ -273,10 +276,7 @@ class AceEditorVendoredDependency(NpmVendoredDependency):
         tf = tarfile_url_load_mem(self.get_tarball_url(version))
 
         tarfile_extract(
-            tf,
-            tarfile_base_path="package",
-            extract_base_path=vendor_path,
-            limit_files=["LICENSE"],
+            tf, tarfile_base_path="package", extract_base_path=vendor_path, limit_files=["LICENSE"],
         )
 
         tarfile_extract(
@@ -294,10 +294,7 @@ class GoldenLayoutVendoredDependency(NpmVendoredDependency):
         tf = tarfile_url_load_mem(self.get_tarball_url(version))
 
         tarfile_extract(
-            tf,
-            tarfile_base_path="package",
-            extract_base_path=vendor_path,
-            limit_files=["LICENSE"],
+            tf, tarfile_base_path="package", extract_base_path=vendor_path, limit_files=["LICENSE"],
         )
 
         tarfile_extract(
@@ -326,10 +323,7 @@ class XtermVendoredDependency(NpmVendoredDependency):
         tf = tarfile_url_load_mem(self.get_tarball_url(version))
 
         tarfile_extract(
-            tf,
-            tarfile_base_path="package",
-            extract_base_path=vendor_path,
-            limit_files=["LICENSE"],
+            tf, tarfile_base_path="package", extract_base_path=vendor_path, limit_files=["LICENSE"],
         )
 
         tarfile_extract(
@@ -354,10 +348,7 @@ class XtermAddonFitVendoredDependency(NpmVendoredDependency):
         tf = tarfile_url_load_mem(self.get_tarball_url(version))
 
         tarfile_extract(
-            tf,
-            tarfile_base_path="package",
-            extract_base_path=vendor_path,
-            limit_files=["LICENSE"],
+            tf, tarfile_base_path="package", extract_base_path=vendor_path, limit_files=["LICENSE"],
         )
 
         tarfile_extract(
@@ -392,8 +383,7 @@ class JQueryVendoredDependency(NpmVendoredDependency):
 
     def download_version(self, version: str, vendor_path: str) -> None:
         download_single_file(
-            "https://code.jquery.com/jquery-" + version + ".min.js",
-            vendor_path + ".min.js",
+            "https://code.jquery.com/jquery-" + version + ".min.js", vendor_path + ".min.js",
         )
 
 
@@ -416,10 +406,7 @@ class JQueryContextmenuVendoredDependency(NpmVendoredDependency):
         )
 
         tarfile_extract(
-            tf,
-            tarfile_base_path="package",
-            extract_base_path=vendor_path,
-            limit_files=["LICENSE"],
+            tf, tarfile_base_path="package", extract_base_path=vendor_path, limit_files=["LICENSE"],
         )
 
 
@@ -430,10 +417,7 @@ class SelectizeVendoredDependency(NpmVendoredDependency):
         tf = tarfile_url_load_mem(self.get_tarball_url(version))
 
         tarfile_extract(
-            tf,
-            tarfile_base_path="package",
-            extract_base_path=vendor_path,
-            limit_files=["LICENSE"],
+            tf, tarfile_base_path="package", extract_base_path=vendor_path, limit_files=["LICENSE"],
         )
 
         tarfile_extract(
@@ -488,14 +472,18 @@ class ReconnectingWebsocketVendoredDependency(VendoredDependency):
     name = "reconnecting-websocket"
 
     def get_latest_version(self) -> str:
-        req = requests.get("https://api.github.com/repos/joewalnes/reconnecting-websocket/commits/master")
+        req = requests.get(
+            "https://api.github.com/repos/joewalnes/reconnecting-websocket/commits/master"
+        )
         req.raise_for_status()
 
         return req.json()["sha"][:7]
 
     def download_version(self, version: str, vendor_path: str) -> None:
         download_single_file(
-            "https://raw.githubusercontent.com/joewalnes/reconnecting-websocket/" + version + "/reconnecting-websocket.js",
+            "https://raw.githubusercontent.com/joewalnes/reconnecting-websocket/"
+            + version
+            + "/reconnecting-websocket.js",
             vendor_path + ".js",
         )
 
@@ -519,7 +507,9 @@ def list_existing_vendored_dependencies() -> Dict[str, str]:
     return dependencies
 
 
-print("\n*** WARNING: This script is experimental. Please inspect the changes and test the site if it upgrades anything! ***\n")
+print(
+    "\n*** WARNING: This script is experimental. Please inspect the changes and test the site if it upgrades anything! ***\n"
+)
 
 VENDORED_DEPENDENCIES = [
     BootstrapVendoredDependency(),
@@ -547,19 +537,27 @@ for dependency in VENDORED_DEPENDENCIES:
         print("* {} not found; downloading version {}".format(dependency.name, latest_version))
         download = True
     elif old_dependencies[dependency.name] != latest_version:
-        print("* {} is out of date (currently version {}); downloading version {}".format(dependency.name, old_dependencies[dependency.name], latest_version))
+        print(
+            "* {} is out of date (currently version {}); downloading version {}".format(
+                dependency.name, old_dependencies[dependency.name], latest_version
+            )
+        )
         download = True
     else:
         print("* {} is up to date".format(dependency.name))
 
     if download:
-        dependency.download_version(latest_version, os.path.join(vendor_dir, dependency.name + "-" + latest_version))
+        dependency.download_version(
+            latest_version, os.path.join(vendor_dir, dependency.name + "-" + latest_version)
+        )
 
         # Remove old version
         if dependency.name in old_dependencies:
             print("Removing version " + old_dependencies[dependency.name])
 
-            orig_fpath = os.path.join(vendor_dir, dependency.name + "-" + old_dependencies[dependency.name])
+            orig_fpath = os.path.join(
+                vendor_dir, dependency.name + "-" + old_dependencies[dependency.name]
+            )
             for suffix in ["", ".css", ".js", ".min.css", ".min.js"]:
                 fpath = orig_fpath + suffix
                 if os.path.exists(fpath):
@@ -570,7 +568,10 @@ for dependency in VENDORED_DEPENDENCIES:
 
                     break
             else:
-                print("Error: could not find old version " + old_dependencies[dependency.name], file=sys.stderr)
+                print(
+                    "Error: could not find old version " + old_dependencies[dependency.name],
+                    file=sys.stderr,
+                )
 
         prefix = "{% static 'vendor/" + dependency.name + "-"
 
@@ -580,9 +581,17 @@ for dependency in VENDORED_DEPENDENCIES:
                 with open(fpath) as f_obj:
                     text = f_obj.read()
 
-                text, count = re.subn(re.escape(prefix) + r"([0-9.]+|[0-9a-f]+)(?=[./'])", prefix + latest_version, text)
+                text, count = re.subn(
+                    re.escape(prefix) + r"([0-9.]+|[0-9a-f]+)(?=[./'])",
+                    prefix + latest_version,
+                    text,
+                )
 
                 if count:
-                    print("Replaced {} references in {}".format(count, os.path.relpath(fpath, repo_dir)))
+                    print(
+                        "Replaced {} references in {}".format(
+                            count, os.path.relpath(fpath, repo_dir)
+                        )
+                    )
                     with open(fpath, "w") as f_obj:
                         f_obj.write(text)

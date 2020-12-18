@@ -25,7 +25,7 @@ def send_email(  # pylint: disable=too-many-arguments
 
     if emails:  # Don't try sending emails to nobody
         if settings.ENABLE_EMAIL_SEND:
-            if settings.DEBUG and not settings.DEBUG_EMAIL_SEND:
+            if (settings.DEBUG or settings.TESTING) and not settings.DEBUG_EMAIL_SEND:
                 print(text_plain)
             else:
                 _raw_send_email.delay(

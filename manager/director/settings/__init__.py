@@ -31,6 +31,9 @@ SECRET_KEY = "1=8bz5v!#jke@p!&8x1=u-6%(m4(+s_pmgk9&)36nnduta(6io"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Automatically set to True in `secret_dev.py` if tests are being run.
+TESTING = False
+
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",

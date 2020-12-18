@@ -1,0 +1,12 @@
+[run]
+branch = True
+source = director
+omit =
+    */migrations/*
+    */apps.py
+    */urls.py
+    */wsgi.py
+    */routing.py
+
+# Needed for the Coveralls reporter
+relative_files = True

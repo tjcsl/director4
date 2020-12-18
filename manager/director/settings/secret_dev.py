@@ -1,5 +1,5 @@
 # This file is in Git. For local customizations, edit secret.py instead.
-
+import sys
 from typing import Dict, Optional
 
 DEBUG = True
@@ -32,6 +32,13 @@ DATABASES = {
         "PASSWORD": "pwd",
     },
 }
+
+# Copied from Ion - figure out a less hacky way to do this
+TESTING = "test" in sys.argv
+
+if TESTING:
+    DATABASES["default"]["ENGINE"] = "django.db.backends.sqlite3"
+    DATABASES["default"]["NAME"] = ":memory:"
 
 DIRECTOR_APPSERVER_HOSTS = ["localhost:5000"]
 
