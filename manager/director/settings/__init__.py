@@ -239,6 +239,9 @@ SITE_URL_FORMATS = {
 # The URL where Director can be accessed.
 DIRECTOR_URL = "https://director.tjhsst.edu"
 
+# The FQDN for which custom domain sites should be CNAMEd to.
+# Do not use an alias if CNAME chaining; rather, use the root CNAME.
+DIRECTOR_CUSTOM_DOMAIN_FQDN_CNAME = "director.csl.tjhsst.edu"
 
 # A list of the hosts each of the appservers are running on (or can be reached
 # on via some kind of proxy).

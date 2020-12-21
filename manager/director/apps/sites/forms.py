@@ -5,6 +5,8 @@ import re
 import string
 from typing import Any, Dict
 
+import dns.resolver
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -160,6 +162,35 @@ class DomainForm(forms.Form):
         if not self.user_is_superuser:
             if "domain" in cleaned_data and cleaned_data["domain"].endswith("tjhsst.edu"):
                 self.add_error("domain", "Only administrators can add tjhsst.edu domains")
+
+        # Check if this domain CNAMEs to the proper value
+        if "domain" in cleaned_data and cleaned_data["domain"] and not self.user_is_superuser:
+            try:
+                # Attempt to resolve this domain (check for CNAME records)
+                result = dns.resolver.resolve(
+                    cleaned_data["domain"], "CNAME", raise_on_no_answer=False
+                )
+                # If the result set is None (no CNAMEs) or if there are no records that
+                # point to the CNAME configured in settings, raise a ValueError (which is caught)
+                if result.rrset is None or not any(
+                    [
+                        settings.DIRECTOR_CUSTOM_DOMAIN_FQDN_CNAME in response.to_text()
+                        for response in result.rrset
+                    ]
+                ):
+                    raise ValueError("CNAME invalid")
+            except (
+                ValueError,
+                dns.resolver.Timeout,
+                dns.resolver.NXDOMAIN,
+                dns.resolver.NoAnswer,
+                dns.resolver.YXDOMAIN,
+            ):
+                self.add_error(
+                    "domain",
+                    "This domain is not CNAMEd properly, or this domain does not exist. "
+                    "For further guidance, please see the documentation.",
+                )
 
         return cleaned_data
 
