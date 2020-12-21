@@ -143,9 +143,16 @@ class DomainForm(forms.Form):
         required=False,
         validators=[
             validators.RegexValidator(
-                regex=r"^(?!(.*\.)?sites\.tjhsst\.edu$)[0-9a-zA-Z_\- .]+$",
+                regex=r"^(.*\.)?sites\.tjhsst\.edu$",
+                inverse_match=True,
                 message="You can only have one sites.tjhsst.edu domain, the automatically generated"
                 " one that matches the name of your site.",
+            ),
+            validators.RegexValidator(
+                regex=r"^[a-z0-9]+(-[a-z0-9]+)*(\.[a-z0-9]+(-[a-z0-9]+)*)+$",
+                message="This is an invalid domain. Ensure that you do "
+                "not have trailing slashes and you do not "
+                "prepend with http:// or https://.",
             ),
         ],
         widget=forms.TextInput(attrs={"class": "form-control"}),
@@ -164,17 +171,15 @@ class DomainForm(forms.Form):
                 self.add_error("domain", "Only administrators can add tjhsst.edu domains")
 
         # Check if this domain CNAMEs to the proper value
-        if "domain" in cleaned_data and cleaned_data["domain"] and not self.user_is_superuser:
+        if cleaned_data.get("domain") and not self.user_is_superuser:
             try:
                 # Attempt to resolve this domain (check for CNAME records)
-                result = dns.resolver.resolve(
-                    cleaned_data["domain"], "CNAME", raise_on_no_answer=False
-                )
+                result = dns.resolver.resolve(cleaned_data["domain"], "CNAME")
                 # If the result set is None (no CNAMEs) or if there are no records that
                 # point to the CNAME configured in settings, raise a ValueError (which is caught)
-                if result.rrset is None or not any(
+                if not any(
                     [
-                        settings.DIRECTOR_CUSTOM_DOMAIN_FQDN_CNAME in response.to_text()
+                        settings.DIRECTOR_CUSTOM_DOMAIN_FQDN_CNAME == response.to_text().rstrip(".")
                         for response in result.rrset
                     ]
                 ):
@@ -188,8 +193,8 @@ class DomainForm(forms.Form):
             ):
                 self.add_error(
                     "domain",
-                    "This domain is not CNAMEd properly, or this domain does not exist. "
-                    "For further guidance, please see the documentation.",
+                    "This domain does not have the correct CNAME record configured, "
+                    "or this domain does not exist. For further guidance, see the documentation.",
                 )
 
         return cleaned_data
