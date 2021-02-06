@@ -17,7 +17,7 @@ A full description of the project's architecture can be found in [docs/ARCHITECT
 
 ### Software Requirements
 * [Docker Engine](https://docs.docker.com/engine/): Used by the orchestrator to host sites that require dynamic generation
-* [Python 3.6+](https://www.python.org/): Used by all components
+* [Python 3.7+](https://www.python.org/): Used by all components
 * [RabbitMQ](https://www.rabbitmq.com/): Used by the manager to broker messages for long-running tasks
 * [Celery](http://www.celeryproject.org/): Used by the manager to manage long-running tasks
 * [Redis](https://redis.io/): Used by Django Channels on the manager as a channel layer
