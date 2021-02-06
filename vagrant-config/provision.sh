@@ -61,8 +61,8 @@ run_psql "ALTER USER postgres WITH PASSWORD 'pwd';"
 
 # Edit the config and restart
 for line in "host sameuser all 127.0.0.1/32 password" "host sameuser all ::1/128 password"; do
-    if [[ $'\n'"$(</etc/postgresql/10/main/pg_hba.conf)"$'\n' != *$'\n'"$line"$'\n'* ]]; then
-        echo "$line" >>/etc/postgresql/10/main/pg_hba.conf
+    if [[ $'\n'"$(</etc/postgresql/12/main/pg_hba.conf)"$'\n' != *$'\n'"$line"$'\n'* ]]; then
+        echo "$line" >>/etc/postgresql/12/main/pg_hba.conf
     fi
 done
 systemctl restart postgresql
