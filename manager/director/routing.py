@@ -35,12 +35,12 @@ application = ProtocolTypeRouter(
         "websocket": AuthMiddlewareStack(
             URLRouter(
                 [
-                    path("sites/<int:site_id>/", SiteConsumer),
-                    path("sites/<int:site_id>/terminal/", SiteTerminalConsumer),
-                    path("sites/<int:site_id>/files/monitor/", SiteMonitorConsumer),
-                    path("sites/<int:site_id>/logs/", SiteLogsConsumer),
-                    path("sites/multi-status/", MultiSiteStatusConsumer),
-                    path("<path:path>", WebsocketCloseConsumer),
+                    path("sites/<int:site_id>/", SiteConsumer.as_asgi()),
+                    path("sites/<int:site_id>/terminal/", SiteTerminalConsumer.as_asgi()),
+                    path("sites/<int:site_id>/files/monitor/", SiteMonitorConsumer.as_asgi()),
+                    path("sites/<int:site_id>/logs/", SiteLogsConsumer.as_asgi()),
+                    path("sites/multi-status/", MultiSiteStatusConsumer.as_asgi()),
+                    path("<path:path>", WebsocketCloseConsumer.as_asgi()),
                 ]
             )
         )
