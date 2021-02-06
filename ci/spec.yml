@@ -191,7 +191,7 @@ jobs:
           COVERALLS_PARALLEL: true
         run: |
           pip3 install coveralls
-          coveralls
+          coveralls --service=github
 
   finish_success:
     needs:
