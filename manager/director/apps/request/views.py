@@ -14,6 +14,8 @@ from .models import SiteRequest
 
 @login_required
 def approve_teacher_view(request: HttpRequest) -> HttpResponse:
+    assert request.user.is_authenticated
+
     if not request.user.is_teacher:
         messages.error(request, "You are not authorized to approve requests.")
         return redirect("auth:index")
@@ -71,6 +73,8 @@ def approve_teacher_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def approve_admin_view(request: HttpRequest) -> HttpResponse:
+    assert request.user.is_authenticated
+
     if not request.user.is_superuser:
         messages.error(request, "Only administrators can perform the final approval.")
         return redirect("auth:index")
@@ -114,6 +118,8 @@ def approve_admin_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def status_view(request: HttpRequest) -> HttpResponse:
+    assert request.user.is_authenticated
+
     if not request.user.is_student:
         messages.error(request, "Only students can view this page.")
         return redirect("auth:index")
@@ -127,6 +133,8 @@ def status_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def create_view(request: HttpRequest) -> HttpResponse:
+    assert request.user.is_authenticated
+
     if not request.user.is_student:
         messages.error(request, "Only students can view this page.")
         return redirect("auth:index")

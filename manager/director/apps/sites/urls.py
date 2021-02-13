@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
+from typing import List, Union
 
-from django.urls import include, path
+from django.urls import URLPattern, URLResolver, include, path
 
 from . import views
 
 app_name = "sites"
 
-urlpatterns = [
+urlpatterns: List[Union[URLResolver, URLPattern]] = [
     path("", views.sites.index_view, name="index"),
     path(
         "prometheus-metrics", views.maintenance.prometheus_metrics_view, name="prometheus-metrics"
@@ -61,7 +62,9 @@ site_patterns = [
     path("terminal/", views.sites.terminal_view, name="terminal"),
     path("secrets/regenerate/", views.sites.regenerate_secrets_view, name="regenerate_secrets"),
     path(
-        "nginx/regenerate-config", views.sites.regen_nginx_config_view, name="regen_nginx_config",
+        "nginx/regenerate-config",
+        views.sites.regen_nginx_config_view,
+        name="regen_nginx_config",
     ),
     path("restart/", views.sites.restart_view, name="restart_service"),
     path("restart/raw/", views.sites.restart_raw_view, name="restart_service_raw"),

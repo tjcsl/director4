@@ -22,6 +22,8 @@ def index_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def accept_guidelines_view(request: HttpRequest) -> HttpResponse:
+    assert request.user.is_authenticated
+
     if request.method == "POST":
         if request.POST.get("accepted"):
             request.user.accepted_guidelines = True

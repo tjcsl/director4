@@ -32,7 +32,8 @@ def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
     ) or remote_addr in settings.ALLOWED_METRIC_SCRAPE_IPS:
         metrics = {
             "director4_sites_failed_actions": Action.objects.filter(
-                result=False, user_recoverable=False,
+                result=False,
+                user_recoverable=False,
             ).count(),
         }
 
@@ -156,7 +157,8 @@ def availability_view(request: HttpRequest, site_id: int) -> HttpResponse:
         else:
             if form.is_valid():
                 operations.update_availability(
-                    site, form.cleaned_data["availability"],
+                    site,
+                    form.cleaned_data["availability"],
                 )
 
                 if "next" in request.GET:

@@ -28,6 +28,8 @@ SEARCH_QUERY_SPLIT_REGEX = re.compile(r"(^\s*|(?<=\s))(?P<word>(\S|'[^']'|\"[^\"
 @login_required
 @require_accept_guidelines
 def index_view(request: HttpRequest) -> HttpResponse:
+    assert request.user.is_authenticated
+
     query = request.GET.get("q", "").strip()
 
     # Split the query string up

@@ -50,7 +50,10 @@ def update_appserver_nginx_config(
 
         yield "Disabling site Nginx config"
         appserver_open_http_request(
-            appserver, "/sites/{}/disable-nginx".format(site.id), method="POST", timeout=120,
+            appserver,
+            "/sites/{}/disable-nginx".format(site.id),
+            method="POST",
+            timeout=120,
         )
 
         yield "Re-raising exception"
@@ -65,7 +68,10 @@ def update_appserver_nginx_config(
                 yield "Reloading Nginx config on appserver {}".format(i)
 
                 appserver_open_http_request(
-                    i, "/sites/reload-nginx", method="POST", timeout=120,
+                    i,
+                    "/sites/reload-nginx",
+                    method="POST",
+                    timeout=120,
                 )
         except AppserverProtocolError:
             # Error reloading; disable config
@@ -74,7 +80,10 @@ def update_appserver_nginx_config(
 
             yield "Disabling site Nginx config"
             appserver_open_http_request(
-                appserver, "/sites/{}/disable-nginx".format(site.id), method="POST", timeout=120,
+                appserver,
+                "/sites/{}/disable-nginx".format(site.id),
+                method="POST",
+                timeout=120,
             )
 
             yield "Re-raising exception"
@@ -91,7 +100,10 @@ def remove_appserver_nginx_config(
     yield "Connecting to appserver {} to remove Nginx config".format(appserver)
 
     appserver_open_http_request(
-        appserver, "/sites/{}/remove-nginx".format(site.id), method="POST", timeout=60,
+        appserver,
+        "/sites/{}/remove-nginx".format(site.id),
+        method="POST",
+        timeout=60,
     )
 
     yield "Reloading Nginx config on all appservers"
@@ -99,7 +111,10 @@ def remove_appserver_nginx_config(
         yield "Reloading Nginx config on appserver {}".format(i)
 
         appserver_open_http_request(
-            i, "/sites/reload-nginx", method="POST", timeout=120,
+            i,
+            "/sites/reload-nginx",
+            method="POST",
+            timeout=120,
         )
 
     yield "Done"
@@ -136,7 +151,9 @@ def restart_docker_service(
 
     yield "Connecting to appserver {} to restart Docker service".format(appserver)
     appserver_open_http_request(
-        appserver, "/sites/{}/restart-docker-service".format(site.id), method="POST",
+        appserver,
+        "/sites/{}/restart-docker-service".format(site.id),
+        method="POST",
     )
 
     yield "Restarted Docker service"
@@ -149,7 +166,9 @@ def remove_docker_service(
 
     yield "Connecting to appserver {} to remove Docker service".format(appserver)
     appserver_open_http_request(
-        appserver, "/sites/{}/remove-docker-service".format(site.id), method="POST",
+        appserver,
+        "/sites/{}/remove-docker-service".format(site.id),
+        method="POST",
     )
 
     yield "Removed Docker service"
@@ -180,11 +199,13 @@ def build_docker_image(site: Site, scope: Dict[str, Any]) -> Iterator[Union[Tupl
 
 
 async def build_docker_image_async(
-    appserver_num: int, data: Dict[str, Any],
+    appserver_num: int,
+    data: Dict[str, Any],
 ) -> AsyncGenerator[Union[Tuple[str, str], str], None]:
     yield "Connecting to appserver {} to build Docker image".format(appserver_num)
     websock = await asyncio.wait_for(
-        appserver_open_websocket(appserver_num, "/ws/sites/build-docker-image"), timeout=10,
+        appserver_open_websocket(appserver_num, "/ws/sites/build-docker-image"),
+        timeout=10,
     )
 
     await websock.send(json.dumps(data))
@@ -207,7 +228,10 @@ def remove_docker_image(  # pylint: disable=unused-argument
         yield "Removing Docker image on appserver {}".format(i)
 
         appserver_open_http_request(
-            i, "/sites/remove-docker-image", params={"name": site.docker_image.name}, method="POST",
+            i,
+            "/sites/remove-docker-image",
+            params={"name": site.docker_image.name},
+            method="POST",
         )
 
         yield "Removing Docker image from registry on appserver {}".format(i)
@@ -227,14 +251,17 @@ def ensure_site_directories_exist(
 
     yield "Connecting to appserver {} to ensure site directories exist".format(appserver)
     appserver_open_http_request(
-        appserver, "/sites/{}/ensure-directories-exist".format(site.id), method="POST",
+        appserver,
+        "/sites/{}/ensure-directories-exist".format(site.id),
+        method="POST",
     )
 
 
 async def remove_all_site_files_dangerous_async(appserver_num: int, site_id: int) -> None:
     websock = await asyncio.wait_for(
         appserver_open_websocket(
-            appserver_num, "/ws/sites/{}/files/remove-all-site-files-dangerous".format(site_id),
+            appserver_num,
+            "/ws/sites/{}/files/remove-all-site-files-dangerous".format(site_id),
         ),
         timeout=10,
     )

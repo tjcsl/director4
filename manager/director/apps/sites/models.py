@@ -299,7 +299,11 @@ class SiteResourceLimits(models.Model):
     objects = SiteResourceLimitsQuerySet.as_manager()
 
     site = models.OneToOneField(
-        Site, null=False, blank=False, on_delete=models.CASCADE, related_name="resource_limits",
+        Site,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="resource_limits",
     )
 
     # Fractions of a CPU
@@ -759,7 +763,10 @@ class Operation(models.Model):
         # Create a site (no database)
         ("create_site", "Creating site"),
         # Rename the site. Changes the site name and the default domain name.
-        ("rename_site", "Renaming site",),
+        (
+            "rename_site",
+            "Renaming site",
+        ),
         # Change the site name and domain names
         ("edit_site_names", "Changing site name/domains"),
         # Change the site type (example: static -> dynamic)

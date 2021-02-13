@@ -62,6 +62,8 @@ def edit_meta_view(request: HttpRequest, site_id: int) -> HttpResponse:
 @login_required
 @require_accept_guidelines
 def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    assert request.user.is_authenticated
+
     site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     # See image_select_view() in views/sites.py

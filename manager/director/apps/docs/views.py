@@ -47,7 +47,8 @@ from .utils import (
 @require_GET
 @login_required
 def doc_page_view(  # pylint: disable=too-many-return-statements
-    request: HttpRequest, url: str = "",
+    request: HttpRequest,
+    url: str = "",
 ) -> Union[FileResponse, HttpResponse]:
     ext = os.path.splitext(url)[1]  # This will be empty if the path ends with a "/"
 
