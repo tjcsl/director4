@@ -68,7 +68,9 @@ def make_manager_request(
     )
     try:
         response = urllib.request.urlopen(
-            request, timeout=timeout, context=settings.MANAGER_SSL_CONTEXT,
+            request,
+            timeout=timeout,
+            context=settings.MANAGER_SSL_CONTEXT,
         )
     except (urllib.error.URLError, socket.timeout, OSError) as ex:
         raise ManagerRequestError(str(ex)) from ex
