@@ -42,7 +42,8 @@ def update_config(site_id: int, data: Dict[str, Any]) -> None:
         f_obj.write(text)
 
     subprocess.run(
-        settings.NGINX_RELOAD_COMMAND, check=True,
+        settings.NGINX_RELOAD_COMMAND,
+        check=True,
     )
 
 
