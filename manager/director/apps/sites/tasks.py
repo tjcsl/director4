@@ -61,7 +61,11 @@ def rename_site_task(operation_id: int, new_name: str) -> None:
 
 @shared_task
 def edit_site_names_task(
-    operation_id: int, *, new_name: str, domains: List[str], request_username: str,
+    operation_id: int,
+    *,
+    new_name: str,
+    domains: List[str],
+    request_username: str,
 ) -> None:
     scope: Dict[str, Any] = {
         "new_name": new_name,
@@ -74,7 +78,8 @@ def edit_site_names_task(
 
         @wrapper.add_action("Changing site name in database")
         def change_site_name(
-            site: Site, scope: Dict[str, Any],
+            site: Site,
+            scope: Dict[str, Any],
         ) -> Iterator[Union[Tuple[str, str], str]]:
             yield ("before_state", site.name)
 
@@ -85,7 +90,8 @@ def edit_site_names_task(
 
         @wrapper.add_action("Setting site domain names in database")
         def change_site_domains(
-            site: Site, scope: Dict[str, Any],
+            site: Site,
+            scope: Dict[str, Any],
         ) -> Iterator[Union[Tuple[str, str], str]]:
             yield ("before_state", str(site.list_urls()))
 
@@ -155,7 +161,8 @@ def create_database_task(operation_id: int, database_host_id: int) -> None:
 
         @wrapper.add_action("Creating database object")
         def create_database_object(
-            site: Site, scope: Dict[str, Any],
+            site: Site,
+            scope: Dict[str, Any],
         ) -> Iterator[Union[Tuple[str, str], str]]:
             yield ("before_state", "<nonexistent>")
 
@@ -191,7 +198,8 @@ def update_resource_limits_task(
 
         @wrapper.add_action("Updating SiteResourceLimits object")
         def update_resource_limits_object(
-            site: Site, scope: Dict[str, Any],
+            site: Site,
+            scope: Dict[str, Any],
         ) -> Iterator[Union[Tuple[str, str], str]]:
             if SiteResourceLimits.objects.filter(site=site).exists():
                 yield ("before_state", str(site.resource_limits))
@@ -228,7 +236,8 @@ def update_availability_task(operation_id: int, availability: str) -> None:
 
         @wrapper.add_action("Updating availability")
         def update_availability(
-            site: Site, scope: Dict[str, Any],
+            site: Site,
+            scope: Dict[str, Any],
         ) -> Iterator[Union[Tuple[str, str], str]]:
             yield ("before_state", site.availability)
             yield ("after_state", scope["availability"])
@@ -290,7 +299,10 @@ def restart_service_task(operation_id: int) -> None:
 
 @shared_task
 def update_image_task(
-    operation_id: int, base_image_name: str, write_run_sh_file: bool, package_names: List[str],
+    operation_id: int,
+    base_image_name: str,
+    write_run_sh_file: bool,
+    package_names: List[str],
 ) -> None:
     scope: Dict[str, Any] = {
         "base_image_name": base_image_name,
@@ -303,7 +315,8 @@ def update_image_task(
 
         @wrapper.add_action("Updating site image object")
         def update_image_object(  # pylint: disable=unused-argument
-            site: Site, scope: Dict[str, Any],
+            site: Site,
+            scope: Dict[str, Any],
         ) -> Iterator[Union[Tuple[str, str], str]]:
             yield "Retrieving parent DockerImage"
 
@@ -341,14 +354,17 @@ def update_image_task(
             yield "Models updated"
 
         wrapper.add_action(
-            "Building Docker image", actions.build_docker_image, user_recoverable=True,
+            "Building Docker image",
+            actions.build_docker_image,
+            user_recoverable=True,
         )
 
         if scope["write_run_sh_file"]:
 
             @wrapper.add_action("Writing run.sh")
             def do_write_run_sh_file(  # pylint: disable=unused-argument
-                site: Site, scope: Dict[str, Any],
+                site: Site,
+                scope: Dict[str, Any],
             ) -> Iterator[Union[Tuple[str, str], str]]:
                 appserver = random.choice(scope["pingable_appservers"])
 
@@ -412,7 +428,8 @@ def delete_site_task(operation_id: int) -> None:
 
                 @wrapper.add_action("Deleting database object")
                 def delete_site_database_object(  # pylint: disable=unused-argument
-                    site: Site, scope: Dict[str, Any],
+                    site: Site,
+                    scope: Dict[str, Any],
                 ) -> Iterator[Union[Tuple[str, str], str]]:
                     yield "Deleting database object in model (leaving real database intact)"
 
@@ -451,7 +468,8 @@ def change_site_type_task(operation_id: int, site_type: str) -> None:
 
         @wrapper.add_action("Changing site type in database")
         def do_write_run_sh_file(
-            site: Site, scope: Dict[str, Any],
+            site: Site,
+            scope: Dict[str, Any],
         ) -> Iterator[Union[Tuple[str, str], str]]:
             yield ("before_state", site.type)
             yield ("after_state", scope["site_type"])
@@ -483,7 +501,9 @@ def fix_site_task(operation_id: int) -> None:
             wrapper.add_action("Creating/updating database", actions.create_real_site_database)
 
         wrapper.add_action(
-            "Building Docker image", actions.build_docker_image, user_recoverable=True,
+            "Building Docker image",
+            actions.build_docker_image,
+            user_recoverable=True,
         )
 
         wrapper.add_action("Ensuring site directories exist", actions.ensure_site_directories_exist)

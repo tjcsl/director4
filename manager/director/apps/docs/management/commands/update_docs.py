@@ -12,5 +12,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         subprocess.run(
-            ["git", "pull"], cwd=settings.DIRECTOR_DOCS_DIR, check=True,
+            ["git", "pull"],
+            cwd=settings.DIRECTOR_DOCS_DIR,
+            check=True,
         )

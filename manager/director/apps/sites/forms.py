@@ -26,7 +26,8 @@ class SiteCreateForm(forms.ModelForm):
     )
 
     student_agreement = forms.BooleanField(
-        required=True, help_text=mark_safe(settings.DIRECTOR_SITE_STUDENT_AGREEMENT_HELP_TEXT),
+        required=True,
+        help_text=mark_safe(settings.DIRECTOR_SITE_STUDENT_AGREEMENT_HELP_TEXT),
     )
 
     def __init__(self, *args: Any, user: Any, **kwargs: Any):
@@ -169,7 +170,8 @@ DomainFormSet = forms.formset_factory(DomainForm)  # type: ignore
 
 class SiteTypeForm(forms.Form):
     type = forms.ChoiceField(
-        choices=Site.SITE_TYPES, widget=forms.Select(attrs={"class": "form-control"}),
+        choices=Site.SITE_TYPES,
+        widget=forms.Select(attrs={"class": "form-control"}),
     )
 
 

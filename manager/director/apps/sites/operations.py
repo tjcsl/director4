@@ -63,7 +63,10 @@ def edit_site_names(
 ) -> None:
     operation = Operation.objects.create(site=site, type="edit_site_names")
     edit_site_names_task.delay(
-        operation.id, new_name=new_name, domains=domains, request_username=request_username,
+        operation.id,
+        new_name=new_name,
+        domains=domains,
+        request_username=request_username,
     )
 
     send_operation_updated_message(site)
@@ -93,7 +96,10 @@ def update_availability(site: Site, availability: str) -> None:
 
 
 def update_image(
-    site: Site, base_image_name: str, write_run_sh_file: bool, package_names: List[str],
+    site: Site,
+    base_image_name: str,
+    write_run_sh_file: bool,
+    package_names: List[str],
 ) -> None:
     operation = Operation.objects.create(site=site, type="update_docker_image")
     update_image_task.delay(operation.id, base_image_name, write_run_sh_file, package_names)

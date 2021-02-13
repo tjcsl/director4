@@ -55,7 +55,8 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         # Listen for events on the site
         assert self.site is not None
         await self.channel_layer.group_add(
-            self.site.channels_group_name, self.channel_name,
+            self.site.channels_group_name,
+            self.channel_name,
         )
 
         if self.site.type == "dynamic":
@@ -114,7 +115,8 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         # Clean up
         if self.site is not None:
             await self.channel_layer.group_discard(
-                self.site.channels_group_name, self.channel_name,
+                self.site.channels_group_name,
+                self.channel_name,
             )
 
         self.site = None
@@ -265,7 +267,8 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
 
         assert self.site is not None
         await self.channel_layer.group_add(
-            self.site.channels_group_name, self.channel_name,
+            self.site.channels_group_name,
+            self.channel_name,
         )
 
         self.connected = True
@@ -410,7 +413,8 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
 
         assert self.site is not None
         await self.channel_layer.group_add(
-            self.site.channels_group_name, self.channel_name,
+            self.site.channels_group_name,
+            self.channel_name,
         )
 
         self.connected = True
@@ -456,7 +460,8 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                 self.monitor_websocks.append(monitor_websock)
 
     async def monitor_mainloop(
-        self, monitor_websock: websockets.client.WebSocketClientProtocol,
+        self,
+        monitor_websock: websockets.client.WebSocketClientProtocol,
     ) -> None:
         while True:
             try:
@@ -527,7 +532,8 @@ class SiteLogsConsumer(AsyncWebsocketConsumer):
 
         assert self.site is not None
         await self.channel_layer.group_add(
-            self.site.channels_group_name, self.channel_name,
+            self.site.channels_group_name,
+            self.channel_name,
         )
 
         await self.open_log_connection()
@@ -633,7 +639,8 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
                 return
             else:
                 await self.channel_layer.group_add(
-                    site.channels_group_name, self.channel_name,
+                    site.channels_group_name,
+                    self.channel_name,
                 )
 
         self.connected = True
@@ -651,7 +658,8 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
         for appserver_num in iter_random_pingable_appservers():
             try:
                 monitor_websock = await asyncio.wait_for(
-                    appserver_open_websocket(appserver_num, "/ws/sites/multi-status/"), timeout=1,
+                    appserver_open_websocket(appserver_num, "/ws/sites/multi-status/"),
+                    timeout=1,
                 )
             except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
                 pass
@@ -665,7 +673,8 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
                 return
 
     async def monitor_mainloop(
-        self, monitor_websock: websockets.client.WebSocketClientProtocol,
+        self,
+        monitor_websock: websockets.client.WebSocketClientProtocol,
     ) -> None:
         while True:
             try:

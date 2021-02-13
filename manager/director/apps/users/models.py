@@ -100,7 +100,10 @@ class MassEmail(models.Model):
     text_plain = models.TextField(null=False, blank=False)
 
     sender = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name="sent_emails",
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="sent_emails",
     )
 
     created_time = models.DateTimeField(auto_now_add=True, null=False)

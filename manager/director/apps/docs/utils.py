@@ -225,7 +225,9 @@ def load_doc_page(page: str) -> Tuple[Dict[str, List[str]], Optional[str]]:
         # Treat symlinks as redirects
         if os.path.islink(path):
             redirect_url = rewrite_markdown_link(
-                link_url=os.readlink(path), base_page_name=base_page_name, add_docs_prefix=False,
+                link_url=os.readlink(path),
+                base_page_name=base_page_name,
+                add_docs_prefix=False,
             )
 
             return {"Redirect": [redirect_url]}, ""
@@ -270,7 +272,9 @@ def load_doc_page(page: str) -> Tuple[Dict[str, List[str]], Optional[str]]:
                 "meta",
                 "nl2br",
                 markdown.extensions.toc.TocExtension(
-                    permalink="", permalink_class="headerlink fa fa-link", toc_depth="2-6",
+                    permalink="",
+                    permalink_class="headerlink fa fa-link",
+                    toc_depth="2-6",
                 ),
                 # We add on the "extra part" because if this was a file like /a/index.md,
                 # then links should be interpreted relative to /a.
@@ -278,11 +282,11 @@ def load_doc_page(page: str) -> Tuple[Dict[str, List[str]], Optional[str]]:
                 LinkRewritingExtension((page + "/" + extra_part).rstrip("/")),
             ],
             tab_length=4,
-            output_format="html5",
+            output_format="html",
         )
 
         text_html = cleaner.clean(markdown_converter.convert(text_md))
-        metadata = markdown_converter.Meta  # pylint: disable=no-member
+        metadata = markdown_converter.Meta  # type: ignore # pylint: disable=no-member
 
         # Save the data (and the modification time)
         cache.set(
