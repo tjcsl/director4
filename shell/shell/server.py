@@ -100,7 +100,9 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
 
     # AsyncSSH special-cases this method to allow it to be async
     async def validate_password(  # pylint: disable=invalid-overridden-method
-        self, username: str, password: str,
+        self,
+        username: str,
+        password: str,
     ) -> bool:
         if not username or username != self.raw_username:
             return False
