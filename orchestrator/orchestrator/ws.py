@@ -35,7 +35,8 @@ def create_server_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLCo
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 
     context.load_cert_chain(
-        certfile=options.ssl_certfile, keyfile=options.ssl_keyfile,
+        certfile=options.ssl_certfile,
+        keyfile=options.ssl_keyfile,
     )
 
     if options.ssl_cafile:

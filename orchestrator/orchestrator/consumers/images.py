@@ -48,16 +48,25 @@ async def build_image_handler(  # pylint: disable=unused-argument
 
     try:
         await asyncio.get_event_loop().run_in_executor(
-            image_executor, build_custom_docker_image, client, build_data,
+            image_executor,
+            build_custom_docker_image,
+            client,
+            build_data,
         )
     except OrchestratorActionError as ex:
         logger.error(
-            "Error building image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
+            "Error building image %s: %s: %s",
+            build_data["name"],
+            ex.__class__.__name__,
+            ex,
         )
         result = {"successful": False, "msg": "Error building image: {}".format(ex)}
     except BaseException as ex:  # pylint: disable=broad-except
         logger.error(
-            "Error building image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
+            "Error building image %s: %s: %s",
+            build_data["name"],
+            ex.__class__.__name__,
+            ex,
         )
         result = {"successful": False, "msg": "Error building image"}
     else:
@@ -68,7 +77,10 @@ async def build_image_handler(  # pylint: disable=unused-argument
             logger.info("Pushing image %s", build_data["name"])
 
             output_generator = await asyncio.get_event_loop().run_in_executor(
-                image_executor, push_custom_docker_image, client, build_data["name"],
+                image_executor,
+                push_custom_docker_image,
+                client,
+                build_data["name"],
             )
 
             failed = False
@@ -90,12 +102,18 @@ async def build_image_handler(  # pylint: disable=unused-argument
 
         except OrchestratorActionError as ex:
             logger.error(
-                "Error pushing image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
+                "Error pushing image %s: %s: %s",
+                build_data["name"],
+                ex.__class__.__name__,
+                ex,
             )
             result = {"successful": False, "msg": "Error pushing image: {}".format(ex)}
         except BaseException as ex:  # pylint: disable=broad-except
             logger.error(
-                "Error pushing image %s: %s: %s", build_data["name"], ex.__class__.__name__, ex,
+                "Error pushing image %s: %s: %s",
+                build_data["name"],
+                ex.__class__.__name__,
+                ex,
             )
             result = {"successful": False, "msg": "Error pushing image"}
         else:

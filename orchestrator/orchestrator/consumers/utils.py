@@ -9,7 +9,8 @@ import websockets
 
 
 async def ping_loop(
-    websock: websockets.client.WebSocketClientProtocol, interval: Union[int, float],
+    websock: websockets.client.WebSocketClientProtocol,
+    interval: Union[int, float],
 ) -> None:
     while True:
         try:

@@ -27,7 +27,11 @@ def _open_cursor(
 
     if dbms == "postgres":
         conn = psycopg2.connect(
-            host=hostname, port=port, user=username, password=password, dbname=dbname,
+            host=hostname,
+            port=port,
+            user=username,
+            password=password,
+            dbname=dbname,
         )
 
         try:
@@ -44,7 +48,12 @@ def _open_cursor(
             hostname = "localhost"
 
         conn = MySQLdb.connect(
-            host=hostname, port=port, user=username, passwd=password, db=dbname, **kwargs,
+            host=hostname,
+            port=port,
+            user=username,
+            passwd=password,
+            db=dbname,
+            **kwargs,
         )
 
         try:

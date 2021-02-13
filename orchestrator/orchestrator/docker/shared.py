@@ -12,7 +12,9 @@ from ..files import get_site_directory_path
 
 
 def gen_director_container_env(  # pylint: disable=unused-argument
-    client: DockerClient, site_id: int, site_data: Dict[str, Any],
+    client: DockerClient,
+    site_id: int,
+    site_data: Dict[str, Any],
 ) -> Dict[str, str]:
     env = {"TZ": settings.TIMEZONE}
     if site_data.get("database_info"):
