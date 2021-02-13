@@ -56,6 +56,16 @@ defaults:
     working-directory: ./shell
     run: pipenv install --dev --deploy
 
+  generate_shell_keys: &generate_shell_keys
+    name: generate shell signing keys
+    working-directory: ./manager
+    run: |
+      sudo mkdir -p /etc/director-shell-keys
+      sudo chown $USER:$(id -gn) /etc/director-shell-keys
+      pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-signing-token-pubkey.pem /etc/director-shell-keys/shell-signing-token-privkey.pem
+      pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-encryption-token-pubkey.pem /etc/director-shell-keys/shell-encryption-token-privkey.pem
+
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -72,6 +82,7 @@ jobs:
       - *install_orchestrator_dependencies
       - *install_router_dependencies
       - *install_shell_dependencies
+      - *generate_shell_keys
 
       # Shared
       - name: Check shared formatting with format.sh
@@ -148,15 +159,8 @@ jobs:
       - *install_orchestrator_dependencies
       - *install_router_dependencies
       - *install_shell_dependencies
+      - *generate_shell_keys
 
-      - name: generate shell signing keys
-        working-directory: ./manager
-        run: |
-          sudo mkdir -p /etc/director-shell-keys
-          sudo chown $USER:$(id -gn) /etc/director-shell-keys
-          pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-signing-token-pubkey.pem /etc/director-shell-keys/shell-signing-token-privkey.pem
-          pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-encryption-token-pubkey.pem /etc/director-shell-keys/shell-encryption-token-privkey.pem
-      
       # Manager
       - name: run Manager test suite
         working-directory: ./manager
