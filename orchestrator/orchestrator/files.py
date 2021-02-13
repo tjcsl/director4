@@ -24,11 +24,13 @@ from typing import (  # pylint: disable=unused-import
 from . import settings
 
 HELPER_SCRIPT_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "helpers/files-helper.py",
+    os.path.dirname(os.path.dirname(__file__)),
+    "helpers/files-helper.py",
 )
 
 HELPER_SCRIPT_VENDOR_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "helpers/vendor",
+    os.path.dirname(os.path.dirname(__file__)),
+    "helpers/vendor",
 )
 
 HELPER_SPECIAL_EXIT_CODE = 145  # Denotes that the text shown on stderr is safe to show to the user
@@ -132,7 +134,9 @@ def _run_helper_script_prog(
 
 def run_helper_script_prog(args: List[str], **kwargs: Any) -> "subprocess.Popen[bytes]":
     return _run_helper_script_prog(
-        lambda real_args, kwargs: subprocess.Popen(real_args, **kwargs), args, kwargs,
+        lambda real_args, kwargs: subprocess.Popen(real_args, **kwargs),
+        args,
+        kwargs,
     )
 
 
@@ -141,7 +145,8 @@ async def run_helper_script_prog_async(
 ) -> asyncio.subprocess.Process:  # pylint: disable=no-member
     return await _run_helper_script_prog(
         lambda real_args, kwargs: asyncio.subprocess.create_subprocess_exec(  # pylint: disable=no-member,line-too-long # noqa
-            *real_args, **kwargs,
+            *real_args,
+            **kwargs,
         ),
         args,
         kwargs,
@@ -321,7 +326,10 @@ def write_site_file(
         args.append(mode_str)
 
     proc = run_helper_script_prog(
-        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
 
     assert proc.stdin is not None
@@ -345,7 +353,10 @@ def create_site_file(site_id: int, relpath: str, *, mode_str: Optional[str] = No
         args.append(mode_str)
 
     proc = run_helper_script_prog(
-        args, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        args,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
 
     _, stderr = proc.communicate()
@@ -374,7 +385,10 @@ def remove_site_file(site_id: int, relpath: str) -> None:
     args = ["rm", site_dir, relpath]
 
     proc = run_helper_script_prog(
-        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
 
     _, stderr = proc.communicate()
@@ -388,7 +402,10 @@ def remove_site_directory_recur(site_id: int, relpath: str) -> None:
     args = ["rmdir-recur", site_dir, relpath]
 
     proc = run_helper_script_prog(
-        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
 
     _, stderr = proc.communicate()
@@ -404,7 +421,10 @@ def make_site_directory(site_id: int, relpath: str, *, mode_str: Optional[str] =
         args.append(mode_str)
 
     proc = run_helper_script_prog(
-        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
 
     _, stderr = proc.communicate()

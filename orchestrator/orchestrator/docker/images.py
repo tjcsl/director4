@@ -49,7 +49,7 @@ def build_custom_docker_image(client: DockerClient, image_data: Dict[str, Any]) 
         with open(dockerfile_path, "w+") as f_obj:
             f_obj.write(dockerfile_content)
     except OSError as ex:
-        raise OrchestratorActionError("Error writing Dockerfile: {}".format(ex))
+        raise OrchestratorActionError("Error writing Dockerfile: {}".format(ex)) from ex
 
     # We want to delete intermediate containers during the build process
     client.images.build(
@@ -68,8 +68,8 @@ def remove_docker_image(client: DockerClient, name: str) -> None:
 def push_custom_docker_image(client: DockerClient, image_name: str) -> Iterator[Dict[str, str]]:
     try:
         img = client.images.get(image_name)
-    except ImageNotFound:
-        raise OrchestratorActionError("Image not found with name: {}".format(image_name))
+    except ImageNotFound as ex:
+        raise OrchestratorActionError("Image not found with name: {}".format(image_name)) from ex
 
     # We need to tag before we push
     remote_repository = settings.DOCKER_REGISTRY_URL + "/" + image_name

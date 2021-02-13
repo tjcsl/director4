@@ -65,7 +65,9 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         while True:
             try:
                 self.container = containers.get_or_create_container(
-                    self.client, self.container_name, run_params=run_params,
+                    self.client,
+                    self.container_name,
+                    run_params=run_params,
                 )
             except APIError as ex:
                 msg = str(ex).lower()
@@ -209,7 +211,11 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         )["Id"]
 
         self.socket = self.client.api.exec_start(
-            self.exec_id, tty=True, detach=False, demux=False, socket=True,
+            self.exec_id,
+            tty=True,
+            detach=False,
+            demux=False,
+            socket=True,
         )
 
     @run_in_executor(None)

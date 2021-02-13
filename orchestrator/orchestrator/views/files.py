@@ -145,7 +145,9 @@ def create_file_page(site_id: int) -> Union[str, Tuple[str, int]]:
 
     try:
         create_site_file(
-            site_id, request.args["path"], mode_str=request.args.get("mode", None),
+            site_id,
+            request.args["path"],
+            mode_str=request.args.get("mode", None),
         )
     except SiteFilesUserViewableException as ex:
         current_app.logger.error("%s", traceback.format_exc())

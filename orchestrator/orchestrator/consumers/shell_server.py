@@ -51,7 +51,8 @@ def load_token(token: bytes) -> Dict[str, Any]:
 
     try:
         decrypted_msg = crypto.decrypt_message(
-            msg=encrypted_msg, private_key=settings.SHELL_ENCRYPTION_TOKEN_PRIVATE_KEY,
+            msg=encrypted_msg,
+            private_key=settings.SHELL_ENCRYPTION_TOKEN_PRIVATE_KEY,
         )
     except crypto.DirectorCryptoError as ex:
         raise ShellTokenLoadError("Error decrypting token: {}".format(ex)) from ex

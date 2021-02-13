@@ -7,7 +7,7 @@ import docker
 
 
 def create_client(**kwargs: Any) -> docker.client.DockerClient:
-    """ Creates DockerClient instance from the environment.
+    """Creates DockerClient instance from the environment.
 
     Returns:
         The created DockerClient instance.

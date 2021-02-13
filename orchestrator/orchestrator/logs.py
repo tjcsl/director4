@@ -43,7 +43,10 @@ class DirectorSiteLogFollower:
         args.append(self.service.id)
 
         self.proc = await asyncio.create_subprocess_exec(
-            *args, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            *args,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
 
         self.proc_start_time = time.time()

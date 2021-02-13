@@ -47,8 +47,8 @@ def make_registry_request(
             cert=cert_paths,
             verify=ssl_ca_path,
         )
-    except requests.exceptions.Timeout:
-        raise OrchestratorActionError("Timeout on request to {}".format(path))
+    except requests.exceptions.Timeout as ex:
+        raise OrchestratorActionError("Timeout on request to {}".format(path)) from ex
 
     status_code = response.status_code
 

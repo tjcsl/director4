@@ -41,7 +41,8 @@ def gen_director_container_params(
             "read_only": False,
             "environment": env,
             "log_config": LogConfig(
-                type=LogConfig.types.JSON, config={"max-size": "1k", "max-file": "1"},
+                type=LogConfig.types.JSON,
+                config={"max-size": "1k", "max-file": "1"},
             ),
             "network": "director-sites",
         }
@@ -51,7 +52,10 @@ def gen_director_container_params(
 
 
 def get_or_create_container(
-    client: DockerClient, name: str, *, run_params: Dict[str, Any],
+    client: DockerClient,
+    name: str,
+    *,
+    run_params: Dict[str, Any],
 ) -> Container:
     container = get_container(client, name=name)
 
