@@ -9,7 +9,8 @@ from . import settings
 
 def run_helper(args: Iterable[str], **kwargs: Any) -> "subprocess.CompletedProcess[Any]":
     return subprocess.run(  # pylint: disable=subprocess-run-check
-        [*settings.HELPER_SCRIPT_EXEC_ARGS, *args], **kwargs,
+        [*settings.HELPER_SCRIPT_EXEC_ARGS, *args],
+        **kwargs,
     )
 
 
