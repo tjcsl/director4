@@ -8,4 +8,4 @@ for cmd in flake8 isort mypy pylint; do
     fi
 done
 
-flake8 router && isort --recursive --check router && mypy --strict -p router && pylint router
+flake8 router && isort --check router && mypy --strict -p router && pylint router

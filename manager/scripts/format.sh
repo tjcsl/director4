@@ -10,4 +10,4 @@ done
 
 # Order is important. There are a few things that black and autopep8 disagree on, and I side
 # with autopep8 on those.
-black director && autopep8 --in-place --recursive director && isort --recursive director
+black director && autopep8 --in-place --recursive director && isort director
