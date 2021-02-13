@@ -39,7 +39,8 @@ def create_internal_client_ssl_context(
         return None
 
     context = ssl.create_default_context(
-        purpose=ssl.Purpose.SERVER_AUTH, cafile=ssl_settings["cafile"],
+        purpose=ssl.Purpose.SERVER_AUTH,
+        cafile=ssl_settings["cafile"],
     )
     context.verify_mode = ssl.CERT_REQUIRED
     context.check_hostname = False
