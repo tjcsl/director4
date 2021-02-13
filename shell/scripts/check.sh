@@ -8,4 +8,4 @@ for cmd in flake8 isort mypy pylint; do
     fi
 done
 
-flake8 shell && isort --recursive --check shell && mypy --strict -p shell && pylint shell
+flake8 shell && isort --check shell && mypy --strict -p shell && pylint shell
