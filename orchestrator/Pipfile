@@ -8,16 +8,16 @@ autopep8 = "~=1.5.5"
 black = "==20.8b1"
 coverage = "~=5.4"
 flake8 = "~=3.8.4"
-importlib-metadata = {version = "~=3.4.0",markers = "python_version < '3.8'"}
+importlib-metadata = {version = "~=3.7.0",markers = "python_version < '3.8'"}
 isort = "~=5.7.0"
-mypy = "~=0.800"
-pylint = "~=2.6.0"
+mypy = "~=0.812"
+pylint = "~=2.7.1"
 typed-ast = "~=1.4.2"  # Required by black, but Pipenv doesn't pull it in correctly on 3.8
 # Required by importlib-metadata, but Pipenv doesn't pull it in correctly
 zipp = {version = "~=3.4.0", markers = "python_version < '3.8'"}
 
 [packages]
-docker = "~=4.4.1"
+docker = "~=4.4.4"
 flask = "~=1.1.2"
 gunicorn = "~=20.0.4"
 mysqlclient = "~=2.0.3"
