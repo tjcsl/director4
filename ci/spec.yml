@@ -149,6 +149,13 @@ jobs:
     strategy:
       matrix:
         python-version: *python_versions
+      
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
 
     steps:
       - *repo_setup
@@ -160,6 +167,9 @@ jobs:
       - *install_router_dependencies
       - *install_shell_dependencies
       - *generate_shell_keys
+
+      - name: install Kerberos
+        run: sudo apt install -y krb5-user
 
       # Manager
       - name: run Manager test suite
