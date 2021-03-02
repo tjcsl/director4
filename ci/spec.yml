@@ -171,6 +171,10 @@ jobs:
       - name: install Kerberos
         run: sudo apt install -y krb5-user
 
+      - name: copy manager secret.py
+        working-directory: ./manager
+        run: cp director/settings/secret.sample director/settings/secret.py
+
       # Manager
       - name: run Manager test suite
         working-directory: ./manager
