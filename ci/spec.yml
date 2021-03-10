@@ -101,10 +101,6 @@ jobs:
         working-directory: ./manager
         run: pipenv run ./scripts/check.sh
 
-      - name: Check manager dependencies against PyUp and PEP 508
-        working-directory: ./manager
-        run: pipenv check
-
       # Orchestrator
       - name: Check orchestrator formatting with format.sh
         working-directory: ./orchestrator
@@ -113,10 +109,6 @@ jobs:
       - name: Check orchestrator formatting with check.sh
         working-directory: ./orchestrator
         run: pipenv run ./scripts/check.sh
-
-      - name: Check orchestrator dependencies against PyUp and PEP 508
-        working-directory: ./orchestrator
-        run: pipenv check
 
       # Router
       - name: Check router formatting with format.sh
@@ -127,10 +119,6 @@ jobs:
         working-directory: ./router
         run: pipenv run ./scripts/check.sh
 
-      - name: Check router dependencies against PyUp and PEP 508
-        working-directory: ./router
-        run: pipenv check
-
       # Shell
       - name: Check shell formatting with format.sh
         working-directory: ./shell
@@ -139,10 +127,6 @@ jobs:
       - name: Check shell formatting with check.sh
         working-directory: ./shell
         run: pipenv run ./scripts/check.sh
-
-      - name: Check shell dependencies against PyUp and PEP 508
-        working-directory: ./shell
-        run: pipenv check
   
   test:
     runs-on: ubuntu-latest
@@ -178,24 +162,24 @@ jobs:
       # Manager
       - name: run Manager test suite
         working-directory: ./manager
-        run: pipenv run coverage run --source ..,director manage.py test
+        run: pipenv run coverage run manage.py test
 
       # Orchestrator
       - name: run Orchestrator test suite
         working-directory: ./orchestrator
-        run: pipenv run coverage run --source ..,orchestrator -m unittest discover
+        run: pipenv run coverage run -m unittest discover
 
       # Router
       - name: run Router test suite
         working-directory: ./router
-        run: pipenv run coverage run --source ..,router -m unittest discover
+        run: pipenv run coverage run -m unittest discover
 
       # Shell
       - name: run Shell test suite
         working-directory: ./shell
         run: |
           cp shell/settings/secret_dev.py shell/settings/secret.py
-          pipenv run coverage run --source ..,shell -m unittest discover
+          pipenv run coverage run -m unittest discover
     
       - name: Combine coverage reports
         run: | 
