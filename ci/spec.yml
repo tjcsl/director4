@@ -60,10 +60,11 @@ defaults:
     name: generate shell signing keys
     working-directory: ./manager
     run: |
-      sudo mkdir -p /etc/director-shell-keys
-      sudo chown $USER:$(id -gn) /etc/director-shell-keys
+      sudo mkdir -p /etc/director-shell-keys/etc/ssh
+      sudo chown -R $USER:$(id -gn) /etc/director-shell-keys
       pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-signing-token-pubkey.pem /etc/director-shell-keys/shell-signing-token-privkey.pem
       pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-encryption-token-pubkey.pem /etc/director-shell-keys/shell-encryption-token-privkey.pem
+      ssh-keygen -A -f /etc/director-shell-keys
 
 
 jobs:
@@ -180,6 +181,7 @@ jobs:
         run: |
           cp shell/settings/secret_dev.py shell/settings/secret.py
           pipenv run coverage run -m unittest discover
+          pipenv run coverage combine
     
       - name: Combine coverage reports
         run: | 
