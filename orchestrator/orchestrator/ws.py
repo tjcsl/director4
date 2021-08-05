@@ -13,6 +13,7 @@ import sys
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Pattern, Tuple
 
 import websockets
+from websockets import client as client
 
 from .consumers import (
     build_image_handler,
@@ -46,12 +47,12 @@ def create_server_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLCo
     return context
 
 
-async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -> None:
+async def route(websock: client.WebSocketClientProtocol, path: str) -> None:
     routes: List[
         Tuple[
             Pattern[str],
             Callable[
-                [websockets.client.WebSocketClientProtocol, Dict[str, Any], asyncio.Event],
+                [client.WebSocketClientProtocol, Dict[str, Any], asyncio.Event],
                 Awaitable[None],
             ],
         ]

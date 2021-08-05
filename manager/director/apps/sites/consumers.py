@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Union, cast
 import websockets
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer, AsyncWebsocketConsumer
+from websockets import client
 
 from django.conf import settings
 
@@ -28,7 +29,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         self.site: Optional[Site] = None
         self.connected = False
 
-        self.status_websocket: Optional[websockets.client.WebSocketClientProtocol] = None
+        self.status_websocket: Optional[client.WebSocketClientProtocol] = None
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -251,7 +252,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         self.site: Optional[Site] = None
         self.connected = False
 
-        self.terminal_websock: Optional[websockets.client.WebSocketClientProtocol] = None
+        self.terminal_websock: Optional[client.WebSocketClientProtocol] = None
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -397,7 +398,7 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
         self.site: Optional[Site] = None
         self.connected = False
 
-        self.monitor_websocks: List[websockets.client.WebSocketClientProtocol] = []
+        self.monitor_websocks: List[client.WebSocketClientProtocol] = []
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -461,7 +462,7 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
 
     async def monitor_mainloop(
         self,
-        monitor_websock: websockets.client.WebSocketClientProtocol,
+        monitor_websock: client.WebSocketClientProtocol,
     ) -> None:
         while True:
             try:
@@ -516,7 +517,7 @@ class SiteLogsConsumer(AsyncWebsocketConsumer):
 
         self.site: Optional[Site] = None
 
-        self.logs_websock: Optional[websockets.client.WebSocketClientProtocol] = None
+        self.logs_websock: Optional[client.WebSocketClientProtocol] = None
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -616,7 +617,7 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
 
         self.site_ids: List[int] = []
 
-        self.monitor_websock: Optional[websockets.client.WebSocketClientProtocol] = None
+        self.monitor_websock: Optional[client.WebSocketClientProtocol] = None
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -674,7 +675,7 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
 
     async def monitor_mainloop(
         self,
-        monitor_websock: websockets.client.WebSocketClientProtocol,
+        monitor_websock: client.WebSocketClientProtocol,
     ) -> None:
         while True:
             try:

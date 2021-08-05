@@ -7,6 +7,7 @@ import logging
 from typing import Any, Dict
 
 import websockets
+from websockets import client as client
 
 from ..files import (
     SiteFilesMonitor,
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 async def file_monitor_handler(  # pylint: disable=unused-argument
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: client.WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:
@@ -66,7 +67,7 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
 
 
 async def remove_all_site_files_dangerous_handler(  # pylint: disable=unused-argument
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: client.WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:
