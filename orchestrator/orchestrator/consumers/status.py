@@ -9,6 +9,7 @@ from typing import Any, Dict, Union
 import docker
 import websockets
 from docker.models.services import Service
+from websockets import client as client
 
 from ..docker.services import get_director_service_name, get_service_by_name
 from ..docker.utils import create_client
@@ -47,7 +48,7 @@ def serialize_service_status(site_id: int, service: Service) -> Dict[str, Any]:
 
 
 async def status_handler(
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: client.WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:
@@ -101,7 +102,7 @@ async def status_handler(
 
 
 async def multi_status_handler(  # pylint: disable=unused-argument
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: client.WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:

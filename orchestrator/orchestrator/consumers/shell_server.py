@@ -11,6 +11,7 @@ from typing import Any, Dict, cast
 
 import docker
 import websockets
+from websockets import client as client
 
 from directorutil import crypto
 
@@ -71,7 +72,7 @@ def load_token(token: bytes) -> Dict[str, Any]:
 
 
 async def ssh_shell_handler(
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: client.WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:

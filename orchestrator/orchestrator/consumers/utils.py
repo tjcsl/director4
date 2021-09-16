@@ -6,10 +6,11 @@ import concurrent.futures
 from typing import Any, Awaitable, Callable, Iterable, List, Optional, Union
 
 import websockets
+from websockets import client as client
 
 
 async def ping_loop(
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: client.WebSocketClientProtocol,
     interval: Union[int, float],
 ) -> None:
     while True:
@@ -20,7 +21,7 @@ async def ping_loop(
             pass
 
 
-async def websock_recv_devnull_loop(websock: websockets.client.WebSocketClientProtocol) -> None:
+async def websock_recv_devnull_loop(websock: client.WebSocketClientProtocol) -> None:
     while True:
         try:
             await websock.recv()
