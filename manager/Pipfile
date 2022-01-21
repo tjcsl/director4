@@ -25,7 +25,7 @@ django = "~=2.2.20"
 django-extensions = "~=3.1.2"
 django-redis-cache = "~=3.0.0"
 importlib-metadata = {version = "~=3.10.0",markers = "python_version < '3.8'"}
-ipython = "~=7.22.0"
+ipython = "~=7.31.1"
 markdown = "~=3.3.4"
 psycopg2 = "~=2.8.6"
 pycryptodome = "~=3.10.1"
