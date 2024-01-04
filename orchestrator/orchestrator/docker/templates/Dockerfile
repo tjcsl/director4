@@ -8,5 +8,6 @@ RUN {{ parent_setup_command }}
 {% endif %}
 
 {% if install_command -%}
+RUN apt-get --allow-releaseinfo-change update -y
 RUN {{ install_command }}
 {% endif %}
