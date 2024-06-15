@@ -100,7 +100,7 @@ jobs:
 
       - name: Check manager formatting with check.sh
         working-directory: ./manager
-        run: pipenv run ./scripts/check.sh
+        run: pipenv run pip install types-bleach types-Markdown && pipenv run ./scripts/check.sh
 
       # Orchestrator
       - name: Check orchestrator formatting with format.sh

@@ -8,6 +8,7 @@ from typing import Any, Dict
 
 import docker
 import websockets
+from websockets import client as client
 
 from .. import settings
 from ..docker.utils import create_client
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 async def web_terminal_handler(  # pylint: disable=unused-argument
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: client.WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:

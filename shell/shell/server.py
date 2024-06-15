@@ -13,6 +13,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import asyncssh
 import websockets
+from websockets.client import connect
 
 from . import manager_interface, settings
 from .root_shell import RootShellSession
@@ -403,7 +404,7 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore # pylint
             host = settings.APPSERVER_WS_HOSTS[appserver_num]
             try:
                 websock = await asyncio.wait_for(
-                    websockets.connect(
+                    connect(
                         "ws{}://{}/ws/shell-server/{}/ssh-shell/".format(
                             "s" if settings.APPSERVER_SSL_CONTEXT is not None else "",
                             host,

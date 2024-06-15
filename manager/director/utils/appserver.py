@@ -11,7 +11,8 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, Iterable, Iterator, Optional, Sequence, Tuple, Union
 
-import websockets
+from websockets.client import connect
+from websockets.legacy.client import Connect
 
 from django.conf import settings
 
@@ -294,7 +295,7 @@ def appserver_open_websocket(
     ping_interval: Union[int, float] = 20,
     ping_timeout: Union[int, float] = 20,
     close_timeout: Union[int, float, None] = None,
-) -> websockets.client.Connect:
+) -> Connect:
     assert path[0] == "/"
 
     appserver = get_appserver_addr(appserver, allow_random=True, websocket=True)
@@ -312,7 +313,7 @@ def appserver_open_websocket(
         "?" + urllib.parse.urlencode(params) if params else "",
     )
 
-    return websockets.connect(
+    return connect(
         full_url,
         extra_headers=extra_headers,
         ping_interval=ping_interval,

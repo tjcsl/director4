@@ -7,6 +7,7 @@ from typing import Any, Dict
 
 import websockets
 from docker.models.services import Service
+from websockets import client as client
 
 from ..docker.services import get_director_service_name, get_service_by_name
 from ..docker.utils import create_client
@@ -15,7 +16,7 @@ from .utils import mainloop_auto_cancel, wait_for_event
 
 
 async def logs_handler(
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: client.WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:
