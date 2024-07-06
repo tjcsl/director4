@@ -17,3 +17,8 @@ exclude = '''
   | secret.*
 )/
 '''
+
+[tool.coverage.run]
+omit = [
+  "*/Dockerfile",
+]

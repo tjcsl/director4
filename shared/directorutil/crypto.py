@@ -86,7 +86,7 @@ def verify_message_hash(
         try:
             verifier = algo_cls.new(public_key, **algo_kwargs)
         except Exception as ex:
-            raise DirectorCryptoError("Error constructing signature object: {}".format(ex)) from ex
+            raise DirectorCryptoError(f"Error constructing signature object: {ex}") from ex
 
         try:
             verifier.verify(msg_hash_obj, signature)
@@ -94,13 +94,13 @@ def verify_message_hash(
             verify_exc = ex
             continue
         except Exception as ex:
-            raise DirectorCryptoError("Error verifying message signature: {}".format(ex)) from ex
+            raise DirectorCryptoError(f"Error verifying message signature: {ex}") from ex
         else:
             return
 
     if verify_exc is not None:
         raise DirectorCryptoVerifyError(
-            "Error verifying message signature: {}".format(verify_exc)
+            f"Error verifying message signature: {verify_exc}"
         ) from verify_exc
     else:
         raise DirectorCryptoVerifyError("Error verifying message signature")
@@ -110,14 +110,14 @@ def encrypt_short_message_pkcs1(*, msg: bytes, public_key: Crypto.PublicKey.RSA.
     try:
         return Crypto.Cipher.PKCS1_OAEP.new(public_key).encrypt(msg)
     except Exception as ex:
-        raise DirectorCryptoError("Error encrypting message: {}".format(ex)) from ex
+        raise DirectorCryptoError(f"Error encrypting message: {ex}") from ex
 
 
 def decrypt_short_message_pkcs1(*, msg: bytes, private_key: Crypto.PublicKey.RSA.RsaKey) -> bytes:
     try:
         return Crypto.Cipher.PKCS1_OAEP.new(private_key).decrypt(msg)
     except Exception as ex:
-        raise DirectorCryptoError("Error decrypting message: {}".format(ex)) from ex
+        raise DirectorCryptoError(f"Error decrypting message: {ex}") from ex
 
 
 def encrypt_message(
@@ -179,4 +179,4 @@ def decrypt_message(
 
         return cipher_aes.decrypt_and_verify(msg, tag)  # type: ignore
     except Exception as ex:
-        raise DirectorCryptoError("Error decrypting message: {}".format(ex)) from ex
+        raise DirectorCryptoError(f"Error decrypting message: {ex}") from ex
