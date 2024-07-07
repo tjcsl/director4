@@ -1,0 +1,30 @@
+FROM python:3.8.10
+
+RUN apt-get update && apt-get install -y supervisor
+RUN mkdir -p /var/log/supervisor
+
+COPY orchestrator/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY orchestrator/requirements.txt orchestrator/
+
+RUN groupadd director && \
+    useradd -g director director && \
+    usermod -a -G director www-data && \
+    mkdir -p /var/www/director && \
+    cd /var/www/director && \
+    chown director:director /var/www/director && \
+    chmod 750 /var/www/director && \
+    pip install -r orchestrator/requirements.txt
+
+USER director
+
+WORKDIR /var/www/director
+
+# RUN pip install -r orchestrator/requirements.txt
+
+COPY scripts/ orchestrator/scripts/
+
+COPY orchestrator/ orchestrator/
+
+ENV PYTHONUNBUFFERED=1
+# ENTRYPOINT ["sh", "start.sh"]
+CMD ["/usr/bin/supervisord"]

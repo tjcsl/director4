@@ -1,0 +1,28 @@
+FROM python:3.8.10
+
+RUN groupadd director && \
+    useradd -g director director && \
+    usermod -a -G director www-data && \
+    mkdir -p /var/www/director && \
+    cd /var/www/director && \
+    chown director:director /var/www/director && \
+    chmod 750 /var/www/director
+
+USER director
+
+WORKDIR /var/www/director
+
+COPY manager/requirements.txt manager/
+
+RUN pip install -r manager/requirements.txt
+
+COPY scripts/ manager/scripts/
+RUN mkdir -p /etc/director-shell-keys/ && \
+    ./manager/scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-signing-token-pubkey.pem /etc/director-shell-keys/shell-signing-token-privkey.pem && \
+    ./manager/scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-encryption-token-pubkey.pem /etc/director-shell-keys/shell-encryption-token-privkey.pem
+
+COPY manager/ /var/www/director/manager/
+
+ENV PYTHONUNBUFFERED=1
+
+ENTRYPOINT ["sh", "start.sh"]
