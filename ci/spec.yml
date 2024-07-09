@@ -10,7 +10,6 @@ defaults:
 
 .anchors:
   python_versions: &python_versions
-    - 3.7
     - 3.8
 
   python_setup: &python_setup
