@@ -5,4 +5,5 @@ from django.apps import AppConfig
 
 
 class RequestConfig(AppConfig):
-    name = "request"
+    name = "director.apps.request"
+    label = "request"

@@ -11,6 +11,7 @@ from typing import Any, Dict, Generator, List, Optional, Set, Tuple
 import bleach
 import markdown
 import markdown.extensions.toc
+from bleach.css_sanitizer import CSSSanitizer
 
 from django.conf import settings
 from django.core.cache import cache
@@ -63,9 +64,9 @@ ALLOWED_STYLES: List[str] = []
 cleaner = bleach.sanitizer.Cleaner(
     tags=ALLOWED_TAGS,
     attributes=ALLOWED_ATTRS,
-    styles=ALLOWED_STYLES,
     strip=True,
     strip_comments=True,
+    css_sanitizer=CSSSanitizer(allowed_css_properties=ALLOWED_STYLES),
 )
 
 

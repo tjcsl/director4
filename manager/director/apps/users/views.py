@@ -14,7 +14,7 @@ from .forms import MassEmailForm
 def mass_email_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = MassEmailForm(request.POST)
-        if form.is_valid:  # pylint: disable=using-constant-test
+        if form.is_valid():
             mass_email = form.save(commit=False)
             mass_email.sender = request.user
             mass_email.save()

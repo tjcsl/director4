@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     "social_django",
     "channels",
     "django_extensions",
-    "director.apps.auth",
+    "director.apps.auth.apps.AuthConfig",
     "director.apps.users",
     # We need to specify the full path to the config class
     # because it does some custom initialization.
@@ -157,10 +157,9 @@ TIME_ZONE = "America/New_York"
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "auth:login"
 LOGIN_REDIRECT_URL = "auth:index"

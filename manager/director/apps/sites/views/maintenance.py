@@ -22,8 +22,8 @@ from ..models import Action, Operation, Site, SiteResourceLimits
 @require_accept_guidelines_no_redirect
 def prometheus_metrics_view(request: HttpRequest) -> HttpResponse:
     remote_addr = (
-        request.META["HTTP_X_REAL_IP"]
-        if "HTTP_X_REAL_IP" in request.META
+        request.headers["x-real-ip"]
+        if "x-real-ip" in request.headers
         else request.META.get("REMOTE_ADDR", "")
     )
 
