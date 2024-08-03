@@ -798,6 +798,9 @@ class Operation(models.Model):
     created_time = models.DateTimeField(auto_now_add=True, null=False)
     started_time = models.DateTimeField(null=True)
 
+    def __str__(self) -> str:
+        return f"{type(self).__name__}({self.site}, {self.type})"
+
     @property
     def has_started(self) -> bool:
         return self.started_time is not None
