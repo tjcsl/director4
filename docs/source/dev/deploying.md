@@ -86,7 +86,7 @@ mkdir /var/www/director
 cd /var/www/director
 chown director:director /var/www/director
 chmod 750 /var/www/director
-sudo -u director git clone 'https://github.com/tjresearch/research-theo_john.git'
+sudo -u director git clone 'https://github.com/tjcsl/director4'
 sudo -u director pipenv install
 ```
 

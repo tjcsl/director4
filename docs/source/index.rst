@@ -14,5 +14,6 @@ platform which had problems with performance, scalability, and ease of use.
    :maxdepth: 1
    :caption: Contents:
 
+   usage
    guides
    dev
