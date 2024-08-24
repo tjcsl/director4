@@ -172,7 +172,8 @@ class Site(models.Model):
             "name": self.name,
             "type": self.type,
             "is_being_served": self.is_being_served,
-            "no_redirect_domains": [split_domain(url) for url in self.list_urls()],
+            # remove duplicates before converting into list
+            "no_redirect_domains": list({split_domain(url) for url in self.list_urls()}),
             "primary_url_base": main_url,
             "database_info": (
                 {
