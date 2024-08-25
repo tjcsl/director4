@@ -1,17 +1,22 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
+from __future__ import annotations
 
+import contextlib
 import importlib
 import importlib.util
+import importlib.abc
+import importlib.machinery
+import traceback
 import json
 import os
 import resource
 import select
 import shutil
 import stat
-import string
 import sys
-from typing import Any, Dict, List, Optional
+import types
+from typing import Dict, List, Optional, Sequence, cast
 
 
 SPECIAL_EXIT_CODE = 145  # Denotes that the text shown on stderr is safe to show to the user
@@ -68,26 +73,20 @@ def construct_scandir_file_dicts(dirpath: str) -> List[Dict[str, Optional[str]]]
             "mode": None,
         }
 
-        try:
+        with contextlib.suppress(OSError):
             item["mode"] = entry.stat(follow_symlinks=False).st_mode
-        except OSError:
-            pass
 
-        try:
+        with contextlib.suppress(OSError):
             if entry.is_symlink():
                 item["filetype"] = "link"
-                try:
+                with contextlib.suppress(OSError):
                     item["dest"] = os.readlink(fname)
-                except OSError:
-                    pass
             elif entry.is_dir():
                 item["filetype"] = "dir"
             elif entry.is_file():
                 item["filetype"] = "file"
             else:
                 item["filetype"] = "other"
-        except OSError:
-            pass
 
         items.append(item)
 
@@ -105,22 +104,20 @@ def construct_file_event_dict(fname: str) -> Dict[str, Optional[str]]:
     try:
         file_stat = os.lstat(fname)
     except OSError:
-        pass
-    else:
-        event_info["mode"] = file_stat.st_mode
+        return event_info
 
-        if stat.S_ISLNK(file_stat.st_mode):
-            event_info["filetype"] = "link"
-            try:
-                event_info["dest"] = os.readlink(fname)
-            except OSError:
-                pass
-        elif stat.S_ISDIR(file_stat.st_mode):
-            event_info["filetype"] = "dir"
-        elif stat.S_ISREG(file_stat.st_mode):
-            event_info["filetype"] = "file"
-        else:
-            event_info["filetype"] = "other"
+    event_info["mode"] = file_stat.st_mode
+
+    if stat.S_ISLNK(file_stat.st_mode):
+        event_info["filetype"] = "link"
+        with contextlib.suppress(OSError):
+            event_info["dest"] = os.readlink(fname)
+    elif stat.S_ISDIR(file_stat.st_mode):
+        event_info["filetype"] = "dir"
+    elif stat.S_ISREG(file_stat.st_mode):
+        event_info["filetype"] = "file"
+    else:
+        event_info["filetype"] = "other"
 
     return event_info
 
@@ -157,8 +154,8 @@ def chmod_cmd(site_directory: str, relpath: str, mode_str: str) -> None:
 
     try:
         update_mode(relpath, mode_str)
-    except OSError as ex:
-        print(ex, file=sys.stderr)
+    except OSError:
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
 
 
@@ -179,8 +176,8 @@ def rename_cmd(site_directory: str, oldpath: str, newpath: str) -> None:
 
     try:
         os.rename(oldpath, newpath)
-    except OSError as ex:
-        print(ex, file=sys.stderr)
+    except OSError:
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
 
 
@@ -194,8 +191,8 @@ def mkdir_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None)
     try:
         # Keep the mode as 0o777! This is safe; the umask will be subtracted from it.
         os.makedirs(relpath, mode=get_new_mode(0o777, mode_str), exist_ok=False)
-    except OSError as ex:
-        print(ex, file=sys.stderr)
+    except OSError:
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
 
 
@@ -211,7 +208,7 @@ def create_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None
         # Keep the mode as 0o666! This is safe; the umask will be subtracted from it.
         fd = os.open(relpath, os.O_RDWR | os.O_CREAT | os.O_EXCL, get_new_mode(0o666, mode_str))
     except OSError as ex:
-        print(ex, file=sys.stderr)
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
     else:
         os.close(fd)
@@ -227,8 +224,8 @@ def rm_cmd(site_directory: str, relpath: str) -> None:
     try:
         if os.path.exists(relpath) or os.path.islink(relpath):
             os.remove(relpath)
-    except OSError as ex:
-        print(ex, file=sys.stderr)
+    except OSError:
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
 
 
@@ -242,8 +239,8 @@ def rmdir_recur_cmd(site_directory: str, relpath: str) -> None:
     try:
         if os.path.isdir(relpath):
             shutil.rmtree(relpath)
-    except OSError as ex:
-        print(ex, file=sys.stderr)
+    except OSError:
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
 
 
@@ -277,8 +274,8 @@ def get_cmd(site_directory: str, relpath: str, max_size_str: str) -> None:
             for chunk in iter(lambda: f_obj.read(BUFSIZE), b""):
                 sys.stdout.buffer.write(chunk)
                 sys.stdout.flush()
-    except OSError as ex:
-        print(ex, file=sys.stderr)
+    except OSError:
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
 
 
@@ -306,8 +303,8 @@ def write_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None)
 
         if mode_str is not None and not mode_updated:
             update_mode(relpath, mode_str)
-    except OSError as ex:
-        print(ex, file=sys.stderr)
+    except OSError:
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
 
 
@@ -321,7 +318,6 @@ def download_zip_cmd(
     chroot_into(site_directory)
 
     max_size = int(max_size_spec)
-    max_files = int(max_files_spec)
 
     zf = zipstream.ZipFile(compression=zipstream.ZIP_DEFLATED)
 
@@ -347,8 +343,8 @@ def download_zip_cmd(
                 for chunk in zf.flush():
                     sys.stdout.buffer.write(chunk)
                     sys.stdout.buffer.flush()
-    except OSError as ex:
-        print(ex, file=sys.stderr)
+    except OSError:
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
 
     try:
@@ -356,7 +352,7 @@ def download_zip_cmd(
             sys.stdout.buffer.write(chunk)
             sys.stdout.buffer.flush()
     except OSError as ex:
-        print(ex, file=sys.stderr)
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
 
 
@@ -394,10 +390,8 @@ def monitor_cmd(site_directory: str) -> None:
         for wd, wd_fname in list(fnames_by_wd.items()):
             # Remove for the directory itself, as well as all subdirectories
             if os.path.commonpath([fname, wd_fname]) == fname:
-                try:
+                with contextlib.suppress(OSError):
                     inotify.rm_watch(wd)
-                except OSError:
-                    pass
 
                 fnames_by_wd.pop(wd, None)
                 wds_by_fname.pop(wd_fname, None)
@@ -508,8 +502,8 @@ def monitor_cmd(site_directory: str) -> None:
 def remove_all_site_files_dangerous_cmd(site_directory: str) -> None:
     try:
         shutil.rmtree(site_directory)
-    except OSError as ex:
-        print(ex, file=sys.stderr)
+    except OSError:
+        traceback.print_exc()
         sys.exit(SPECIAL_EXIT_CODE)
 
 
@@ -556,12 +550,11 @@ def main(argv: List[str]) -> None:
 VENDOR_PREFIX = "ORCHESTRATOR_HELPER_VENDOR_"
 
 
+# TODO: update to use modern APIs
 class OrchestratorHelperVendorLoader:
     def load_module(self, fullname: str):
-        try:
+        with contextlib.suppress(KeyError):
             return sys.modules[fullname]
-        except KeyError:
-            pass
 
         text = ""
         is_package = False
@@ -584,20 +577,21 @@ class OrchestratorHelperVendorLoader:
         return mod
 
 
-class OrchestratorHelperVendorFinder:
-    def find_module(self, fullname: str, path=None):
+class OrchestratorHelperVendorFinder(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname: str, path: Sequence[str] | None = None, target: types.ModuleType | None = None):
         if (
             VENDOR_PREFIX + fullname in os.environ
             or VENDOR_PREFIX + fullname + ".__init__" in os.environ
         ):
-            return OrchestratorHelperVendorLoader()
+            # this isn't the right change
+            return cast(importlib.machinery.ModuleSpec, OrchestratorHelperVendorLoader())
         return None
 
 
 sys.meta_path.append(OrchestratorHelperVendorFinder())
 
-import inotify_simple
-import zipstream
+import inotify_simple  # noqa: E402
+import zipstream  # noqa: E402
 
 
 if __name__ == "__main__":
