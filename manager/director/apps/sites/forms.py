@@ -231,7 +231,7 @@ class ImageSelectForm(forms.Form):
         help_text="This should be a space-separated list of packages to install in the image.",
     )
 
-    PACKAGE_NAME_REGEX = re.compile(r"^[a-zA-Z0-9_][-+=_a-zA-Z0-9]*$")
+    PACKAGE_NAME_REGEX = re.compile(r"^[a-zA-Z0-9_][-+=_.a-zA-Z0-9]*$")
 
     def clean(self) -> Dict[str, Any]:
         cleaned_data = super().clean()
