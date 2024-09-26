@@ -103,6 +103,14 @@ Director is made out of four main parts.
 - The Shell runs an ssh server using ``AsyncSSH`` to communicate with the Manager.
 
 
+If you want to learn about each part in more detail, check out
+the following articles (in the correct order):
+
+- :doc:`manager`
+- :doc:`orchestrator`
+- :doc:`router_shell`
+
+
 Manager
 ~~~~~~~
 
