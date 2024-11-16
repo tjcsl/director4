@@ -17,7 +17,12 @@ from .models import (
     SiteResourceLimits,
 )
 
-admin.site.register(DockerImage)
+admin.register(DockerImage)
+class DockerImageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'friendly_name', 'description')
+    search_fields = ('name', 'friendly_name', 'description')
+    ordering = ('parent', 'name', 'friendly_name')
+
 admin.site.register(DockerImageSetupCommand)
 admin.site.register(DockerImageExtraPackage)
 admin.site.register(Domain)
