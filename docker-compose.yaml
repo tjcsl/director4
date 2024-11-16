@@ -1,0 +1,105 @@
+services:
+  manager-celery:
+    build:
+      context: .
+      dockerfile: config/Dockerfile.manager
+    volumes:
+      - ./manager:/var/www/director/manager:z
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./shared/directorutil:/var/www/director/manager/directorutil:z
+      - ./shared/director-shell-keys/:/manager/director-shell-keys/:z
+    environment:
+      - CELERY=1
+    depends_on:
+      - redis
+      - registry
+      - manager-postgres
+      - postgres
+      - mysql
+  manager-web:
+    build:
+      context: .
+      dockerfile: config/Dockerfile.manager
+    ports:
+      - 8080:8080
+    volumes:
+      - ./manager:/var/www/director/manager:z
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./shared/directorutil:/var/www/director/manager/directorutil:z
+      - ./shared/director-shell-keys/:/manager/director-shell-keys/:z
+    depends_on:
+      - redis
+      - registry
+      - manager-postgres
+      - postgres
+      - mysql
+  orchestrator:
+    build:
+      context: .
+      dockerfile: config/Dockerfile.orchestrator
+    ports:
+      - "5000:5000"
+      - "5010:5010"
+    volumes:
+      - ./orchestrator:/var/www/director/orchestrator:z
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./shared/directorutil:/var/www/director/orchestrator/directorutil:z
+      - ./shared/director-shell-keys/:/etc/director-shell-keys/
+    depends_on:
+      - redis
+      - registry
+      - postgres
+      - mysql
+  router:
+    build:
+      context: .
+      dockerfile: config/Dockerfile.manager
+    volumes:
+      - ./manager:/manager:z
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./shared/directorutil:/router/directorutil:z
+    depends_on:
+      - redis
+      - registry
+      - postgres
+      - mysql
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379"
+  registry:
+    image: registry:2
+    ports:
+      - "5002:5000"
+    volumes:
+      - ./registry-data:/var/lib/registry
+  manager-postgres:
+    image: postgres:9.6-alpine
+    ports:
+      - "5432"
+    volumes:
+      - ./postgres-manager-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: manager
+      POSTGRES_PASSWORD: pwd
+      POSTGRES_DB: manager
+  postgres:
+    image: postgres:9.6-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: director
+      POSTGRES_PASSWORD: director
+      POSTGRES_DB: director-postgres
+  mysql:
+    image: mysql:5.7
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_USER: director
+      MYSQL_PASSWORD: director
+      MYSQL_DATABASE: director-mysql

@@ -1,0 +1,12 @@
+FROM python:3.8.10
+
+COPY manager/requirements.txt /manager/
+
+RUN pip install -r /manager/requirements.txt
+
+COPY router/ /router/
+
+WORKDIR /router
+
+ENV PYTHONUNBUFFERED=1
+ENTRYPOINT ["sh", "start.sh"]

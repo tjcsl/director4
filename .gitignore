@@ -139,3 +139,10 @@ secret.py
 # PyCharm
 .idea/
 
+/manager/director-shell-keys/
+/orchestrator/director-shell-keys/
+/mysql-data/
+/postgres-data/
+/postgres-manager-data/
+/redis-data/
+/registry-data/
