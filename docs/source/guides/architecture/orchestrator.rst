@@ -35,3 +35,13 @@ needed.
 
 When updating the Nginx config, the orchestrator first moves the old configuration into
 ``site-{site-id}.conf.bak``. Only if that succeeds will it write the new configuration.
+
+Hosting a website
+-----------------
+When creating a site, the manager sends a request to the orchestrator to generate a ``nginx.conf``
+configuration, which is then moved to ``/data/nginx/director.d/``. The ``nginx.conf`` running the balancer
+has a line that looks like::
+
+  include /data/nginx/director.d/*.conf
+
+This is the magic line that actually hosts the sites on the internet.
