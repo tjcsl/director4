@@ -776,7 +776,7 @@ class Operation(models.Model):
         ("regen_nginx_config", "Regenerating Nginx configuration"),
         # Create a database for the site
         ("create_site_database", "Creating site database"),
-        # Create a database for the site
+        # Delete a database for the site
         ("delete_site_database", "Deleting site database"),
         # Regenerate the database password.
         ("regen_site_secrets", "Regenerating site secrets"),
