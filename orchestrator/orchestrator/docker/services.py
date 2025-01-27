@@ -170,9 +170,9 @@ def reload_nginx_config(client: DockerClient) -> None:
 
             container = client.containers.get(container_id)
 
-            exit_code, _ = container.exec_run(
+            exit_code, output = container.exec_run(
                 ["nginx", "-s", "reload"],
-                stdout=False,
+                stdout=True,
                 stderr=True,
                 stdin=False,
                 tty=False,
@@ -186,4 +186,4 @@ def reload_nginx_config(client: DockerClient) -> None:
             )
 
             if exit_code != 0:
-                raise OrchestratorActionError("Error reloading Nginx config")
+                raise OrchestratorActionError(f"Error reloading Nginx config: {output}")
