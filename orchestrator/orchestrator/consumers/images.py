@@ -9,6 +9,7 @@ import os
 from typing import Any, Dict, Iterator, Optional, TypeVar, cast
 
 import websockets
+from websockets import client as client
 
 from ..docker.images import build_custom_docker_image, push_custom_docker_image
 from ..docker.utils import create_client
@@ -33,7 +34,7 @@ def next_or_none(item_it: Iterator[T]) -> Optional[T]:
 
 
 async def build_image_handler(  # pylint: disable=unused-argument
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: client.WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:

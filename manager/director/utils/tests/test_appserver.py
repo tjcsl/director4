@@ -1,4 +1,4 @@
-import websockets
+from websockets.legacy.client import Connect
 
 from ...test.director_test import DirectorTestCase
 from ..appserver import (
@@ -60,6 +60,6 @@ class UtilsAppserverTestCase(DirectorTestCase):
 
     def test_appserver_open_websocket(self):
         self.assertEqual(
-            websockets.client.Connect,
+            Connect,
             type(appserver_open_websocket("director-apptest1", "/test", ping_timeout=1)),
         )
