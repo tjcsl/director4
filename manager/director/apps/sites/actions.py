@@ -10,6 +10,7 @@ from django.conf import settings
 
 from ...utils.appserver import (
     AppserverProtocolError,
+    AppserverRequestError,
     appserver_open_http_request,
     appserver_open_websocket,
     iter_pingable_appservers,
@@ -29,31 +30,53 @@ def find_pingable_appservers(  # pylint: disable=unused-argument
     scope["pingable_appservers"] = pingable_appservers
 
 
+def retry_appserver_request(
+    description: str,
+    request_fn: Any,
+    *,
+    attempts: int = 10,
+    delay: float = 10.0,
+) -> Iterator[Union[Tuple[str, str], str]]:
+    for attempt in range(1, attempts + 1):
+        try:
+            return request_fn()
+        except AppserverRequestError as ex:
+            if attempt == attempts:
+                yield "{} failed: {}".format(description, ex)
+                raise
+
+            continue
+
+
 def update_appserver_nginx_config(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
     appserver = random.choice(scope["pingable_appservers"])
 
     try:
-        yield "Connecting to appserver {} to update Nginx config".format(appserver)
-
-        appserver_open_http_request(
-            appserver,
-            "/sites/{}/update-nginx".format(site.id),
-            method="POST",
-            data={"data": json.dumps(site.serialize_for_appserver())},
-            timeout=60,
+        yield from retry_appserver_request(
+            "Connecting to appserver {} to update Nginx config".format(appserver),
+            lambda: appserver_open_http_request(
+                appserver,
+                "/sites/{}/update-nginx".format(site.id),
+                method="POST",
+                data={"data": json.dumps(site.serialize_for_appserver())},
+                timeout=120,
+            ),
         )
-    except AppserverProtocolError:
+    except AppserverRequestError:
         # If an error occurs, disable the Nginx config
         yield "Error updating Nginx config"
 
         yield "Disabling site Nginx config"
-        appserver_open_http_request(
-            appserver,
-            "/sites/{}/disable-nginx".format(site.id),
-            method="POST",
-            timeout=120,
+        yield from retry_appserver_request(
+            "Connecting to appserver {} to disable Nginx config".format(appserver),
+            lambda: appserver_open_http_request(
+                appserver,
+                "/sites/{}/disable-nginx".format(site.id),
+                method="POST",
+                timeout=120,
+            ),
         )
 
         yield "Re-raising exception"
@@ -65,25 +88,29 @@ def update_appserver_nginx_config(
         yield "Reloading Nginx config on all appservers"
         try:
             for i in scope["pingable_appservers"]:
-                yield "Reloading Nginx config on appserver {}".format(i)
-
-                appserver_open_http_request(
-                    i,
-                    "/sites/reload-nginx",
-                    method="POST",
-                    timeout=120,
+                yield from retry_appserver_request(
+                    "Reloading Nginx config on appserver {}".format(i),
+                    lambda appserver=i: appserver_open_http_request(
+                        appserver,
+                        "/sites/reload-nginx",
+                        method="POST",
+                        timeout=120,
+                    ),
                 )
-        except AppserverProtocolError:
+        except AppserverRequestError:
             # Error reloading; disable config
             # We're probably fine not reloading Nginx
             yield "Error reloading Nginx config"
 
             yield "Disabling site Nginx config"
-            appserver_open_http_request(
-                appserver,
-                "/sites/{}/disable-nginx".format(site.id),
-                method="POST",
-                timeout=120,
+            yield from retry_appserver_request(
+                "Connecting to appserver {} to disable Nginx config".format(appserver),
+                lambda: appserver_open_http_request(
+                    appserver,
+                    "/sites/{}/disable-nginx".format(site.id),
+                    method="POST",
+                    timeout=120,
+                ),
             )
 
             yield "Re-raising exception"
@@ -97,24 +124,26 @@ def remove_appserver_nginx_config(
     site: Site, scope: Dict[str, Any]
 ) -> Iterator[Union[Tuple[str, str], str]]:
     appserver = random.choice(scope["pingable_appservers"])
-    yield "Connecting to appserver {} to remove Nginx config".format(appserver)
-
-    appserver_open_http_request(
-        appserver,
-        "/sites/{}/remove-nginx".format(site.id),
-        method="POST",
-        timeout=60,
+    yield from retry_appserver_request(
+        "Connecting to appserver {} to remove Nginx config".format(appserver),
+        lambda: appserver_open_http_request(
+            appserver,
+            "/sites/{}/remove-nginx".format(site.id),
+            method="POST",
+            timeout=120,
+        ),
     )
 
     yield "Reloading Nginx config on all appservers"
     for i in scope["pingable_appservers"]:
-        yield "Reloading Nginx config on appserver {}".format(i)
-
-        appserver_open_http_request(
-            i,
-            "/sites/reload-nginx",
-            method="POST",
-            timeout=120,
+        yield from retry_appserver_request(
+            "Reloading Nginx config on appserver {}".format(i),
+            lambda appserver=i: appserver_open_http_request(
+                appserver,
+                "/sites/reload-nginx",
+                method="POST",
+                timeout=120,
+            ),
         )
 
     yield "Done"
@@ -129,12 +158,14 @@ def update_docker_service(
 
     appserver = random.choice(scope["pingable_appservers"])
 
-    yield "Connecting to appserver {} to create/update Docker service".format(appserver)
-    appserver_open_http_request(
-        appserver,
-        "/sites/{}/update-docker-service".format(site.id),
-        method="POST",
-        data={"data": json.dumps(site.serialize_for_appserver())},
+    yield from retry_appserver_request(
+        "Connecting to appserver {} to create/update Docker service".format(appserver),
+        lambda: appserver_open_http_request(
+            appserver,
+            "/sites/{}/update-docker-service".format(site.id),
+            method="POST",
+            data={"data": json.dumps(site.serialize_for_appserver())},
+        ),
     )
 
     yield "Created/updated Docker service"
@@ -149,11 +180,13 @@ def restart_docker_service(
 
     appserver = random.choice(scope["pingable_appservers"])
 
-    yield "Connecting to appserver {} to restart Docker service".format(appserver)
-    appserver_open_http_request(
-        appserver,
-        "/sites/{}/restart-docker-service".format(site.id),
-        method="POST",
+    yield from retry_appserver_request(
+        "Connecting to appserver {} to restart Docker service".format(appserver),
+        lambda: appserver_open_http_request(
+            appserver,
+            "/sites/{}/restart-docker-service".format(site.id),
+            method="POST",
+        ),
     )
 
     yield "Restarted Docker service"
@@ -164,11 +197,13 @@ def remove_docker_service(
 ) -> Iterator[Union[Tuple[str, str], str]]:
     appserver = random.choice(scope["pingable_appservers"])
 
-    yield "Connecting to appserver {} to remove Docker service".format(appserver)
-    appserver_open_http_request(
-        appserver,
-        "/sites/{}/remove-docker-service".format(site.id),
-        method="POST",
+    yield from retry_appserver_request(
+        "Connecting to appserver {} to remove Docker service".format(appserver),
+        lambda: appserver_open_http_request(
+            appserver,
+            "/sites/{}/remove-docker-service".format(site.id),
+            method="POST",
+        ),
     )
 
     yield "Removed Docker service"
@@ -227,20 +262,26 @@ def remove_docker_image(  # pylint: disable=unused-argument
     for i in range(settings.DIRECTOR_NUM_APPSERVERS):
         yield "Removing Docker image on appserver {}".format(i)
 
-        appserver_open_http_request(
-            i,
-            "/sites/remove-docker-image",
-            params={"name": site.docker_image.name},
-            method="POST",
+        yield from retry_appserver_request(
+            "Connecting to appserver {} to remove Docker image".format(i),
+            lambda appserver=i: appserver_open_http_request(
+                appserver,
+                "/sites/remove-docker-image",
+                params={"name": site.docker_image.name},
+                method="POST",
+            ),
         )
 
         yield "Removing Docker image from registry on appserver {}".format(i)
 
-        appserver_open_http_request(
-            i,
-            "/sites/remove-registry-image",
-            params={"name": site.docker_image.name},
-            method="POST",
+        yield from retry_appserver_request(
+            "Connecting to appserver {} to remove registry image".format(i),
+            lambda appserver=i: appserver_open_http_request(
+                appserver,
+                "/sites/remove-registry-image",
+                params={"name": site.docker_image.name},
+                method="POST",
+            ),
         )
 
 
@@ -249,11 +290,13 @@ def ensure_site_directories_exist(
 ) -> Iterator[Union[Tuple[str, str], str]]:
     appserver = random.choice(scope["pingable_appservers"])
 
-    yield "Connecting to appserver {} to ensure site directories exist".format(appserver)
-    appserver_open_http_request(
-        appserver,
-        "/sites/{}/ensure-directories-exist".format(site.id),
-        method="POST",
+    yield from retry_appserver_request(
+        "Connecting to appserver {} to ensure site directories exist".format(appserver),
+        lambda: appserver_open_http_request(
+            appserver,
+            "/sites/{}/ensure-directories-exist".format(site.id),
+            method="POST",
+        ),
     )
 
 
@@ -350,12 +393,15 @@ def delete_site_database_and_object(  # pylint: disable=unused-argument
     appserver_num = random.choice(scope["pingable_appservers"])
 
     yield "Connecting to appserver {} to delete real database".format(appserver_num)
-    appserver_open_http_request(
-        appserver_num,
-        "/sites/databases/delete",
-        method="POST",
-        data={"data": json.dumps(site.database.serialize_for_appserver())},
-        timeout=30,
+    yield from retry_appserver_request(
+        "Connecting to appserver {} to delete real database".format(appserver_num),
+        lambda: appserver_open_http_request(
+            appserver_num,
+            "/sites/databases/delete",
+            method="POST",
+            data={"data": json.dumps(site.database.serialize_for_appserver())},
+            timeout=90,
+        ),
     )
 
     yield "Deleting database object in model"
@@ -367,14 +413,15 @@ def create_real_site_database(site: Site, scope: Dict[str, Any]):  # pylint: dis
 
     appserver_num = random.choice(scope["pingable_appservers"])
 
-    yield "Connecting to appserver {} to create real site database".format(appserver_num)
-
-    appserver_open_http_request(
-        appserver_num,
-        "/sites/databases/create",
-        method="POST",
-        data={"data": json.dumps(site.database.serialize_for_appserver())},
-        timeout=30,
+    yield from retry_appserver_request(
+        "Connecting to appserver {} to create real site database".format(appserver_num),
+        lambda: appserver_open_http_request(
+            appserver_num,
+            "/sites/databases/create",
+            method="POST",
+            data={"data": json.dumps(site.database.serialize_for_appserver())},
+            timeout=90,
+        ),
     )
 
 
@@ -388,12 +435,13 @@ def regen_database_password(site: Site, scope: Dict[str, Any]):  # pylint: disab
 
     appserver_num = random.choice(scope["pingable_appservers"])
 
-    yield "Connecting to appserver {} to update real password".format(appserver_num)
-
-    appserver_open_http_request(
-        appserver_num,
-        "/sites/databases/create",
-        method="POST",
-        data={"data": json.dumps(site.database.serialize_for_appserver())},
-        timeout=30,
+    yield from retry_appserver_request(
+        "Connecting to appserver {} to update real password".format(appserver_num),
+        lambda: appserver_open_http_request(
+            appserver_num,
+            "/sites/databases/create",
+            method="POST",
+            data={"data": json.dumps(site.database.serialize_for_appserver())},
+            timeout=90,
+        ),
     )
