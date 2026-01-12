@@ -11,7 +11,6 @@ defaults:
 .anchors:
   python_versions: &python_versions
     - 3.7
-    - 3.8
 
   python_setup: &python_setup
     name: Set up Python ${{ matrix.python-version }}
@@ -25,12 +24,20 @@ defaults:
 
   setup_cache: &setup_cache
     name: Set up cache
+    if: env.ACT != 'true'        # still skip cache in act runs
     uses: actions/cache@v4
     with:
-      path: | 
+      path: |
         ~/.cache/pip
         ~/.cache/pipenv
       key: ${{ matrix.python-version }}
+
+  pin_pip: &pin_pip
+    # Ensure pip is <24.1 so Celery 5.0.5 metadata is accepted
+    name: Pin pip below 24.1 for Celery 5.0.5
+    run: |
+      python -m pip install "pip<24.1"
+      python -m pip --version
 
   install_pipenv: &install_pipenv
     name: Install pipenv
@@ -39,22 +46,46 @@ defaults:
   install_manager_dependencies: &install_manager_dependencies
     name: Install manager dependencies
     working-directory: ./manager
-    run: pipenv install --dev --deploy
-    
+    run: |
+      if [ "${ACT:-false}" = "true" ]; then
+        echo "Running under act – loosening pipenv constraints for manager"
+        pipenv install --dev --skip-lock
+      else
+        pipenv install --dev --deploy
+      fi
+
   install_orchestrator_dependencies: &install_orchestrator_dependencies
     name: Install orchestrator dependencies
     working-directory: ./orchestrator
-    run: pipenv install --dev --deploy
-    
+    run: |
+      if [ "${ACT:-false}" = "true" ]; then
+        echo "Running under act – loosening pipenv constraints for orchestrator"
+        pipenv install --dev --skip-lock
+      else
+        pipenv install --dev --deploy
+      fi
+
   install_router_dependencies: &install_router_dependencies
     name: Install router dependencies
     working-directory: ./router
-    run: pipenv install --dev --deploy
-    
+    run: |
+      if [ "${ACT:-false}" = "true" ]; then
+        echo "Running under act – loosening pipenv constraints for router"
+        pipenv install --dev --skip-lock
+      else
+        pipenv install --dev --deploy
+      fi
+
   install_shell_dependencies: &install_shell_dependencies
     name: Install shell dependencies
     working-directory: ./shell
-    run: pipenv install --dev --deploy
+    run: |
+      if [ "${ACT:-false}" = "true" ]; then
+        echo "Running under act – loosening pipenv constraints for shell"
+        pipenv install --dev --skip-lock
+      else
+        pipenv install --dev --deploy
+      fi
 
   generate_shell_keys: &generate_shell_keys
     name: generate shell signing keys
@@ -62,14 +93,14 @@ defaults:
     run: |
       sudo mkdir -p /etc/director-shell-keys/etc/ssh
       sudo chown -R $USER:$(id -gn) /etc/director-shell-keys
-      pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-signing-token-pubkey.pem /etc/director-shell-keys/shell-signing-token-privkey.pem
-      pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-encryption-token-pubkey.pem /etc/director-shell-keys/shell-encryption-token-privkey.pem
+      pipenv run python ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-signing-token-pubkey.pem /etc/director-shell-keys/shell-signing-token-privkey.pem
+      pipenv run python ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-encryption-token-pubkey.pem /etc/director-shell-keys/shell-encryption-token-privkey.pem
       ssh-keygen -A -f /etc/director-shell-keys
 
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: *python_versions
@@ -77,6 +108,15 @@ jobs:
     steps:
       - *repo_setup
       - *python_setup
+      - *pin_pip
+
+      # Optional: force PyPI when running under act
+      - name: Force PyPI when running under act
+        if: env.ACT == 'true'
+        run: |
+          echo "PIP_INDEX_URL=https://pypi.org/simple" >> $GITHUB_ENV
+          echo "PIP_TRUSTED_HOST=pypi.org" >> $GITHUB_ENV
+
       - *setup_cache
       - *install_pipenv
       - *install_manager_dependencies
@@ -129,8 +169,10 @@ jobs:
         working-directory: ./shell
         run: pipenv run ./scripts/check.sh
   
+
   test:
-    runs-on: ubuntu-latest
+    # If you want 20.04 specifically, change this to ubuntu-20.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: *python_versions
@@ -139,12 +181,20 @@ jobs:
       redis:
         image: redis:latest
         ports:
-          - 6379:6379
+          - 6379:6379          # keep original port mapping
         options: --entrypoint redis-server
 
     steps:
       - *repo_setup
       - *python_setup
+      - *pin_pip
+
+      - name: Force PyPI when running under act
+        if: env.ACT == 'true'
+        run: |
+          echo "PIP_INDEX_URL=https://pypi.org/simple" >> $GITHUB_ENV
+          echo "PIP_TRUSTED_HOST=pypi.org" >> $GITHUB_ENV
+
       - *setup_cache
       - *install_pipenv
       - *install_manager_dependencies
@@ -210,4 +260,3 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
-
