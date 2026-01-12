@@ -15,17 +15,17 @@ defaults:
 
   python_setup: &python_setup
     name: Set up Python ${{ matrix.python-version }}
-    uses: actions/setup-python@v2
+    uses: actions/setup-python@v4
     with:
       python-version: ${{ matrix.python-version }}
 
   repo_setup: &repo_setup
     name: Set up repo
-    uses: actions/checkout@v2
+    uses: actions/checkout@v4
 
   setup_cache: &setup_cache
     name: Set up cache
-    uses: actions/cache@v2
+    uses: actions/cache@v4
     with:
       path: | 
         ~/.cache/pip
