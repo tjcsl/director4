@@ -18,4 +18,4 @@ zipp = {version = "~=3.4.1", markers = "python_version < '3.8'"}
 
 [packages]
 asyncssh = "~=2.5.0"
-websockets = "~=8.1"
+websockets = "~=9.1"
