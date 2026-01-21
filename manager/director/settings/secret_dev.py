@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 DEBUG = True
 
-REDIS_HOST = "127.0.0.1"
+REDIS_HOST = "redis"
 REDIS_PORT = "6379"
 
 CHANNELS_REDIS_DB = 0
@@ -25,7 +25,7 @@ CHANNEL_LAYERS = {
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "HOST": "127.0.0.1",
+        "HOST": "manager-postgres",
         "PORT": "5432",
         "NAME": "manager",
         "USER": "manager",
@@ -40,9 +40,9 @@ if TESTING:
     DATABASES["default"]["ENGINE"] = "django.db.backends.sqlite3"
     DATABASES["default"]["NAME"] = ":memory:"
 
-DIRECTOR_APPSERVER_HOSTS = ["localhost:5000"]
+DIRECTOR_APPSERVER_HOSTS = ["orchestrator:5000"]
 
-DIRECTOR_APPSERVER_WS_HOSTS = ["localhost:5010"]
+DIRECTOR_APPSERVER_WS_HOSTS = ["orchestrator:5010"]
 
 SITE_URL_FORMATS: Dict[Optional[str], str] = {
     None: "http://127.0.0.1:8081/{}/",
