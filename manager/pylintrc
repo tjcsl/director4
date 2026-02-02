@@ -4,7 +4,7 @@ init-hook=import sys; sys.path.insert(0, 'director/apps')
 load-plugins=pylint_django
 
 [MAIN]
-disable=missing-docstring,no-else-return,no-else-raise,bad-continuation,duplicate-code,too-many-branches,too-many-nested-blocks,too-many-locals,too-many-statements,too-many-public-methods
+disable=missing-docstring,no-else-return,no-else-raise,duplicate-code,too-many-branches,too-many-nested-blocks,too-many-locals,too-many-statements,too-many-public-methods
 max-line-length=100
 ignore=media,migrations
 ignore-patterns=secret*

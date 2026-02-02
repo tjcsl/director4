@@ -60,21 +60,20 @@ class SiteCreateForm(forms.ModelForm):
             self.initial_purpose = None
 
     def clean(self) -> Dict[str, Any]:
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
+        name = cleaned_data.get("name", "")
+        purpose = cleaned_data.get("purpose", self.initial_purpose)
+        users_value = cleaned_data.get("users") or []
 
-        if (
-            cleaned_data["name"][0] in string.digits
-            and cleaned_data.get("purpose", self.initial_purpose) != "user"
-            and not self.user.is_superuser
-        ):
+        if name and name[0] in string.digits and purpose != "user" and not self.user.is_superuser:
             self.add_error("name", "Project site names cannot start with a number")
 
-        if len(cleaned_data.get("users", [])) == 0:
+        if len(users_value) == 0:
             self.add_error("users", "You must select at least one user for this site")
 
         if (
             "users" in cleaned_data.keys()
-            and self.user not in cleaned_data["users"]
+            and self.user not in users_value
             and not self.user.is_superuser
         ):
             self.add_error("users", "You must include yourself as a user for this site")
@@ -127,9 +126,10 @@ class SiteNamesForm(forms.Form):
             self.fields["name"].disabled = True
 
     def clean(self) -> Dict[str, Any]:
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
+        name = cleaned_data.get("name", "")
 
-        if cleaned_data["name"][0] in string.digits and self.site.purpose != "user":
+        if name and name[0] in string.digits and self.site.purpose != "user":
             self.add_error("name", "Project site names cannot start with a number")
 
         return cleaned_data
@@ -156,10 +156,11 @@ class DomainForm(forms.Form):
         self.user_is_superuser = user_is_superuser
 
     def clean(self) -> Dict[str, Any]:
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
+        domain = cleaned_data.get("domain", "")
 
         if not self.user_is_superuser:
-            if "domain" in cleaned_data and cleaned_data["domain"].endswith("tjhsst.edu"):
+            if domain and domain.endswith("tjhsst.edu"):
                 self.add_error("domain", "Only administrators can add tjhsst.edu domains")
 
         return cleaned_data
@@ -184,9 +185,10 @@ class SiteMetaForm(forms.ModelForm):
             self.fields["purpose"].disabled = True
 
     def clean(self) -> Dict[str, Any]:
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
+        purpose = cleaned_data.get("purpose") or self.instance.purpose
 
-        if self.instance.name[0] in string.digits and cleaned_data["purpose"] != "user":
+        if self.instance.name[0] in string.digits and purpose != "user":
             self.add_error("name", "Project site names cannot start with a number")
 
         return cleaned_data
@@ -234,13 +236,15 @@ class ImageSelectForm(forms.Form):
     PACKAGE_NAME_REGEX = re.compile(r"^[a-zA-Z0-9_][-+=_.a-zA-Z0-9]*$")
 
     def clean(self) -> Dict[str, Any]:
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
+        packages_raw = cleaned_data.get("packages") or ""
 
         # Make sure the package names can all fit in the name field
         max_package_name_length = DockerImageExtraPackage._meta.get_field("name").max_length
-        package_names = cleaned_data["packages"].strip().split()
-        if any(len(name) > max_package_name_length for name in package_names):
-            self.add_error("packages", "One of your package names is too long")
+        package_names = packages_raw.strip().split()
+        if max_package_name_length is not None:
+            if any(len(name) > max_package_name_length for name in package_names):
+                self.add_error("packages", "One of your package names is too long")
         if any(self.PACKAGE_NAME_REGEX.search(name) is None for name in package_names):
             self.add_error("packages", "One of your package names is invalid")
 

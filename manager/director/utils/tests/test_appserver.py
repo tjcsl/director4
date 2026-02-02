@@ -1,5 +1,3 @@
-import websockets
-
 from ...test.director_test import DirectorTestCase
 from ..appserver import (
     AppserverProtocolError,
@@ -10,6 +8,7 @@ from ..appserver import (
     iter_random_pingable_appservers,
     ping_appserver,
 )
+from ..websockets_compat import Connect as WebSocketConnect
 
 
 class UtilsAppserverTestCase(DirectorTestCase):
@@ -60,6 +59,6 @@ class UtilsAppserverTestCase(DirectorTestCase):
 
     def test_appserver_open_websocket(self):
         self.assertEqual(
-            websockets.client.Connect,
+            WebSocketConnect,
             type(appserver_open_websocket("director-apptest1", "/test", ping_timeout=1)),
         )

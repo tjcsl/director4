@@ -4,7 +4,7 @@
 import asyncio
 import socket
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from docker.client import DockerClient
 from docker.errors import APIError, ImageNotFound, NotFound
@@ -44,18 +44,21 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
 
         self.closed = False
 
+    def _raw_socket(self) -> socket.socket:
+        assert self.socket is not None
+        raw_socket = cast(Any, self.socket)._sock  # pylint: disable=protected-access
+        return cast(socket.socket, raw_socket)
+
     async def start(self, *, command: Optional[List[str]] = None) -> None:
         await self._start_attach(command)
 
         assert self.socket is not None
         # The default timeout is 60 seconds, which is way too low
         # 1 day is probably overkill, but why not?
-        self.socket._sock.settimeout(24 * 60 * 60)  # pylint: disable=protected-access
+        self._raw_socket().settimeout(24 * 60 * 60)
 
         # We have to do this here because the executor doesn't have a running event loop
-        self.reader, self.writer = await asyncio.open_connection(
-            sock=self.socket._sock  # pylint: disable=protected-access
-        )
+        self.reader, self.writer = await asyncio.open_connection(sock=self._raw_socket())
 
         await self.resize(24, 80)
 
@@ -253,7 +256,8 @@ class TerminalContainer:  # pylint: disable=too-many-instance-attributes
         if self.socket is not None and not self.closed:
             # It's not enough to close the socket; to force-interrupt read()s we need to shut
             # it down first.
-            self.socket._sock.shutdown(socket.SHUT_RDWR)  # pylint: disable=protected-access
-            self.socket._sock.close()  # pylint: disable=protected-access
+            raw_socket = self._raw_socket()
+            raw_socket.shutdown(socket.SHUT_RDWR)
+            raw_socket.close()
 
             self.closed = True

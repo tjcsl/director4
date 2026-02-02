@@ -2,12 +2,15 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import UserManager as DjangoUserManager
 from django.db import models
 from django.utils import timezone
+
+if TYPE_CHECKING:
+    from director.apps.sites.models import Site
 
 from ...utils.emails import send_email as utils_send_email
 
@@ -19,6 +22,9 @@ class UserManager(DjangoUserManager):
 
 
 class User(AbstractBaseUser):
+    if TYPE_CHECKING:
+        site_set: "models.Manager[Site]"
+
     objects = UserManager()
 
     USERNAME_FIELD = "username"
@@ -114,7 +120,7 @@ class MassEmail(models.Model):
 
         send_users = self.limit_users if self.limit_users.exists() else User.objects.all()
 
-        emails = send_users.values_list("email")
+        emails = list(send_users.values_list("email", flat=True))
 
         self.sent_time = timezone.localtime()
         self.save(update_fields=["sent_time"])
