@@ -1,15 +1,19 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from __future__ import annotations
+
 import asyncio
 import concurrent.futures
-from typing import Any, Awaitable, Callable, Iterable, List, Optional, Union
+from typing import Any, Awaitable, Callable, Iterable, Optional, Sequence, Union
 
 import websockets
 
+from ..websockets_types import WebSocketClientProtocol
+
 
 async def ping_loop(
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: WebSocketClientProtocol,
     interval: Union[int, float],
 ) -> None:
     while True:
@@ -20,7 +24,7 @@ async def ping_loop(
             pass
 
 
-async def websock_recv_devnull_loop(websock: websockets.client.WebSocketClientProtocol) -> None:
+async def websock_recv_devnull_loop(websock: WebSocketClientProtocol) -> None:
     while True:
         try:
             await websock.recv()
@@ -29,7 +33,7 @@ async def websock_recv_devnull_loop(websock: websockets.client.WebSocketClientPr
 
 
 async def cancel_remaining_tasks(
-    tasks: List[Union["asyncio.Task[Any]", "asyncio.Future[Any]"]],
+    tasks: Sequence[Union["asyncio.Task[Any]", "asyncio.Future[Any]"]],
 ) -> None:
     for task in tasks:
         if not task.done():

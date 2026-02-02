@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -15,6 +15,9 @@ from django.core.validators import (
 from django.db import models  # pylint: disable=unused-import # noqa
 from django.db.models import Q
 from django.utils import timezone
+
+if TYPE_CHECKING:
+    from director.apps.users.models import User
 
 from ...utils import split_domain
 from ...utils.site_names import is_site_name_allowed
@@ -93,7 +96,9 @@ class Site(models.Model):
     # The Docker image running on here
     docker_image = models.ForeignKey("DockerImage", null=False, on_delete=models.PROTECT)
     # Users who have access to this site
-    users = models.ManyToManyField(get_user_model(), blank=True)
+    users: "models.ManyToManyField[User, Any]" = models.ManyToManyField(
+        get_user_model(), blank=True
+    )
 
     # The site database
     database = models.OneToOneField(
@@ -438,7 +443,7 @@ class DockerImage(models.Model):
         related_name="children",
     )
 
-    setup_commands = models.ManyToManyField(
+    setup_commands: "models.ManyToManyField[DockerImageSetupCommand, Any]" = models.ManyToManyField(
         "DockerImageSetupCommand", blank=True, related_name="docker_images"
     )
 
@@ -541,6 +546,7 @@ class DockerImageSetupCommand(models.Model):
     in the Alpine images."""
 
     objects = DockerImageSetupCommandManager()
+    docker_images: "models.Manager[DockerImage]"
 
     name = models.CharField(
         null=False,

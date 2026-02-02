@@ -11,7 +11,12 @@ from social_core.strategy import BaseStrategy
 def get_username(
     strategy: BaseStrategy, details: Dict[str, Any], *args: Any, user=None, **kwargs: Any
 ) -> Optional[Dict[str, str]]:
-    result = social_get_username(strategy, details, user=user, *args, **kwargs)
+    call_kwargs = dict(kwargs)
+    if args:
+        call_kwargs.pop("user", None)
+    elif "user" not in call_kwargs:
+        call_kwargs["user"] = user
+    result = social_get_username(strategy, details, *args, **call_kwargs)
     return cast(Optional[Dict[str, str]], result)
 
 

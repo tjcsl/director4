@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -13,13 +15,14 @@ from ..files import (
     SiteFilesUserViewableException,
     remove_all_site_files_dangerous,
 )
+from ..websockets_types import WebSocketClientProtocol
 from .utils import mainloop_auto_cancel, wait_for_event
 
 logger = logging.getLogger(__name__)
 
 
 async def file_monitor_handler(  # pylint: disable=unused-argument
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:
@@ -66,7 +69,7 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
 
 
 async def remove_all_site_files_dangerous_handler(  # pylint: disable=unused-argument
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:

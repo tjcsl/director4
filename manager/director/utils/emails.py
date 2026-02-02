@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
-from typing import Any, Mapping, Sequence
+from typing import Any, Dict, Sequence
 
 from celery import shared_task
 
@@ -13,7 +13,7 @@ from django.template.loader import get_template
 def send_email(  # pylint: disable=too-many-arguments
     text_template: str,
     html_template: str,
-    context: Mapping[str, Any],
+    context: Dict[str, Any],
     subject: str,
     emails: Sequence[str],
     bcc: bool,

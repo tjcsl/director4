@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -12,13 +14,14 @@ import websockets
 from .. import settings
 from ..docker.utils import create_client
 from ..terminal import TerminalContainer
+from ..websockets_types import WebSocketClientProtocol
 from .utils import mainloop_auto_cancel, wait_for_event
 
 logger = logging.getLogger(__name__)
 
 
 async def web_terminal_handler(  # pylint: disable=unused-argument
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:

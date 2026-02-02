@@ -8,9 +8,10 @@ import urllib.parse
 import xml.etree.ElementTree
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple
 
-import bleach
-import markdown
-import markdown.extensions.toc
+import bleach  # type: ignore[import-untyped]
+import markdown  # type: ignore[import-untyped]
+import markdown.extensions.toc  # type: ignore[import-untyped]
+from bleach.css_sanitizer import CSSSanitizer  # type: ignore[import-untyped]
 
 from django.conf import settings
 from django.core.cache import cache
@@ -63,7 +64,7 @@ ALLOWED_STYLES: List[str] = []
 cleaner = bleach.sanitizer.Cleaner(
     tags=ALLOWED_TAGS,
     attributes=ALLOWED_ATTRS,
-    styles=ALLOWED_STYLES,
+    css_sanitizer=CSSSanitizer(allowed_css_properties=ALLOWED_STYLES),
     strip=True,
     strip_comments=True,
 )

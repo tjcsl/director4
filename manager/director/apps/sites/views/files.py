@@ -152,15 +152,18 @@ def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
         if not files:
             return HttpResponse(status=400)
 
-        basepath = request.GET.get("basepath", "")
+        basepath = request.GET.get("basepath") or ""
 
         for f_obj in files:
+            file_name = f_obj.name
+            if file_name is None:
+                return HttpResponse(status=400)
             try:
                 appserver_open_http_request(
                     appserver,
                     "/sites/{}/files/write".format(site.id),
                     method="POST",
-                    params={"path": os.path.join(basepath, f_obj.name)},
+                    params={"path": os.path.join(basepath, file_name)},
                     data=f_obj.chunks(),
                     timeout=600,
                 )

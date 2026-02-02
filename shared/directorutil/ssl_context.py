@@ -56,7 +56,7 @@ def create_internal_client_ssl_context(
         context.load_cert_chain(
             certfile=client_certinfo["certfile"],
             keyfile=client_certinfo.get("keyfile"),
-            password=lambda: client_certinfo["password"],  # type: ignore
+            password=lambda: client_certinfo["password"],
         )
 
     return context
