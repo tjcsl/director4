@@ -22,7 +22,7 @@ def edit_view(request: HttpRequest, site_id: int) -> HttpResponse:
         "site": site,
         "names_form": SiteNamesForm(site=site),
         "domains_formset": DomainFormSet(
-            initial=site.domain_set.values("domain"), prefix="domains"
+            initial=list(site.domain_set.values("domain")), prefix="domains"
         ),
         "meta_form": SiteMetaForm(instance=site, user=request.user),
         "type_form": SiteTypeForm({"type": site.type}),
@@ -139,7 +139,9 @@ def edit_names_view(request: HttpRequest, site_id: int) -> HttpResponse:
                 return redirect("sites:info", site.id)
     else:
         names_form = SiteNamesForm(site=site)
-        domains_formset = DomainFormSet(initial=site.domain_set.values("domain"), prefix="domains")
+        domains_formset = DomainFormSet(
+            initial=list(site.domain_set.values("domain")), prefix="domains"
+        )
 
     context = {"site": site, "names_form": names_form, "domains_formset": domains_formset}
 

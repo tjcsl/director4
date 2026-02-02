@@ -106,8 +106,8 @@ exec sleep 2147483647"""
                 failure_action="rollback",
                 max_failure_ratio=0,
                 # delay and monitor are in nanoseconds (1e9 seconds)
-                delay=int(5 * (10 ** 9)),
-                monitor=int(5 * (10 ** 9)),
+                delay=int(5 * (10**9)),
+                monitor=int(5 * (10**9)),
             ),
         }
     )

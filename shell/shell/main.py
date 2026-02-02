@@ -16,19 +16,6 @@ from .server import ShellSSHListener
 logger = logging.getLogger(__package__)
 
 
-stop_event = asyncio.Event()
-
-
-def sigterm_handler() -> None:
-    stop_event.set()
-    asyncio.get_event_loop().remove_signal_handler(signal.SIGTERM)
-
-
-def sigint_handler() -> None:
-    stop_event.set()
-    asyncio.get_event_loop().remove_signal_handler(signal.SIGINT)
-
-
 def main(argv: List[str]) -> None:
     parser = argparse.ArgumentParser(prog=argv[0])
 
@@ -72,29 +59,37 @@ def main(argv: List[str]) -> None:
     handler.setFormatter(logging.Formatter("%(asctime)s: %(levelname)7s: %(message)s"))
     logger.addHandler(handler)
 
-    loop = asyncio.get_event_loop()
+    async def run_server() -> None:
+        stop_event = asyncio.Event()
+        loop = asyncio.get_running_loop()
 
-    loop.add_signal_handler(signal.SIGTERM, sigterm_handler)
-    loop.add_signal_handler(signal.SIGINT, sigint_handler)
+        def _signal_handler(sig: signal.Signals) -> None:
+            stop_event.set()
+            loop.remove_signal_handler(sig)
 
-    loop.set_default_executor(
-        concurrent.futures.ThreadPoolExecutor(max_workers=min(32, (os.cpu_count() or 2) * 2))
-    )
+        loop.add_signal_handler(signal.SIGTERM, lambda: _signal_handler(signal.SIGTERM))
+        loop.add_signal_handler(signal.SIGINT, lambda: _signal_handler(signal.SIGINT))
 
-    listener = ShellSSHListener(
-        bind_host=options.bind_host,
-        bind_port=options.bind_port,
-        server_host_keys=options.server_host_keys,
-    )
+        loop.set_default_executor(
+            concurrent.futures.ThreadPoolExecutor(max_workers=min(32, (os.cpu_count() or 2) * 2))
+        )
 
-    loop.run_until_complete(listener.start())
+        listener = ShellSSHListener(
+            bind_host=options.bind_host,
+            bind_port=options.bind_port,
+            server_host_keys=options.server_host_keys,
+        )
 
-    logger.info("Started server")
-    loop.run_until_complete(stop_event.wait())
-    logger.info("Stopping server")
-    listener.close()
-    loop.run_until_complete(listener.wait_closed())
-    logger.info("Stopped server")
+        await listener.start()
+
+        logger.info("Started server")
+        await stop_event.wait()
+        logger.info("Stopping server")
+        listener.close()
+        await listener.wait_closed()
+        logger.info("Stopped server")
+
+    asyncio.run(run_server())
 
 
 if __name__ == "__main__":

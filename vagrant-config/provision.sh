@@ -11,10 +11,51 @@ sed -i 's/^#\(force_color_prompt=yes\)/\1/' /home/vagrant/.bashrc
 
 export DEBIAN_FRONTEND=noninteractive
 
+MARKER_DIR=/var/lib/director-provision
+mkdir -p "$MARKER_DIR"
+
+run_step() {
+    local step_name="$1"
+    shift
+    if [ -f "$MARKER_DIR/$step_name" ]; then
+        echo "Skipping $step_name (marker present)"
+        return 0
+    fi
+    echo "Running $step_name"
+    "$@"
+    touch "$MARKER_DIR/$step_name"
+}
+
+# Avoid service restarts during provisioning; we'll reboot manually when ready.
+if [ -d /etc/needrestart ]; then
+    mkdir -p /etc/needrestart/conf.d
+    cat <<'EOF' >/etc/needrestart/conf.d/99-director.conf
+$nrconf{restart} = 'l';
+EOF
+fi
+
+# Allow unprivileged user namespaces for unshare --map-root-user (required by orchestrator)
+USERNS_SYSCTL=/etc/sysctl.d/99-director-userns.conf
+cat <<'EOF' >"$USERNS_SYSCTL"
+kernel.unprivileged_userns_clone=1
+EOF
+if sysctl -a 2>/dev/null | grep -q 'kernel.apparmor_restrict_unprivileged_userns'; then
+    echo "kernel.apparmor_restrict_unprivileged_userns=0" >>"$USERNS_SYSCTL"
+fi
+sysctl -p "$USERNS_SYSCTL" >/dev/null || true
+
+# Ensure shared directorutil package is importable without symlinks
+export PYTHONPATH="/home/vagrant/director/shared${PYTHONPATH:+:$PYTHONPATH}"
+cat <<'EOF' >/etc/profile.d/director-pythonpath.sh
+export PYTHONPATH="/home/vagrant/director/shared${PYTHONPATH:+:$PYTHONPATH}"
+EOF
+
 
 ## System upgrade
-sudo apt-get update
-sudo apt-get -y dist-upgrade
+run_step system-upgrade bash -c "set -e
+apt-get update
+apt-get -y dist-upgrade
+"
 
 
 ## Set timezone
@@ -22,15 +63,33 @@ timedatectl set-timezone America/New_York
 
 
 ## Dependencies
-# Pip for obvious reasons, tmux and expect for the launch script, and krb5-user for kinit
-apt-get -y install python3-pip tmux expect krb5-user
+run_step base-deps bash -c "set -e
+# Python 3.13
+apt-get -y install software-properties-common
+add-apt-repository -y ppa:deadsnakes/ppa
+apt-get update
+apt-get -y install python3.13 python3.13-venv python3.13-dev
+if ! command -v python3.13 >/dev/null 2>&1; then
+    echo 'python3.13 install failed; check apt sources and PPA availability.'
+    exit 1
+fi
+
+# tmux and expect for the launch script, and krb5-user for kinit
+apt-get -y install tmux expect krb5-user
 # Development files
-apt-get -y install python3-dev libssl-dev libcrypto++-dev
-sudo pip3 install pipenv fabric
-
-
-## Helpful utilities
+apt-get -y install libssl-dev libcrypto++-dev
+# Helpful utilities
 apt-get -y install htop
+# Build tooling for mysqlclient
+apt-get -y install build-essential pkg-config libmariadb-dev libmariadb-dev-compat
+
+# Install pipenv/fabric in an isolated venv to avoid breaking system pip
+python3.13 -m venv /opt/pipenv
+/opt/pipenv/bin/pip install --upgrade pip
+/opt/pipenv/bin/pip install pipenv fabric
+ln -sf /opt/pipenv/bin/pipenv /usr/local/bin/pipenv
+ln -sf /opt/pipenv/bin/fab /usr/local/bin/fab
+"
 
 
 ## Setup PostgreSQL
@@ -52,27 +111,32 @@ EOF
 run_psql() {
     sudo -u postgres psql -U postgres -d postgres -c "$@"
 }
+run_psql_db() {
+    local dbname="$1"
+    shift
+    sudo -u postgres psql -U postgres -d "$dbname" -c "$@"
+}
 for name in 'manager'; do
-    run_psql "CREATE DATABASE $name;" || echo "Database '$name' already exists"
+    run_psql "CREATE DATABASE $name OWNER $name;" || echo "Database '$name' already exists"
     run_psql "CREATE USER $name PASSWORD 'pwd';" || echo "User '$name' already exists"
 done
 
 run_psql "ALTER USER postgres WITH PASSWORD 'pwd';"
+run_psql "ALTER DATABASE manager OWNER TO manager;" || true
+run_psql_db manager "GRANT USAGE,CREATE ON SCHEMA public TO manager;"
 
 # Edit the config and restart
+PG_HBA_FILE=$(sudo -u postgres psql -Atc "SHOW hba_file;")
 for line in "host sameuser all 127.0.0.1/32 password" "host sameuser all ::1/128 password"; do
-    if [[ $'\n'"$(</etc/postgresql/12/main/pg_hba.conf)"$'\n' != *$'\n'"$line"$'\n'* ]]; then
-        echo "$line" >>/etc/postgresql/12/main/pg_hba.conf
+    if [[ $'\n'"$(<"$PG_HBA_FILE")"$'\n' != *$'\n'"$line"$'\n'* ]]; then
+        echo "$line" >>"$PG_HBA_FILE"
     fi
 done
 systemctl restart postgresql
 systemctl enable postgresql
 
-## Install MySQL system dependency
-apt-get -y install default-libmysqlclient-dev
-
 ## Setup Redis
-apt-get -y install redis
+apt-get -y install redis-server
 sed -i 's/^#\(bind 127.0.0.1 ::1\)$/\1/' /etc/redis/redis.conf
 sed -i 's/^\(protected-mode\) no$/\1 yes/' /etc/redis/redis.conf
 systemctl restart redis-server
@@ -86,9 +150,12 @@ systemctl disable rabbitmq-server || true
 
 
 ## Setup Docker
-wget -q -O - 'https://download.docker.com/linux/ubuntu/gpg' | sudo apt-key add -
+apt-get -y install ca-certificates curl gnupg
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor --yes --batch --no-tty -o /etc/apt/keyrings/docker.gpg
+chmod a+r /etc/apt/keyrings/docker.gpg
 sed -i "s,^\(deb.*https://download.docker.com/linux/ubuntu.*stable\)$,#\1," /etc/apt/sources.list
-echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" >/etc/apt/sources.list.d/docker.list
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" >/etc/apt/sources.list.d/docker.list
 apt-get update
 apt-get install -y docker-ce
 systemctl start docker
@@ -147,7 +214,7 @@ docker service create --replicas=1 \
     --mount type=bind,source=/data/sites,destination=/data/sites,ro \
     --network director-sites \
     --name director-nginx \
-    nginx:latest
+    nginx:1.28.1-alpine
 
 # Remove old "static Nginx" service
 docker service rm director-nginx-static || true
@@ -207,7 +274,7 @@ docker service create --replicas=1 \
     --env=POSTGRES_PASSWORD=pwd \
     --network director-sites \
     --name director-postgres \
-    postgres:latest
+    postgres:18-alpine
 
 ## Set up MySQL service
 docker service rm director-mysql || true
@@ -217,7 +284,7 @@ docker service create --replicas=1 \
     --env=MYSQL_ROOT_PASSWORD=pwd \
     --network director-sites \
     --name director-mysql \
-    mariadb:latest
+    mariadb:11.8.5
 
 # Docs repo
 mkdir -p /usr/local/www/director-docs
@@ -246,7 +313,18 @@ if [[ ! -e shell/shell/settings/secret.py ]]; then
     cp shell/shell/settings/secret.{sample,py}
 fi
 
+export PIPENV_DEFAULT_PYTHON=/usr/bin/python3.13
 sudo -H -u vagrant ./scripts/install_dependencies.sh
+
+# Ensure directorutil is on sys.path inside each Pipenv venv
+for dname in manager orchestrator router shell; do
+    venv_path=$(cd "$dname" && sudo -H -u vagrant pipenv --venv)
+    if [[ -n "$venv_path" ]]; then
+        pyver=$("$venv_path/bin/python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+        site_dir="$venv_path/lib/python$pyver/site-packages"
+        echo "/home/vagrant/director/shared" | sudo -H -u vagrant tee "$site_dir/directorutil.pth" >/dev/null
+    fi
+done
 
 # Create RSA keys for shell server token encryption
 if [[ ! -e /etc/director-shell-keys/shell-signing-token-privkey.pem ]]; then

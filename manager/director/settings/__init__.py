@@ -46,6 +46,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -64,6 +65,9 @@ INSTALLED_APPS = [
     "director.apps.docs",
     "director.apps.shell_server",
 ]
+
+# Keep legacy AutoField to avoid migration churn.
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -183,6 +187,7 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
 # Celery
 CELERY_BROKER_URL = "redis://localhost:6379/2"
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 # Celery will import these modules to try to find tasks
 # If a task is not in a director/apps/<app name>/tasks.py, it should
 # be added here
@@ -199,9 +204,8 @@ CHANNEL_LAYERS = {
 # Caching
 CACHES = {
     "default": {
-        "BACKEND": "redis_cache.RedisCache",
-        "LOCATION": ["127.0.0.1:6379"],
-        "OPTIONS": {"DB": 1},
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
     },
 }
 

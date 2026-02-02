@@ -20,6 +20,7 @@ BUFSIZE = 4096
 
 
 def chroot_into(directory: str) -> None:
+    """Enter a chroot jail for this site and set cwd to its root."""
     if os.getuid() != 0:
         print("Please run this in a user namespace", file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
@@ -30,6 +31,7 @@ def chroot_into(directory: str) -> None:
 
 # Later, this function may support more complicated strings
 def get_new_mode(old_mode: int, mode_str: Optional[str]) -> int:
+    """Parse octal or +/-rwx syntax and return resulting permission bits."""
     if not mode_str:
         return old_mode
     elif set(mode_str) < set("01234567"):
@@ -58,6 +60,7 @@ def update_mode(path: str, mode_str: str) -> None:
 
 
 def construct_scandir_file_dicts(dirpath: str) -> List[Dict[str, Optional[str]]]:
+    """Return JSON-safe metadata for direct children of ``dirpath``."""
     items = []
     for entry in os.scandir(dirpath or "."):
         fname = os.path.join(dirpath, entry.name)
@@ -95,6 +98,7 @@ def construct_scandir_file_dicts(dirpath: str) -> List[Dict[str, Optional[str]]]
 
 
 def construct_file_event_dict(fname: str) -> Dict[str, Optional[str]]:
+    """Return JSON-safe metadata for one path, tolerating race conditions."""
     event_info = {
         "fname": fname,
         "filetype": "unknown",
@@ -248,6 +252,7 @@ def rmdir_recur_cmd(site_directory: str, relpath: str) -> None:
 
 
 def get_cmd(site_directory: str, relpath: str, max_size_str: str) -> None:
+    """Stream a file to stdout after path and max-size validation."""
     if relpath.startswith("/"):
         print("Invalid path", file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
@@ -283,6 +288,7 @@ def get_cmd(site_directory: str, relpath: str, max_size_str: str) -> None:
 
 
 def write_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None) -> None:
+    """Write stdin bytes to a file and optionally update permissions."""
     if relpath.startswith("/"):
         print("Invalid path", file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
@@ -314,6 +320,7 @@ def write_cmd(site_directory: str, relpath: str, mode_str: Optional[str] = None)
 def download_zip_cmd(
     site_directory: str, relpath: str, max_size_spec: str, max_files_spec: str,
 ) -> None:
+    """Stream a zip archive for ``relpath`` with per-entry size checks."""
     if relpath.startswith("/"):
         print("Invalid path", file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
@@ -361,6 +368,7 @@ def download_zip_cmd(
 
 
 def monitor_cmd(site_directory: str) -> None:
+    """Emit JSON file events for directories managed via stdin commands."""
     chroot_into(site_directory)
 
     inotify = inotify_simple.INotify()
@@ -506,6 +514,7 @@ def monitor_cmd(site_directory: str) -> None:
 
 
 def remove_all_site_files_dangerous_cmd(site_directory: str) -> None:
+    """Delete all files under ``site_directory``. This command is destructive."""
     try:
         shutil.rmtree(site_directory)
     except OSError as ex:
@@ -514,6 +523,7 @@ def remove_all_site_files_dangerous_cmd(site_directory: str) -> None:
 
 
 def main(argv: List[str]) -> None:
+    """Dispatch subcommands after applying umask and memory limits."""
     if len(argv) < 2:
         print("Please specify a command", file=sys.stderr)
         sys.exit(SPECIAL_EXIT_CODE)
@@ -557,40 +567,33 @@ VENDOR_PREFIX = "ORCHESTRATOR_HELPER_VENDOR_"
 
 
 class OrchestratorHelperVendorLoader:
-    def load_module(self, fullname: str):
-        try:
-            return sys.modules[fullname]
-        except KeyError:
-            pass
+    """Execute vendored module source pulled from environment variables."""
 
-        text = ""
-        is_package = False
-        for key in [VENDOR_PREFIX + fullname, VENDOR_PREFIX + fullname + ".__init__"]:
-            if key in os.environ:
-                text = os.environ[key]
-                is_package = "." in key
-                break
-        else:
-            raise ImportError
+    def __init__(self, fullname: str, text: str, is_package: bool) -> None:
+        self.fullname = fullname
+        self.text = text
+        self.is_package = is_package
 
-        # https://stackoverflow.com/a/53080237
-        mod = importlib.util.module_from_spec(
-            importlib.util.spec_from_loader(fullname, loader=self, is_package=is_package)
-        )
-        sys.modules[fullname] = mod
+    def create_module(self, spec):  # type: ignore[override]
+        return None
 
-        exec(text, mod.__dict__)
-
-        return mod
+    def exec_module(self, module):  # type: ignore[override]
+        module.__file__ = f"<{self.fullname}>"
+        if self.is_package:
+            module.__path__ = []
+        exec(self.text, module.__dict__)
 
 
 class OrchestratorHelperVendorFinder:
-    def find_module(self, fullname: str, path=None):
-        if (
-            VENDOR_PREFIX + fullname in os.environ
-            or VENDOR_PREFIX + fullname + ".__init__" in os.environ
-        ):
-            return OrchestratorHelperVendorLoader()
+    """Resolve vendored modules/packages from ORCHESTRATOR_HELPER_VENDOR_* keys."""
+
+    def find_spec(self, fullname: str, path=None, target=None):  # type: ignore[override]
+        for key in (VENDOR_PREFIX + fullname, VENDOR_PREFIX + fullname + ".__init__"):
+            if key in os.environ:
+                text = os.environ[key]
+                is_package = key.endswith(".__init__")
+                loader = OrchestratorHelperVendorLoader(fullname, text, is_package)
+                return importlib.util.spec_from_loader(fullname, loader, is_package=is_package)
         return None
 
 

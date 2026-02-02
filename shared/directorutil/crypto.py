@@ -86,7 +86,7 @@ def verify_message_hash(
         try:
             verifier = algo_cls.new(public_key, **algo_kwargs)
         except Exception as ex:
-            raise DirectorCryptoError("Error constructing signature object: {}".format(ex)) from ex
+            raise DirectorCryptoError(f"Error constructing signature object: {ex}") from ex
 
         try:
             verifier.verify(msg_hash_obj, signature)
@@ -94,13 +94,13 @@ def verify_message_hash(
             verify_exc = ex
             continue
         except Exception as ex:
-            raise DirectorCryptoError("Error verifying message signature: {}".format(ex)) from ex
+            raise DirectorCryptoError(f"Error verifying message signature: {ex}") from ex
         else:
             return
 
     if verify_exc is not None:
         raise DirectorCryptoVerifyError(
-            "Error verifying message signature: {}".format(verify_exc)
+            f"Error verifying message signature: {verify_exc}"
         ) from verify_exc
     else:
         raise DirectorCryptoVerifyError("Error verifying message signature")
@@ -110,14 +110,14 @@ def encrypt_short_message_pkcs1(*, msg: bytes, public_key: Crypto.PublicKey.RSA.
     try:
         return Crypto.Cipher.PKCS1_OAEP.new(public_key).encrypt(msg)
     except Exception as ex:
-        raise DirectorCryptoError("Error encrypting message: {}".format(ex)) from ex
+        raise DirectorCryptoError(f"Error encrypting message: {ex}") from ex
 
 
 def decrypt_short_message_pkcs1(*, msg: bytes, private_key: Crypto.PublicKey.RSA.RsaKey) -> bytes:
     try:
         return Crypto.Cipher.PKCS1_OAEP.new(private_key).decrypt(msg)
     except Exception as ex:
-        raise DirectorCryptoError("Error decrypting message: {}".format(ex)) from ex
+        raise DirectorCryptoError(f"Error decrypting message: {ex}") from ex
 
 
 def encrypt_message(
@@ -148,7 +148,7 @@ def encrypt_message(
         key=session_key, mode=Crypto.Cipher.AES.MODE_EAX, nonce=nonce, mac_len=aes_tag_length
     )
 
-    ciphertext, tag = cipher_aes.encrypt_and_digest(msg)  # type: ignore
+    ciphertext, tag = cipher_aes.encrypt_and_digest(msg)
 
     return (
         encrypt_short_message_pkcs1(msg=session_key, public_key=public_key)
@@ -177,6 +177,6 @@ def decrypt_message(
     try:
         cipher_aes = Crypto.Cipher.AES.new(session_key, Crypto.Cipher.AES.MODE_EAX, nonce)
 
-        return cipher_aes.decrypt_and_verify(msg, tag)  # type: ignore
+        return cipher_aes.decrypt_and_verify(msg, tag)
     except Exception as ex:
-        raise DirectorCryptoError("Error decrypting message: {}".format(ex)) from ex
+        raise DirectorCryptoError(f"Error decrypting message: {ex}") from ex

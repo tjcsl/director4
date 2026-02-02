@@ -2,22 +2,22 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import logging
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Mapping, Optional, Tuple, Union
 
 import asyncssh
 
 logger = logging.getLogger(__name__)
 
 
-class RootShellSession(asyncssh.SSHServerSession):  # type: ignore
+class RootShellSession(asyncssh.SSHServerSession[Any]):
     def __init__(self) -> None:
-        self.chan: Optional[asyncssh.SSHServerChannel] = None
+        self.chan: Optional[asyncssh.SSHServerChannel[Any]] = None
         self.request_type: Optional[str] = None
         self.remote_addr: Optional[str] = None
 
         self.buf = ""
 
-    def connection_made(self, chan: asyncssh.SSHServerChannel) -> None:
+    def connection_made(self, chan: asyncssh.SSHServerChannel[Any]) -> None:
         self.chan = chan
 
         addr, port = self.chan.get_extra_info("peername", ("<unknown>", 0))
@@ -47,8 +47,8 @@ class RootShellSession(asyncssh.SSHServerSession):  # type: ignore
     def pty_requested(
         self,
         term_type: Optional[str],
-        term_size: Tuple[int, int, int, int, int],
-        term_modes: Dict[int, int],
+        term_size: Tuple[int, int, int, int],
+        term_modes: Mapping[int, int],
     ) -> bool:
         logger.info(
             "%s Requested PTY: %r %r %r", self.remote_addr, term_type, term_size, term_modes
@@ -112,10 +112,9 @@ class RootShellSession(asyncssh.SSHServerSession):  # type: ignore
         self.chan.close()
         return False
 
-    def soft_eof_received(self) -> bool:
+    def soft_eof_received(self) -> None:
         assert self.chan is not None
         self.chan.close()
-        return False
 
     def write(self, data: str) -> None:
         assert self.chan is not None

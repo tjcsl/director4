@@ -132,6 +132,7 @@ def terminal_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if request.GET.get("sql") and site.has_database and site.docker_image.is_custom:
+        assert site.database is not None
         if site.database.db_type == "mysql":
             command = [
                 "sh",

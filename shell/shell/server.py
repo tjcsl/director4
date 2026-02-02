@@ -9,7 +9,7 @@ import json
 import logging
 import time
 import urllib
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, Union, cast
 
 import asyncssh
 import websockets
@@ -17,6 +17,7 @@ import websockets
 from . import manager_interface, settings
 from .root_shell import RootShellSession
 from .util import run_default_executor
+from .websockets_types import WebSocketClientProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class ShellSSHListener:
 
         self.servers: List[ShellSSHServer] = []
 
-        self.sock_server: Optional[asyncio.base_events.Server] = None
+        self.sock_server: Optional[asyncssh.SSHAcceptor] = None
 
     async def start(self) -> None:
         self.sock_server = await asyncssh.listen(
@@ -57,10 +58,10 @@ class ShellSSHListener:
         return ShellSSHServer(self)
 
 
-class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
+class ShellSSHServer(asyncssh.SSHServer):
     def __init__(self, listener: ShellSSHListener) -> None:
         self.listener = listener
-        self.conn: Optional[asyncssh.SSHClientConnection] = None
+        self.conn: Optional[asyncssh.SSHServerConnection] = None
 
         # There's support here for a system where the username is specified in the format:
         # <username>/<site name>
@@ -76,7 +77,7 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
 
         self.sites: Optional[Dict[str, Tuple[int, str]]] = None
 
-    def connection_made(self, conn: asyncssh.SSHClientConnection) -> None:
+    def connection_made(self, conn: asyncssh.SSHServerConnection) -> None:
         # This is called when a connection opens.
         # Give the parent ShellSSHListener a reference to this object
         # so it can keep track of open connections.
@@ -142,7 +143,7 @@ class ShellSSHServer(asyncssh.SSHServer):  # type: ignore
             self.sites = json.load(res)
             return True
 
-    def session_requested(self) -> asyncssh.SSHServerSession:
+    def session_requested(self) -> asyncssh.SSHServerSession[Any]:
         if self.username == "root":
             return RootShellSession()
         else:
@@ -156,13 +157,15 @@ class ShellSSHSessionState(enum.Enum):
     CLOSED = 3
 
 
-class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore # pylint: disable=too-many-instance-attributes, line-too-long # noqa
+class ShellSSHServerSession(
+    asyncssh.SSHServerSession[Any]
+):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa
     def __init__(self, server: ShellSSHServer) -> None:
         assert server.username is not None
         assert server.sites is not None
 
         self.server = server
-        self.chan: Optional[asyncssh.SSHServerChannel] = None
+        self.chan: Optional[asyncssh.SSHServerChannel[Any]] = None
 
         self.buffer = b""
         # This Event is fired whenever new data is made available on the buffer.
@@ -172,7 +175,7 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore # pylint
         # you should immediately clear it
         self.buffer_update_event = asyncio.Event()
 
-        self.websock: Optional[websockets.WebSocketClientProtocol] = None
+        self.websock: Optional[WebSocketClientProtocol] = None
 
         self.websock_send_lock = asyncio.Lock()
 
@@ -188,7 +191,7 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore # pylint
     def subsystem_requested(self, subsystem: str) -> bool:
         return False
 
-    def connection_made(self, chan: asyncssh.SSHServerChannel) -> None:
+    def connection_made(self, chan: asyncssh.SSHServerChannel[Any]) -> None:
         self.chan = chan
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
@@ -200,8 +203,8 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore # pylint
     def pty_requested(
         self,
         term_type: Optional[str],
-        term_size: Tuple[int, int, int, int, int],
-        term_modes: Dict[int, int],
+        term_size: Tuple[int, int, int, int],
+        term_modes: Mapping[int, int],
     ) -> bool:
         self.pty_opened = True
         return True
@@ -263,8 +266,8 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore # pylint
 
         return False
 
-    def soft_eof_received(self) -> bool:
-        return self.eof_received()
+    def soft_eof_received(self) -> None:
+        self.eof_received()
 
     def terminal_size_changed(
         self,
@@ -322,8 +325,9 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore # pylint
 
         self.write_bytes(data.encode())
 
-        self.chan.set_line_mode(True)
-        self.chan.set_echo(True)
+        chan = cast(Any, self.chan)
+        chan.set_line_mode(True)
+        chan.set_echo(True)
 
         self.state = ShellSSHSessionState.SELECT_SITE
 
@@ -368,10 +372,11 @@ class ShellSSHServerSession(asyncssh.SSHServerSession):  # type: ignore # pylint
 
         await self.send_new_tty_size()
 
-        self.chan.set_line_mode(False)
-        self.chan.set_echo(False)
+        chan = cast(Any, self.chan)
+        chan.set_line_mode(False)
+        chan.set_echo(False)
         self.chan.set_encoding(None)
-        self.chan._editor = None  # pylint: disable=protected-access
+        chan._editor = None  # pylint: disable=protected-access
 
         await self.websock_mainloop()
 

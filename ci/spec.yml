@@ -8,14 +8,16 @@ defaults:
   run:
     shell: bash
 
+env:
+  PYTHONPATH: ${{ github.workspace }}/shared
+
 .anchors:
   python_versions: &python_versions
-    - 3.7
-    - 3.8
+    - 3.13
 
   python_setup: &python_setup
     name: Set up Python ${{ matrix.python-version }}
-    uses: actions/setup-python@v4
+    uses: actions/setup-python@v5
     with:
       python-version: ${{ matrix.python-version }}
 
@@ -61,9 +63,9 @@ defaults:
     working-directory: ./manager
     run: |
       sudo mkdir -p /etc/director-shell-keys/etc/ssh
-      sudo chown -R $USER:$(id -gn) /etc/director-shell-keys
-      pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-signing-token-pubkey.pem /etc/director-shell-keys/shell-signing-token-privkey.pem
-      pipenv run ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-encryption-token-pubkey.pem /etc/director-shell-keys/shell-encryption-token-privkey.pem
+      sudo chown -R "$(id -un)":"$(id -gn)" /etc/director-shell-keys
+      pipenv run python ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-signing-token-pubkey.pem /etc/director-shell-keys/shell-signing-token-privkey.pem
+      pipenv run python ../scripts/generate-rsa-key.py 4096 /etc/director-shell-keys/shell-encryption-token-pubkey.pem /etc/director-shell-keys/shell-encryption-token-privkey.pem
       ssh-keygen -A -f /etc/director-shell-keys
 
 
@@ -87,47 +89,47 @@ jobs:
 
       # Shared
       - name: Check shared formatting with format.sh
-        run: cd manager && pipenv run ../shared/scripts/format.sh && cd ../shared && test -z "$(git status --porcelain=v1 .)"
+        run: cd manager && pipenv run bash ../shared/scripts/format.sh && cd ../shared && test -z "$(git status --porcelain=v1 .)"
 
       - name: check shared formatting with check.sh
         working-directory: ./manager
-        run: pipenv run ../shared/scripts/check.sh
+        run: pipenv run bash ../shared/scripts/check.sh
 
       # Manager
       - name: Check manager formatting with format.sh and static_templates_format.sh
         working-directory: ./manager
-        run: pipenv run ./scripts/format.sh && pipenv run ./scripts/static_templates_format.sh && test -z "$(git status --porcelain=v1 .)"
+        run: pipenv run bash ./scripts/format.sh && pipenv run bash ./scripts/static_templates_format.sh && test -z "$(git status --porcelain=v1 .)"
 
       - name: Check manager formatting with check.sh
         working-directory: ./manager
-        run: pipenv run ./scripts/check.sh
+        run: pipenv run bash ./scripts/check.sh
 
       # Orchestrator
       - name: Check orchestrator formatting with format.sh
         working-directory: ./orchestrator
-        run: pipenv run ./scripts/format.sh && test -z "$(git status --porcelain=v1 .)"
+        run: pipenv run bash ./scripts/format.sh && test -z "$(git status --porcelain=v1 .)"
 
       - name: Check orchestrator formatting with check.sh
         working-directory: ./orchestrator
-        run: pipenv run ./scripts/check.sh
+        run: pipenv run bash ./scripts/check.sh
 
       # Router
       - name: Check router formatting with format.sh
         working-directory: ./router
-        run: pipenv run ./scripts/format.sh && test -z "$(git status --porcelain=v1 .)"
+        run: pipenv run bash ./scripts/format.sh && test -z "$(git status --porcelain=v1 .)"
 
       - name: Check router formatting with check.sh
         working-directory: ./router
-        run: pipenv run ./scripts/check.sh
+        run: pipenv run bash ./scripts/check.sh
 
       # Shell
       - name: Check shell formatting with format.sh
         working-directory: ./shell
-        run: pipenv run ./scripts/format.sh && test -z "$(git status --porcelain=v1 .)"
+        run: pipenv run bash ./scripts/format.sh && test -z "$(git status --porcelain=v1 .)"
 
       - name: Check shell formatting with check.sh
         working-directory: ./shell
-        run: pipenv run ./scripts/check.sh
+        run: pipenv run bash ./scripts/check.sh
   
   test:
     runs-on: ubuntu-latest
@@ -154,7 +156,7 @@ jobs:
       - *generate_shell_keys
 
       - name: install Kerberos
-        run: sudo apt install -y krb5-user
+        run: sudo apt-get update && sudo apt-get install -y krb5-user
 
       - name: copy manager secret.py
         working-directory: ./manager
@@ -189,6 +191,7 @@ jobs:
           coverage combine manager/.coverage orchestrator/.coverage router/.coverage shell/.coverage
 
       - name: Report combined coverage report to Coveralls
+        if: env.GITHUB_TOKEN != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_FLAG_NAME: ${{ matrix.python-version }}
@@ -206,8 +209,8 @@ jobs:
 
     steps:
       - name: Tell Coveralls that parallel jobs have finished
+        if: env.GITHUB_TOKEN != ''
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
-
