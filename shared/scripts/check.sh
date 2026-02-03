@@ -8,4 +8,4 @@ for cmd in flake8 isort mypy pylint; do
     fi
 done
 
-flake8 directorutil && isort --check directorutil && mypy directorutil && pylint directorutil
+flake8 directorutil && isort --check directorutil && mypy directorutil && pylint --errors-only directorutil

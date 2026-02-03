@@ -28,8 +28,7 @@ class OperationWrapper:
         *,
         slug: Optional[str] = None,
         user_recoverable: bool = False,
-    ) -> Callable[[ActionCallback], ActionCallback]:
-        ...
+    ) -> Callable[[ActionCallback], ActionCallback]: ...
 
     @overload  # noqa
     def add_action(  # pylint: disable=no-self-use # noqa
@@ -39,8 +38,7 @@ class OperationWrapper:
         *,
         slug: Optional[str] = None,
         user_recoverable: bool = False,
-    ) -> ActionCallback:
-        ...
+    ) -> ActionCallback: ...
 
     def add_action(  # noqa
         self,

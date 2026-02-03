@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from __future__ import annotations
+
 import asyncio
 import json
 from typing import Any, Dict
@@ -11,11 +13,12 @@ from docker.models.services import Service
 from ..docker.services import get_director_service_name, get_service_by_name
 from ..docker.utils import create_client
 from ..logs import DirectorSiteLogFollower
+from ..websockets_types import WebSocketClientProtocol
 from .utils import mainloop_auto_cancel, wait_for_event
 
 
 async def logs_handler(
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:

@@ -557,40 +557,29 @@ VENDOR_PREFIX = "ORCHESTRATOR_HELPER_VENDOR_"
 
 
 class OrchestratorHelperVendorLoader:
-    def load_module(self, fullname: str):
-        try:
-            return sys.modules[fullname]
-        except KeyError:
-            pass
+    def __init__(self, fullname: str, text: str, is_package: bool) -> None:
+        self.fullname = fullname
+        self.text = text
+        self.is_package = is_package
 
-        text = ""
-        is_package = False
-        for key in [VENDOR_PREFIX + fullname, VENDOR_PREFIX + fullname + ".__init__"]:
-            if key in os.environ:
-                text = os.environ[key]
-                is_package = "." in key
-                break
-        else:
-            raise ImportError
+    def create_module(self, spec):  # type: ignore[override]
+        return None
 
-        # https://stackoverflow.com/a/53080237
-        mod = importlib.util.module_from_spec(
-            importlib.util.spec_from_loader(fullname, loader=self, is_package=is_package)
-        )
-        sys.modules[fullname] = mod
-
-        exec(text, mod.__dict__)
-
-        return mod
+    def exec_module(self, module):  # type: ignore[override]
+        module.__file__ = f"<{self.fullname}>"
+        if self.is_package:
+            module.__path__ = []
+        exec(self.text, module.__dict__)
 
 
 class OrchestratorHelperVendorFinder:
-    def find_module(self, fullname: str, path=None):
-        if (
-            VENDOR_PREFIX + fullname in os.environ
-            or VENDOR_PREFIX + fullname + ".__init__" in os.environ
-        ):
-            return OrchestratorHelperVendorLoader()
+    def find_spec(self, fullname: str, path=None, target=None):  # type: ignore[override]
+        for key in (VENDOR_PREFIX + fullname, VENDOR_PREFIX + fullname + ".__init__"):
+            if key in os.environ:
+                text = os.environ[key]
+                is_package = key.endswith(".__init__")
+                loader = OrchestratorHelperVendorLoader(fullname, text, is_package)
+                return importlib.util.spec_from_loader(fullname, loader, is_package=is_package)
         return None
 
 

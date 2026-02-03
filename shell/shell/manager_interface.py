@@ -63,9 +63,7 @@ def make_manager_request(
         "?" + urllib.parse.urlencode(params) if params else "",
     )
 
-    request = urllib.request.Request(
-        full_url, method=method, data=data, headers=headers  # type: ignore
-    )
+    request = urllib.request.Request(full_url, method=method, data=data, headers=headers)
     try:
         response = urllib.request.urlopen(
             request,

@@ -18,8 +18,9 @@ def send_email(  # pylint: disable=too-many-arguments
     emails: Sequence[str],
     bcc: bool,
 ) -> None:
-    text_plain = get_template(text_template).render(context)
-    text_html = get_template(html_template).render(context)
+    context_dict = dict(context)
+    text_plain = get_template(text_template).render(context_dict)
+    text_html = get_template(html_template).render(context_dict)
 
     emails = list(emails)
 

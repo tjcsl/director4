@@ -29,20 +29,20 @@ urlpatterns: List[Union[URLResolver, URLPattern]] = [
     path("create/webdocs/", views.sites.create_webdocs_view, name="create_webdocs"),
 ]
 
-edit_patterns = [
+edit_patterns: List[URLPattern] = [
     path("", views.edit.edit_view, name="edit"),
     path("names/", views.edit.edit_names_view, name="edit_names"),
     path("meta/", views.edit.edit_meta_view, name="edit_meta"),
     path("type/", views.edit.edit_type_view, name="edit_type"),
 ]
 
-database_patterns = [
+database_patterns: List[URLPattern] = [
     path("create/", views.database.create_database_view, name="create_database"),
     path("shell/", views.database.database_shell_view, name="database_shell"),
     path("delete/", views.database.delete_database_view, name="delete_database"),
 ]
 
-file_patterns = [
+file_patterns: List[URLPattern] = [
     path("", views.files.editor_view, name="editor"),
     path("get/", views.files.get_file_view, name="get_file"),
     path("create/", views.files.create_file_view, name="create_file"),
@@ -55,7 +55,7 @@ file_patterns = [
     path("download_zip/", views.files.download_zip_view, name="download_zip"),
 ]
 
-site_patterns = [
+site_patterns: List[Union[URLPattern, URLResolver]] = [
     path("", views.sites.info_view, name="info"),
     path("image/select/", views.sites.image_select_view, name="image_select"),
     path("delete/", views.sites.delete_view, name="delete"),
@@ -76,7 +76,7 @@ site_patterns = [
     path("files/", include(file_patterns)),
 ]
 
-image_mgmt_patterns = [
+image_mgmt_patterns: List[URLPattern] = [
     path("", views.image_mgmt.home_view, name="home"),
     path("create/", views.image_mgmt.create_view, name="create"),
     path("<int:image_id>/edit/", views.image_mgmt.edit_view, name="edit"),

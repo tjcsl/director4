@@ -12,7 +12,7 @@ superuser_required = user_passes_test(lambda user: user.is_authenticated and use
 
 
 def require_accept_guidelines(
-    func: Callable[..., Union[HttpResponse, StreamingHttpResponse]]
+    func: Callable[..., Union[HttpResponse, StreamingHttpResponse]],
 ) -> Callable[..., Union[HttpResponse, StreamingHttpResponse]]:
     @functools.wraps(func)
     def wrapper(
@@ -27,7 +27,7 @@ def require_accept_guidelines(
 
 
 def require_accept_guidelines_no_redirect(
-    func: Callable[..., Union[HttpResponse, StreamingHttpResponse]]
+    func: Callable[..., Union[HttpResponse, StreamingHttpResponse]],
 ) -> Callable[..., Union[HttpResponse, StreamingHttpResponse]]:
     @functools.wraps(func)
     def wrapper(

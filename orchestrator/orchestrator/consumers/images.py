@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from __future__ import annotations
+
 import asyncio
 import concurrent.futures
 import json
@@ -13,6 +15,7 @@ import websockets
 from ..docker.images import build_custom_docker_image, push_custom_docker_image
 from ..docker.utils import create_client
 from ..exceptions import OrchestratorActionError
+from ..websockets_types import WebSocketClientProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -33,21 +36,23 @@ def next_or_none(item_it: Iterator[T]) -> Optional[T]:
 
 
 async def build_image_handler(  # pylint: disable=unused-argument
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:
+    loop = asyncio.get_running_loop()
+
     try:
         build_data = json.loads(await websock.recv())
     except (websockets.exceptions.ConnectionClosed, json.JSONDecodeError, asyncio.CancelledError):
         return
 
-    client = await asyncio.get_event_loop().run_in_executor(image_executor, create_client)
+    client = await loop.run_in_executor(image_executor, create_client)
 
     result = {"successful": True, "msg": "Success"}
 
     try:
-        await asyncio.get_event_loop().run_in_executor(
+        await loop.run_in_executor(
             image_executor,
             build_custom_docker_image,
             client,
@@ -76,7 +81,7 @@ async def build_image_handler(  # pylint: disable=unused-argument
         try:
             logger.info("Pushing image %s", build_data["name"])
 
-            output_generator = await asyncio.get_event_loop().run_in_executor(
+            output_generator = await loop.run_in_executor(
                 image_executor,
                 push_custom_docker_image,
                 client,
@@ -87,9 +92,7 @@ async def build_image_handler(  # pylint: disable=unused-argument
             while True:
                 data = cast(
                     Optional[Dict[str, str]],
-                    await asyncio.get_event_loop().run_in_executor(
-                        image_executor, next_or_none, output_generator
-                    ),
+                    await loop.run_in_executor(image_executor, next_or_none, output_generator),
                 )
 
                 if data is None:
