@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from __future__ import annotations
+
 import asyncio
 import json
 import time
@@ -14,6 +16,7 @@ from ..docker.services import get_director_service_name, get_service_by_name
 from ..docker.utils import create_client
 from ..files import check_run_sh_exists
 from ..logs import DirectorSiteLogFollower
+from ..websockets_types import WebSocketClientProtocol
 from .utils import mainloop_auto_cancel, wait_for_event
 
 
@@ -47,7 +50,7 @@ def serialize_service_status(site_id: int, service: Service) -> Dict[str, Any]:
 
 
 async def status_handler(
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:
@@ -101,7 +104,7 @@ async def status_handler(
 
 
 async def multi_status_handler(  # pylint: disable=unused-argument
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:

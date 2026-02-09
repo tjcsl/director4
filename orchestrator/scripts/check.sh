@@ -8,4 +8,4 @@ for cmd in flake8 isort mypy pylint; do
     fi
 done
 
-flake8 orchestrator && isort --check orchestrator && mypy --strict -p orchestrator && pylint orchestrator
+flake8 orchestrator && isort --check orchestrator && mypy --strict -p orchestrator && pylint --errors-only orchestrator

@@ -1,6 +1,6 @@
 [MAIN]
 # disable fixme so it doesn't block builds
-disable=missing-docstring,no-else-return,no-else-raise,no-else-break,bad-continuation,duplicate-code,too-many-branches,too-many-nested-blocks,too-many-locals,too-many-statements,too-many-public-methods,fixme,too-many-return-statements
+disable=missing-docstring,no-else-return,no-else-raise,no-else-break,duplicate-code,too-many-branches,too-many-nested-blocks,too-many-locals,too-many-statements,too-many-public-methods,fixme,too-many-return-statements
 max-line-length=100
 ignore-patterns=secret*
 

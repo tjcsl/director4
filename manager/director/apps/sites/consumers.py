@@ -6,9 +6,10 @@ import json
 import urllib.parse
 from typing import Any, Dict, List, Optional, Union, cast
 
-import websockets
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer, AsyncWebsocketConsumer
+from websockets import exceptions as websocket_exceptions
+from websockets.legacy.client import WebSocketClientProtocol
 
 from django.conf import settings
 
@@ -20,6 +21,16 @@ from ...utils.appserver import (
 from .models import Database, Site
 
 
+@database_sync_to_async
+def get_recoverable_failed_operation_type(site: Site) -> Optional[str]:
+    operation = site.get_operation()
+    if operation is None:
+        return None
+    if operation.has_failed and operation.is_failure_user_recoverable:
+        return operation.type
+    return None
+
+
 class SiteConsumer(AsyncJsonWebsocketConsumer):
     """A websocket consumer that sends information on the site."""
 
@@ -28,7 +39,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         self.site: Optional[Site] = None
         self.connected = False
 
-        self.status_websocket: Optional[websockets.client.WebSocketClientProtocol] = None
+        self.status_websocket: Optional[WebSocketClientProtocol] = None
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -88,7 +99,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
 
                 # We successfully connected; break
                 break
-            except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
+            except (OSError, asyncio.TimeoutError, websocket_exceptions.InvalidHandshake):
                 pass  # Connection failure; try the next appserver
 
         if self.status_websocket is None:
@@ -103,7 +114,7 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         while True:
             try:
                 msg = await self.status_websocket.recv()
-            except websockets.exceptions.ConnectionClosed:
+            except websocket_exceptions.ConnectionClosed:
                 await self.close()
                 self.connected = False
                 break
@@ -139,13 +150,9 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         await self.send_site_info()
 
         if self.connected and self.site is not None:
-            operation = self.site.get_operation()
-            if (
-                operation is not None
-                and operation.has_failed
-                and operation.is_failure_user_recoverable
-            ):
-                await self.send_json({"failed_operation_recoverable": operation.type})
+            operation_type = await get_recoverable_failed_operation_type(self.site)
+            if operation_type is not None:
+                await self.send_json({"failed_operation_recoverable": operation_type})
 
     @database_sync_to_async
     def dump_site_info(self) -> Union[Dict[str, Any], None, bool]:
@@ -251,7 +258,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         self.site: Optional[Site] = None
         self.connected = False
 
-        self.terminal_websock: Optional[websockets.client.WebSocketClientProtocol] = None
+        self.terminal_websock: Optional[WebSocketClientProtocol] = None
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -313,7 +320,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
 
                 # We successfully connected; break
                 break
-            except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
+            except (OSError, asyncio.TimeoutError, websocket_exceptions.InvalidHandshake):
                 # Connection failure; try the next appserver
                 appserver_num = (appserver_num + 1) % settings.DIRECTOR_NUM_APPSERVERS
 
@@ -335,7 +342,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
             # could send JSON data really quickly and perhaps get that sent to the appserver
             # instead of our data above.
             self.terminal_websock = terminal_websock
-        except (OSError, asyncio.TimeoutError, websockets.exceptions.WebSocketException):
+        except (OSError, asyncio.TimeoutError, websocket_exceptions.WebSocketException):
             self.connected = False
             await self.close()
 
@@ -346,7 +353,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         while True:
             try:
                 msg = await self.terminal_websock.recv()
-            except websockets.exceptions.ConnectionClosed:
+            except websocket_exceptions.ConnectionClosed:
                 await self.close()
                 break
 
@@ -387,7 +394,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
                     await self.terminal_websock.send(bytes_data)
                 elif text_data is not None:
                     await self.terminal_websock.send(text_data)
-            except websockets.exceptions.ConnectionClosed:
+            except websocket_exceptions.ConnectionClosed:
                 await self.close()
 
 
@@ -397,7 +404,7 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
         self.site: Optional[Site] = None
         self.connected = False
 
-        self.monitor_websocks: List[websockets.client.WebSocketClientProtocol] = []
+        self.monitor_websocks: List[WebSocketClientProtocol] = []
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -454,19 +461,19 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                     ),
                     timeout=1,
                 )
-            except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
+            except (OSError, asyncio.TimeoutError, websocket_exceptions.InvalidHandshake):
                 pass
             else:
                 self.monitor_websocks.append(monitor_websock)
 
     async def monitor_mainloop(
         self,
-        monitor_websock: websockets.client.WebSocketClientProtocol,
+        monitor_websock: WebSocketClientProtocol,
     ) -> None:
         while True:
             try:
                 msg = await monitor_websock.recv()
-            except websockets.exceptions.ConnectionClosed:
+            except websocket_exceptions.ConnectionClosed:
                 await self.close()
                 break
 
@@ -506,7 +513,7 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             try:
                 for monitor_websock in self.monitor_websocks:
                     await monitor_websock.send(data)
-            except websockets.exceptions.ConnectionClosed:
+            except websocket_exceptions.ConnectionClosed:
                 await self.close()
 
 
@@ -516,7 +523,7 @@ class SiteLogsConsumer(AsyncWebsocketConsumer):
 
         self.site: Optional[Site] = None
 
-        self.logs_websock: Optional[websockets.client.WebSocketClientProtocol] = None
+        self.logs_websock: Optional[WebSocketClientProtocol] = None
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -557,7 +564,7 @@ class SiteLogsConsumer(AsyncWebsocketConsumer):
 
                 # We successfully connected; break
                 break
-            except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
+            except (OSError, asyncio.TimeoutError, websocket_exceptions.InvalidHandshake):
                 pass  # Connection failure; try the next appserver
 
     async def mainloop(self) -> None:
@@ -566,7 +573,7 @@ class SiteLogsConsumer(AsyncWebsocketConsumer):
         while True:
             try:
                 msg = await self.logs_websock.recv()
-            except websockets.exceptions.ConnectionClosed:
+            except websocket_exceptions.ConnectionClosed:
                 await self.close()
                 break
 
@@ -605,7 +612,7 @@ class SiteLogsConsumer(AsyncWebsocketConsumer):
         if self.logs_websock is not None:
             try:
                 await self.logs_websock.send(data)
-            except websockets.exceptions.ConnectionClosed:
+            except websocket_exceptions.ConnectionClosed:
                 await self.close()
 
 
@@ -616,7 +623,7 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
 
         self.site_ids: List[int] = []
 
-        self.monitor_websock: Optional[websockets.client.WebSocketClientProtocol] = None
+        self.monitor_websock: Optional[WebSocketClientProtocol] = None
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -661,7 +668,7 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
                     appserver_open_websocket(appserver_num, "/ws/sites/multi-status/"),
                     timeout=1,
                 )
-            except (OSError, asyncio.TimeoutError, websockets.exceptions.InvalidHandshake):
+            except (OSError, asyncio.TimeoutError, websocket_exceptions.InvalidHandshake):
                 pass
             else:
                 await monitor_websock.send(json.dumps(self.site_ids))
@@ -674,12 +681,12 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
 
     async def monitor_mainloop(
         self,
-        monitor_websock: websockets.client.WebSocketClientProtocol,
+        monitor_websock: WebSocketClientProtocol,
     ) -> None:
         while True:
             try:
                 msg = await monitor_websock.recv()
-            except websockets.exceptions.ConnectionClosed:
+            except websocket_exceptions.ConnectionClosed:
                 await self.close()
                 break
 
