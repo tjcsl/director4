@@ -451,14 +451,10 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             return
 
         if self.monitor_websocks:
-            loop = asyncio.get_event_loop()
-            for monitor_websock in self.monitor_websocks:
-                loop.create_task(self.monitor_mainloop(monitor_websock))
-
             # If we've connected to all the appservers, trigger a close after 1 hour.
             # Otherwise, trigger it after 5 minutes (so if an appserver comes back online soon
             # we get reconnected soon).
-            loop.create_task(
+            asyncio.get_event_loop().create_task(
                 self.sleep_and_close(
                     3600 if len(self.monitor_websocks) == settings.DIRECTOR_NUM_APPSERVERS else 300
                 )
@@ -519,6 +515,7 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                     appserver_num,
                 )
                 self.monitor_websocks.append(monitor_websock)
+                asyncio.get_event_loop().create_task(self.monitor_mainloop(monitor_websock))
                 if self.pending_browser_messages:
                     for data in self.pending_browser_messages:
                         try:
@@ -557,12 +554,21 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                     ex.reason,
                     len(self.monitor_websocks),
                 )
-                await self.close_with_reason("appserver_monitor_socket_closed")
+                if not self.monitor_websocks:
+                    await self.close_with_reason("all_appserver_monitor_sockets_closed")
                 break
 
             if isinstance(msg, bytes):
                 self.appserver_message_forwarded = True
-                await self.send(bytes_data=msg)
+                try:
+                    await self.send(bytes_data=msg)
+                except Exception:  # pylint: disable=broad-except
+                    logger.exception(
+                        "Error forwarding binary file monitor message to browser for site %s",
+                        self.site.id if self.site is not None else "?",
+                    )
+                    await self.close_with_reason("browser_send_failed")
+                    break
             elif isinstance(msg, str):
                 self.appserver_message_forwarded = True
                 logger.info(
@@ -570,7 +576,15 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                     self.site.id if self.site is not None else "?",
                     msg[:300],
                 )
-                await self.send(text_data=msg)
+                try:
+                    await self.send(text_data=msg)
+                except Exception:  # pylint: disable=broad-except
+                    logger.exception(
+                        "Error forwarding file monitor message to browser for site %s",
+                        self.site.id if self.site is not None else "?",
+                    )
+                    await self.close_with_reason("browser_send_failed")
+                    break
 
     async def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
         if self.site is not None:
