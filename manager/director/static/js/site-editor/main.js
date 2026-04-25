@@ -55,7 +55,6 @@ $(function() {
             }
 
             if(typeof obj.destroy === "function") {
-                console.warn("[SiteEditor site " + site_id + "] Destroying component", obj);
                 obj.destroy();
             }
         });

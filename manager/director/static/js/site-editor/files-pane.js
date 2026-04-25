@@ -1,7 +1,6 @@
 function FilesPane(container, uri, callbacks) {
     // Used in callbacks where "this" is overriden
     var self = this;
-    var debugPrefix = "[FilesPane site " + (typeof site_id !== "undefined" ? site_id : "?") + "]";
 
     container.addClass("files-pane");
 
@@ -22,66 +21,31 @@ function FilesPane(container, uri, callbacks) {
     var firstOpen = true;
     var destroyed = false;
     var reconnectTimeoutId = null;
-    var wsConnectAttempt = 0;
 
     var customStylesheet = $("<style>").appendTo("head");
 
-    function debugLog(level, message, extra) {
-        var fn = console[level] || console.log;
-        if(extra !== undefined) {
-            fn.call(console, debugPrefix + " " + message, extra);
-        }
-        else {
-            fn.call(console, debugPrefix + " " + message);
-        }
-    }
-
     function openWS() {
         if(destroyed) {
-            debugLog("info", "Skipping websocket open because FilesPane is destroyed");
             return;
         }
 
-        wsConnectAttempt += 1;
-        debugLog("info", "Opening websocket attempt #" + wsConnectAttempt + " to " + uri);
         ws = new WebSocket(uri);
         ws.onopen = wsOpened;
         ws.onmessage = wsMessage;
-        ws.onerror = wsErrored;
         ws.onclose = wsClosed;
     }
 
     var prevOpenFolders = [];
     function wsOpened() {
-        debugLog("info", "Websocket opened; sending initial root watch and heartbeat");
         // Immediately request that we start watching the root directory (obviously)
-        try {
-            ws.send(JSON.stringify({action: "add", path: ""}));
-            debugLog("info", "Sent initial add watch for root directory");
-            // And send a heartbeat
-            // Even if the root directory has nothing in it, this should give us a response.
-            // Then wsMessage() will know we've really got a connection
-            ws.send(JSON.stringify({heartbeat: 1}));
-            debugLog("info", "Sent initial heartbeat");
-        }
-        catch(ex) {
-            debugLog("error", "Error sending initial websocket messages", ex);
-            throw ex;
-        }
-    }
-
-    function wsErrored(e) {
-        debugLog("error", "Websocket error event", {
-            readyState: ws != null ? ws.readyState : null,
-            event: e,
-        });
+        ws.send(JSON.stringify({action: "add", path: ""}));
+        // And send a heartbeat
+        // Even if the root directory has nothing in it, this should give us a response.
+        // Then wsMessage() will know we've really got a connection
+        ws.send(JSON.stringify({heartbeat: 1}));
     }
 
     function wsMessage(e) {
-        if(!isOpen) {
-            debugLog("info", "Received first websocket message", e.data);
-        }
-
         if(!isOpen) {
             // We don't want to do this as soon as it's opened because
             // the connection may be immediately closed for various reasons
@@ -104,7 +68,6 @@ function FilesPane(container, uri, callbacks) {
         var data = JSON.parse(e.data);
 
         if(data.heartbeat != null) {
-            debugLog("info", "Received heartbeat response");
             return;
         }
 
@@ -130,62 +93,34 @@ function FilesPane(container, uri, callbacks) {
                 self.updateItem(data);
                 break;
             case "error":
-                debugLog("warn", "Received file monitor error payload", data);
                 self.handleError(data);
                 break;
         }
     }
 
     function wsClosed(e) {
-        debugLog("warn", "Websocket closed", {
-            code: e.code,
-            reason: e.reason,
-            wasClean: e.wasClean,
-            destroyed: destroyed,
-            isOpen: isOpen,
-            readyState: ws != null ? ws.readyState : null,
-        });
         itemsContainer.addClass("disabled");
 
         isOpen = false;
         ws = null;
 
         if(destroyed) {
-            debugLog("info", "Not scheduling reconnect because FilesPane is destroyed");
             return;
         }
 
         // Try to reopen
         reconnectTimeoutId = setTimeout(function() {
-            debugLog("info", "Reconnect timeout fired");
             reconnectTimeoutId = null;
             openWS();
         }, 3000);
-        debugLog("info", "Scheduled reconnect in 3000ms");
     }
 
     // Send heartbeats every 30 seconds to keep the connection alive
     var heartbeatIntervalId = setInterval(function() {
         if(isOpen && ws != null) {
-            try {
-                ws.send(JSON.stringify({heartbeat: 1}));
-                debugLog("info", "Sent periodic heartbeat");
-            }
-            catch(ex) {
-                debugLog("error", "Error sending periodic heartbeat", ex);
-            }
+            ws.send(JSON.stringify({heartbeat: 1}));
         }
     }, 30 * 1000);
-
-    window.addEventListener("beforeunload", function() {
-        debugLog("warn", "Window beforeunload fired");
-    });
-    window.addEventListener("pagehide", function() {
-        debugLog("warn", "Window pagehide fired");
-    });
-    document.addEventListener("visibilitychange", function() {
-        debugLog("info", "Document visibility changed to " + document.visibilityState);
-    });
 
     // Finds the full paths of all expanded folders, either in the given element or in the entire pane
     function getOpenFolderNames(elem) {
@@ -1034,7 +969,6 @@ function FilesPane(container, uri, callbacks) {
     };
 
     this.destroy = function() {
-        debugLog("warn", "Destroying FilesPane");
         destroyed = true;
         isOpen = false;
 
@@ -1049,13 +983,7 @@ function FilesPane(container, uri, callbacks) {
         }
 
         if(ws != null) {
-            try {
-                debugLog("info", "Closing websocket from FilesPane.destroy()");
-                ws.close();
-            }
-            catch(ex) {
-                debugLog("error", "Error closing websocket during destroy", ex);
-            }
+            ws.close();
         }
     };
 
