@@ -484,6 +484,18 @@ class SiteFilesMonitor:
             stderr=subprocess.PIPE,
         )
 
+    async def read_stderr(self) -> str:
+        if self.proc is None:
+            raise Exception("SiteFilesMonitor.start() was not called")
+
+        assert self.proc.stderr is not None
+
+        data = await self.proc.stderr.read()
+        try:
+            return data.decode()
+        except UnicodeDecodeError:
+            return data.decode("latin1")
+
     async def wait(self) -> int:
         if self.proc is None:
             raise Exception("SiteFilesMonitor.start() was not called")

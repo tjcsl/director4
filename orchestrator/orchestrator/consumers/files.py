@@ -36,6 +36,26 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
         await websock.close()
         return
 
+    async def log_monitor_exit() -> None:
+        try:
+            returncode = await monitor.wait()
+            stderr = await monitor.read_stderr()
+        except Exception:  # pylint: disable=broad-except
+            logger.exception("Failed to inspect file monitor exit for site %s", site_id)
+            return
+
+        if returncode != 0:
+            logger.error(
+                "File monitor for site %s exited with code %s: %s",
+                site_id,
+                returncode,
+                stderr.strip() or "<no stderr>",
+            )
+        else:
+            logger.warning("File monitor for site %s exited cleanly", site_id)
+
+    monitor_exit_task = asyncio.create_task(log_monitor_exit())
+
     async def websock_loop() -> None:
         while True:
             try:
@@ -71,6 +91,7 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
 
     await websock.close()
     await monitor.stop_wait(timeout=3)
+    await asyncio.gather(monitor_exit_task, return_exceptions=True)
 
 
 async def remove_all_site_files_dangerous_handler(  # pylint: disable=unused-argument

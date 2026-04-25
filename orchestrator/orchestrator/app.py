@@ -30,6 +30,21 @@ if settings.LOG_FILE is not None:
     file_handler.setLevel(settings.LOG_LEVEL)
 
     app.logger.addHandler(file_handler)  # pylint: disable=no-member
+else:
+    gunicorn_error_logger = logging.getLogger("gunicorn.error")
+    if gunicorn_error_logger.handlers:
+        app.logger.handlers = gunicorn_error_logger.handlers  # pylint: disable=no-member
+        app.logger.setLevel(gunicorn_error_logger.level)
+    else:
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(
+            logging.Formatter("%(asctime)s [%(levelname)-8s]: %(message)s")
+        )
+        stream_handler.setLevel(settings.LOG_LEVEL)
+        app.logger.addHandler(stream_handler)  # pylint: disable=no-member
+        app.logger.setLevel(settings.LOG_LEVEL)
+
+app.logger.propagate = False  # pylint: disable=no-member
 
 
 @app.route("/ping")
