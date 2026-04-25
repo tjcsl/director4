@@ -566,6 +566,10 @@ def main(argv: List[str]) -> None:
 VENDOR_PREFIX = "ORCHESTRATOR_HELPER_VENDOR_"
 
 
+def _encode_vendor_module_env_name(name: str) -> str:
+    return name.replace(".", "__DOT__")
+
+
 class OrchestratorHelperVendorLoader:
     """Execute vendored module source pulled from environment variables."""
 
@@ -588,7 +592,12 @@ class OrchestratorHelperVendorFinder:
     """Resolve vendored modules/packages from ORCHESTRATOR_HELPER_VENDOR_* keys."""
 
     def find_spec(self, fullname: str, path=None, target=None):  # type: ignore[override]
-        for key in (VENDOR_PREFIX + fullname, VENDOR_PREFIX + fullname + ".__init__"):
+        for key in (
+            VENDOR_PREFIX + _encode_vendor_module_env_name(fullname),
+            VENDOR_PREFIX + _encode_vendor_module_env_name(fullname + ".__init__"),
+            VENDOR_PREFIX + fullname,
+            VENDOR_PREFIX + fullname + ".__init__",
+        ):
             if key in os.environ:
                 text = os.environ[key]
                 is_package = key.endswith(".__init__")

@@ -29,7 +29,12 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
     site_id = int(params["site_id"])
 
     monitor = SiteFilesMonitor(site_id)
-    await monitor.start()
+    try:
+        await monitor.start()
+    except Exception:  # pylint: disable=broad-except
+        logger.exception("Failed to start file monitor for site %s", site_id)
+        await websock.close()
+        return
 
     async def websock_loop() -> None:
         while True:

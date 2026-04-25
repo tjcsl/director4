@@ -2,7 +2,6 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import json
-import traceback
 from typing import Tuple, Union
 
 from flask import Blueprint, current_app, request
@@ -20,7 +19,7 @@ def create_database_page() -> Union[str, Tuple[str, int]]:
     try:
         database_utils.create_database(json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
-        current_app.logger.error("%s", traceback.format_exc())
+        current_app.logger.exception("Error creating site database")
         return "Error", 500
     else:
         return "Success"
@@ -34,7 +33,7 @@ def delete_database_page() -> Union[str, Tuple[str, int]]:
     try:
         database_utils.delete_database(json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
-        current_app.logger.error("%s", traceback.format_exc())
+        current_app.logger.exception("Error deleting site database")
         return "Error", 500
     else:
         return "Success"
@@ -53,5 +52,5 @@ def query_database_page() -> Union[str, Tuple[str, int]]:
             json.loads(request.form["database_info"]), request.form["sql"]
         )
     except BaseException:  # pylint: disable=broad-except
-        current_app.logger.error("%s", traceback.format_exc())
+        current_app.logger.exception("Error running site database query")
         return "Error", 500
