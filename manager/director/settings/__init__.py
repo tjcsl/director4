@@ -194,10 +194,36 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_IMPORTS = ["director.utils.emails"]
 
 # Channels
+def _normalize_channel_layer_hosts(hosts):
+    """
+    Convert legacy tuple-based Redis hosts into URL-based hosts.
+
+    Newer versions of channels_redis pass host addresses into redis-py's
+    `from_url`, which requires the address to already be a URL string.
+    """
+
+    normalized_hosts = []
+
+    for host in hosts:
+        if isinstance(host, tuple) and len(host) == 2:
+            normalized_hosts.append(f"redis://{host[0]}:{host[1]}")
+            continue
+
+        if isinstance(host, dict):
+            address = host.get("address")
+            if isinstance(address, tuple) and len(address) == 2:
+                host = host.copy()
+                host["address"] = f"redis://{address[0]}:{address[1]}"
+
+        normalized_hosts.append(host)
+
+    return normalized_hosts
+
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [{"address": ("127.0.0.1", 6379), "db": 0}], "prefix": "asgi:"},
+        "CONFIG": {"hosts": ["redis://127.0.0.1:6379/0"], "prefix": "asgi:"},
     }
 }
 
@@ -371,6 +397,18 @@ try:
     from .secret import *  # noqa  # pylint: disable=unused-import
 except ImportError:
     pass
+
+for channel_layer in CHANNEL_LAYERS.values():
+    if channel_layer.get("BACKEND") != "channels_redis.core.RedisChannelLayer":
+        continue
+
+    config = channel_layer.get("CONFIG")
+    if config and "hosts" in config:
+        config["hosts"] = _normalize_channel_layer_hosts(config["hosts"])
+
+for cache_config in CACHES.values():
+    if cache_config.get("BACKEND") == "redis_cache.RedisCache":
+        cache_config["BACKEND"] = "django_redis.cache.RedisCache"
 
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE = not DEBUG
 
