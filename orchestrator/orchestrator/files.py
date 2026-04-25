@@ -3,10 +3,10 @@
 
 import asyncio
 import json
+import logging
 import os
 import selectors
 import subprocess
-import logging
 from typing import (  # pylint: disable=unused-import
     Any,
     AsyncGenerator,

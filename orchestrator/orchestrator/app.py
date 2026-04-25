@@ -28,6 +28,7 @@ def _copy_logger_handlers(target_logger: logging.Logger, source_logger: logging.
             target_logger.addHandler(handler)
             existing_handler_ids.add(id(handler))
 
+
 if settings.LOG_FILE is not None:
     file_handler = logging.handlers.RotatingFileHandler(
         settings.LOG_FILE,

@@ -194,6 +194,8 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_IMPORTS = ["director.utils.emails"]
 
 # Channels
+
+
 def _normalize_channel_layer_hosts(hosts):
     """
     Convert legacy tuple-based Redis hosts into URL-based hosts.
@@ -399,11 +401,14 @@ except ImportError:
     pass
 
 for channel_layer in CHANNEL_LAYERS.values():
+    if not isinstance(channel_layer, dict):
+        continue
+
     if channel_layer.get("BACKEND") != "channels_redis.core.RedisChannelLayer":
         continue
 
     config = channel_layer.get("CONFIG")
-    if config and "hosts" in config:
+    if isinstance(config, dict) and "hosts" in config:
         config["hosts"] = _normalize_channel_layer_hosts(config["hosts"])
 
 for cache_config in CACHES.values():

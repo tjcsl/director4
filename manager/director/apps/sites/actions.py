@@ -2,16 +2,16 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import json
 import random
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, AsyncGenerator, Dict, Iterator, Tuple, Union
 
 from django.conf import settings
 
 from ...utils.appserver import (
-    AppserverRequestError,
     AppserverProtocolError,
+    AppserverRequestError,
     appserver_open_http_request,
     appserver_open_websocket,
     iter_pingable_appservers,

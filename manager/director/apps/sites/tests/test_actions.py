@@ -52,16 +52,23 @@ class ActionsTestCase(DirectorTestCase):
             mock_ping.assert_called()
 
     def test_update_appserver_nginx_config(self):
-        with self.settings(DIRECTOR_APPSERVER_HOSTS=["director-apptest1:8000"]):
+        with patch(
+            "director.apps.sites.actions.appserver_open_http_request",
+            side_effect=[AppserverProtocolError("test failure"), None],
+        ) as mock_req:
             result = update_appserver_nginx_config(self.site, {"pingable_appservers": [0]})
 
-            # "director-apptest1:8000" obviously isn't pingable.
             self.assertEqual("Connecting to appserver 0 to update Nginx config", next(result))
-            self.assertEqual("Error updating Nginx config", next(result))
+            self.assertEqual(
+                "Error updating Nginx config: AppserverProtocolError: test failure",
+                next(result),
+            )
             self.assertEqual("Disabling site Nginx config", next(result))
 
             with self.assertRaises(AppserverProtocolError):
                 self.assertEqual("Re-raising exception", next(result))
+
+            self.assertEqual(2, mock_req.call_count)
 
         # Now, patch that method to bypass it
         with patch(

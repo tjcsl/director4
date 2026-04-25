@@ -448,14 +448,19 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             # we get reconnected soon).
             asyncio.get_event_loop().create_task(
                 self.sleep_and_close(
-                    3600 if len(self.monitor_websocks) == settings.DIRECTOR_NUM_APPSERVERS else 300
+                    3600
+                    if len(self.monitor_websocks) == settings.DIRECTOR_NUM_APPSERVERS
+                    else 300
                 )
             )
             self.monitor_connections_initialized = True
             self.pending_browser_messages.clear()
         else:
             logger.warning(
-                "Closing file monitor websocket for site %s because no appserver monitor sockets opened",
+                (
+                    "Closing file monitor websocket for site %s because no "
+                    "appserver monitor sockets opened"
+                ),
                 self.site.id if self.site is not None else "?",
             )
             self.connected = False
@@ -468,7 +473,11 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
     async def close_with_reason(self, reason: str) -> None:
         self.close_reason = reason
         logger.warning(
-            "Closing manager file monitor websocket for site %s (reason=%s, browser_message_received=%s, appserver_message_forwarded=%s, open_appserver_sockets=%s)",
+            (
+                "Closing manager file monitor websocket for site %s "
+                "(reason=%s, browser_message_received=%s, "
+                "appserver_message_forwarded=%s, open_appserver_sockets=%s)"
+            ),
             self.site.id if self.site is not None else "?",
             reason,
             self.browser_message_received,
@@ -500,7 +509,11 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                             await monitor_websock.send(data)
                         except websocket_exceptions.ConnectionClosed as ex:
                             logger.warning(
-                                "Appserver file monitor websocket closed while replaying buffered browser message for site %s on appserver %s: code=%s reason=%r",
+                                (
+                                    "Appserver file monitor websocket closed while "
+                                    "replaying buffered browser message for site %s "
+                                    "on appserver %s: code=%s reason=%r"
+                                ),
                                 site_id,
                                 appserver_num,
                                 ex.code,
@@ -515,7 +528,7 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
         while True:
             try:
                 msg = await monitor_websock.recv()
-            except websocket_exceptions.ConnectionClosed as ex:
+            except websocket_exceptions.ConnectionClosed:
                 if monitor_websock in self.monitor_websocks:
                     self.monitor_websocks.remove(monitor_websock)
                 if not self.monitor_websocks:
@@ -582,7 +595,10 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                     await monitor_websock.send(data)
             except websocket_exceptions.ConnectionClosed as ex:
                 logger.warning(
-                    "Appserver file monitor websocket closed while forwarding browser message for site %s: code=%s reason=%r",
+                    (
+                        "Appserver file monitor websocket closed while forwarding "
+                        "browser message for site %s: code=%s reason=%r"
+                    ),
                     self.site.id if self.site is not None else "?",
                     ex.code,
                     ex.reason,
@@ -590,7 +606,10 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                 await self.close_with_reason("appserver_monitor_socket_closed_during_forward")
         else:
             logger.warning(
-                "Dropping browser file monitor message for site %s because manager websocket is not connected",
+                (
+                    "Dropping browser file monitor message for site %s because "
+                    "manager websocket is not connected"
+                ),
                 self.site.id if self.site is not None else "?",
             )
 
