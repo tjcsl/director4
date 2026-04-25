@@ -19,7 +19,12 @@ def create_database_page() -> Union[str, Tuple[str, int]]:
     try:
         database_utils.create_database(json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
-        current_app.logger.exception("Error creating site database")
+        current_app.logger.exception(
+            "Error creating site database for path=%s remote_addr=%s content_length=%s",
+            request.path,
+            request.remote_addr,
+            request.content_length,
+        )
         return "Error", 500
     else:
         return "Success"
@@ -33,7 +38,12 @@ def delete_database_page() -> Union[str, Tuple[str, int]]:
     try:
         database_utils.delete_database(json.loads(request.form["data"]))
     except BaseException:  # pylint: disable=broad-except
-        current_app.logger.exception("Error deleting site database")
+        current_app.logger.exception(
+            "Error deleting site database for path=%s remote_addr=%s content_length=%s",
+            request.path,
+            request.remote_addr,
+            request.content_length,
+        )
         return "Error", 500
     else:
         return "Success"
@@ -52,5 +62,10 @@ def query_database_page() -> Union[str, Tuple[str, int]]:
             json.loads(request.form["database_info"]), request.form["sql"]
         )
     except BaseException:  # pylint: disable=broad-except
-        current_app.logger.exception("Error running site database query")
+        current_app.logger.exception(
+            "Error running site database query for path=%s remote_addr=%s content_length=%s",
+            request.path,
+            request.remote_addr,
+            request.content_length,
+        )
         return "Error", 500

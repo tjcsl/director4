@@ -6,6 +6,7 @@ import json
 import os
 import selectors
 import subprocess
+import logging
 from typing import (  # pylint: disable=unused-import
     Any,
     AsyncGenerator,
@@ -22,6 +23,8 @@ from typing import (  # pylint: disable=unused-import
 )
 
 from . import settings
+
+logger = logging.getLogger(__name__)
 
 HELPER_SCRIPT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
@@ -477,11 +480,18 @@ class SiteFilesMonitor:
         if self.proc is not None:
             raise Exception("SiteFilesMonitor.start() called multiple times")
 
+        site_dir = get_site_directory_path(self.site_id)
+        logger.info("Starting SiteFilesMonitor for site %s at %s", self.site_id, site_dir)
         self.proc = await run_helper_script_prog_async(
-            ["monitor", get_site_directory_path(self.site_id)],
+            ["monitor", site_dir],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+        )
+        logger.info(
+            "Started SiteFilesMonitor helper for site %s with pid %s",
+            self.site_id,
+            self.proc.pid,
         )
 
     async def read_stderr(self) -> str:
@@ -500,7 +510,13 @@ class SiteFilesMonitor:
         if self.proc is None:
             raise Exception("SiteFilesMonitor.start() was not called")
 
-        return await self.proc.wait()
+        returncode = await self.proc.wait()
+        logger.info(
+            "SiteFilesMonitor helper for site %s exited with return code %s",
+            self.site_id,
+            returncode,
+        )
+        return returncode
 
     def kill(self) -> None:
         if self.proc is None:
@@ -517,12 +533,21 @@ class SiteFilesMonitor:
 
         assert self.proc.stdin is not None
 
+        logger.info(
+            "Stopping SiteFilesMonitor helper for site %s with timeout %s",
+            self.site_id,
+            timeout,
+        )
         self.proc.stdin.write(b"q\n")
         await self.proc.stdin.drain()
 
         try:
             await asyncio.wait_for(self.wait(), timeout=timeout)
         except asyncio.TimeoutError:
+            logger.warning(
+                "Timed out waiting for SiteFilesMonitor helper to stop for site %s; killing it",
+                self.site_id,
+            )
             self.kill()
             await self.wait()
 
@@ -532,6 +557,7 @@ class SiteFilesMonitor:
 
         assert self.proc.stdin is not None
 
+        logger.info("Adding SiteFilesMonitor watch for site %s path %r", self.site_id, relpath)
         self.proc.stdin.write(b"+" + relpath.encode() + b"\n")
         await self.proc.stdin.drain()
 
@@ -541,6 +567,7 @@ class SiteFilesMonitor:
 
         assert self.proc.stdin is not None
 
+        logger.info("Removing SiteFilesMonitor watch for site %s path %r", self.site_id, relpath)
         self.proc.stdin.write(b"-" + relpath.encode() + b"\n")
         await self.proc.stdin.drain()
 
@@ -557,6 +584,12 @@ class SiteFilesMonitor:
                 line = b""
 
             if not line:
+                logger.info("SiteFilesMonitor event stream reached EOF for site %s", self.site_id)
                 break
 
+            logger.info(
+                "SiteFilesMonitor emitted raw event for site %s: %s",
+                self.site_id,
+                line[:300].decode(errors="replace").rstrip(),
+            )
             yield json.loads(line)

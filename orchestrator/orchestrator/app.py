@@ -20,6 +20,14 @@ app.register_blueprint(database_blueprint)
 
 app.config.update(settings.FLASK_CONFIG)
 
+
+def _copy_logger_handlers(target_logger: logging.Logger, source_logger: logging.Logger) -> None:
+    existing_handler_ids = {id(handler) for handler in target_logger.handlers}
+    for handler in source_logger.handlers:
+        if id(handler) not in existing_handler_ids:
+            target_logger.addHandler(handler)
+            existing_handler_ids.add(id(handler))
+
 if settings.LOG_FILE is not None:
     file_handler = logging.handlers.RotatingFileHandler(
         settings.LOG_FILE,
@@ -43,6 +51,11 @@ else:
         stream_handler.setLevel(settings.LOG_LEVEL)
         app.logger.addHandler(stream_handler)  # pylint: disable=no-member
         app.logger.setLevel(settings.LOG_LEVEL)
+
+gunicorn_access_logger = logging.getLogger("gunicorn.access")
+if gunicorn_access_logger.handlers:
+    _copy_logger_handlers(app.logger, gunicorn_access_logger)  # pylint: disable=no-member
+    app.logger.setLevel(min(app.logger.level, gunicorn_access_logger.level))
 
 app.logger.propagate = False  # pylint: disable=no-member
 
