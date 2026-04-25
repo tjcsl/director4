@@ -411,6 +411,8 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
         self.browser_message_received = False
         self.appserver_message_forwarded = False
         self.close_reason: Optional[str] = None
+        self.pending_browser_messages: List[Union[str, bytes]] = []
+        self.monitor_connections_initialized = False
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -434,7 +436,19 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
 
+        self.connected = True
+        await self.accept()
+        logger.info(
+            "Manager file monitor websocket accepted for site %s",
+            self.site.id if self.site is not None else "?",
+        )
+        asyncio.get_event_loop().create_task(self.initialize_monitor_connections())
+
+    async def initialize_monitor_connections(self) -> None:
         await self.open_monitor_connections()
+
+        if not self.connected:
+            return
 
         if self.monitor_websocks:
             loop = asyncio.get_event_loop()
@@ -450,16 +464,12 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                 )
             )
             logger.info(
-                "Accepted file monitor websocket for site %s with %s appserver monitor sockets",
+                "Initialized file monitor websocket for site %s with %s appserver monitor sockets",
                 self.site.id if self.site is not None else "?",
                 len(self.monitor_websocks),
             )
-            self.connected = True
-            await self.accept()
-            logger.info(
-                "Manager file monitor websocket accepted for site %s",
-                self.site.id if self.site is not None else "?",
-            )
+            self.monitor_connections_initialized = True
+            self.pending_browser_messages.clear()
         else:
             logger.warning(
                 "Closing file monitor websocket for site %s because no appserver monitor sockets opened",
@@ -509,6 +519,26 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                     appserver_num,
                 )
                 self.monitor_websocks.append(monitor_websock)
+                if self.pending_browser_messages:
+                    for data in self.pending_browser_messages:
+                        try:
+                            await monitor_websock.send(data)
+                        except websocket_exceptions.ConnectionClosed as ex:
+                            logger.warning(
+                                "Appserver file monitor websocket closed while replaying buffered browser message for site %s on appserver %s: code=%s reason=%r",
+                                self.site.id if self.site is not None else "?",
+                                appserver_num,
+                                ex.code,
+                                ex.reason,
+                            )
+                            break
+                    else:
+                        logger.info(
+                            "Replayed %s buffered browser file monitor messages for site %s to appserver %s",
+                            len(self.pending_browser_messages),
+                            self.site.id if self.site is not None else "?",
+                            appserver_num,
+                        )
 
     async def monitor_mainloop(
         self,
@@ -597,7 +627,14 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                     self.site.id if self.site is not None else "?",
                     data[:300] if isinstance(data, str) else "<binary>",
                 )
-                for monitor_websock in self.monitor_websocks:
+                if not self.monitor_connections_initialized:
+                    self.pending_browser_messages.append(data)
+                    logger.info(
+                        "Buffered browser file monitor message for site %s while initializing appserver monitor sockets",
+                        self.site.id if self.site is not None else "?",
+                    )
+
+                for monitor_websock in list(self.monitor_websocks):
                     await monitor_websock.send(data)
             except websocket_exceptions.ConnectionClosed as ex:
                 logger.warning(
