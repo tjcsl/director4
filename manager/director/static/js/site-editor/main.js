@@ -53,6 +53,11 @@ $(function() {
             if(i != -1) {
                 components.splice(i, 1);
             }
+
+            if(typeof obj.destroy === "function") {
+                console.warn("[SiteEditor site " + site_id + "] Destroying component", obj);
+                obj.destroy();
+            }
         });
     }
 
