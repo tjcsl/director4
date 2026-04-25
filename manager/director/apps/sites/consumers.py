@@ -443,27 +443,27 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             # If we've connected to all the appservers, trigger a close after 1 hour.
             # Otherwise, trigger it after 5 minutes (so if an appserver comes back online soon
             # we get reconnected soon).
-              loop.create_task(
-                  self.sleep_and_close(
-                      3600 if len(self.monitor_websocks) == settings.DIRECTOR_NUM_APPSERVERS else 300
-                  )
-              )
+            loop.create_task(
+                self.sleep_and_close(
+                    3600 if len(self.monitor_websocks) == settings.DIRECTOR_NUM_APPSERVERS else 300
+                )
+            )
             logger.info(
                 "Accepted file monitor websocket for site %s with %s appserver monitor sockets",
                 self.site.id if self.site is not None else "?",
                 len(self.monitor_websocks),
             )
-              self.connected = True
-              await self.accept()
-              logger.info(
-                  "Manager file monitor websocket accepted for site %s",
-                  self.site.id if self.site is not None else "?",
-              )
-          else:
-              logger.warning(
-                  "Closing file monitor websocket for site %s because no appserver monitor sockets opened",
-                  self.site.id if self.site is not None else "?",
-              )
+            self.connected = True
+            await self.accept()
+            logger.info(
+                "Manager file monitor websocket accepted for site %s",
+                self.site.id if self.site is not None else "?",
+            )
+        else:
+            logger.warning(
+                "Closing file monitor websocket for site %s because no appserver monitor sockets opened",
+                self.site.id if self.site is not None else "?",
+            )
             self.connected = False
             await self.close()
 
@@ -512,16 +512,16 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                 await self.close()
                 break
 
-              if isinstance(msg, bytes):
-                  self.appserver_message_forwarded = True
-                  await self.send(bytes_data=msg)
-              elif isinstance(msg, str):
-                  self.appserver_message_forwarded = True
-                  logger.info(
-                      "Forwarding file monitor message for site %s: %s",
-                      self.site.id if self.site is not None else "?",
-                      msg[:300],
-                  )
+            if isinstance(msg, bytes):
+                self.appserver_message_forwarded = True
+                await self.send(bytes_data=msg)
+            elif isinstance(msg, str):
+                self.appserver_message_forwarded = True
+                logger.info(
+                    "Forwarding file monitor message for site %s: %s",
+                    self.site.id if self.site is not None else "?",
+                    msg[:300],
+                )
                 await self.send(text_data=msg)
 
     async def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
@@ -557,16 +557,16 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
         if self.connected:
             data = bytes_data if bytes_data is not None else text_data
 
-              if data is None:
-                  return
+            if data is None:
+                return
 
-              try:
-                  self.browser_message_received = True
-                  logger.info(
-                      "Received browser file monitor message for site %s: %s",
-                      self.site.id if self.site is not None else "?",
-                      data[:300] if isinstance(data, str) else "<binary>",
-                  )
+            try:
+                self.browser_message_received = True
+                logger.info(
+                    "Received browser file monitor message for site %s: %s",
+                    self.site.id if self.site is not None else "?",
+                    data[:300] if isinstance(data, str) else "<binary>",
+                )
                 for monitor_websock in self.monitor_websocks:
                     await monitor_websock.send(data)
             except websocket_exceptions.ConnectionClosed:
