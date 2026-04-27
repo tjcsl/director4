@@ -17,7 +17,8 @@ from .utils import get_swarm_node_id
 
 
 def _wait_for_exec_exit_code(client: DockerClient, exec_id: str) -> int:
-    deadline = time.monotonic() + settings.NGINX_RELOAD_TIMEOUT
+    start = time.monotonic()
+    deadline = start + settings.NGINX_RELOAD_TIMEOUT
 
     while True:
         exec_info = cast(Dict[str, Any], client.api.exec_inspect(exec_id))
@@ -26,7 +27,12 @@ def _wait_for_exec_exit_code(client: DockerClient, exec_id: str) -> int:
             return cast(int, exec_info["ExitCode"])
 
         if time.monotonic() >= deadline:
-            raise OrchestratorActionError("Timed out reloading Nginx config")
+            elapsed = time.monotonic() - start
+            raise OrchestratorActionError(
+                "Timed out reloading Nginx config after {:.1f}s (exec_id={})".format(
+                    elapsed, exec_id
+                )
+            )
 
         time.sleep(settings.NGINX_RELOAD_POLL_INTERVAL)
 
