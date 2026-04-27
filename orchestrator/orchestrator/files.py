@@ -170,7 +170,7 @@ def ensure_site_directories_exist(site_id: int) -> None:
             *settings.SITE_DIRECTORY_COMMAND_PREFIX,
             "sh",
             "-c",
-            'umask "$1" && mkdir -p -- "$2"',
+            'umask "$1" && exec mkdir -p -- "$2"',
             "sh",
             oct(settings.SITE_UMASK)[2:],
             site_dir,
