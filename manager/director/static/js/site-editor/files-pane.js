@@ -19,16 +19,10 @@ function FilesPane(container, uri, callbacks) {
     var ws = null;
     var isOpen = false;
     var firstOpen = true;
-    var destroyed = false;
-    var reconnectTimeoutId = null;
 
     var customStylesheet = $("<style>").appendTo("head");
 
     function openWS() {
-        if(destroyed) {
-            return;
-        }
-
         ws = new WebSocket(uri);
         ws.onopen = wsOpened;
         ws.onmessage = wsMessage;
@@ -98,25 +92,18 @@ function FilesPane(container, uri, callbacks) {
         }
     }
 
-    function wsClosed(e) {
+    function wsClosed() {
         itemsContainer.addClass("disabled");
 
         isOpen = false;
         ws = null;
 
-        if(destroyed) {
-            return;
-        }
-
         // Try to reopen
-        reconnectTimeoutId = setTimeout(function() {
-            reconnectTimeoutId = null;
-            openWS();
-        }, 3000);
+        setTimeout(openWS, 3000);
     }
 
     // Send heartbeats every 30 seconds to keep the connection alive
-    var heartbeatIntervalId = setInterval(function() {
+    setInterval(function() {
         if(isOpen && ws != null) {
             ws.send(JSON.stringify({heartbeat: 1}));
         }
@@ -965,25 +952,6 @@ function FilesPane(container, uri, callbacks) {
         }
         else {
             this.hideHiddenFiles();
-        }
-    };
-
-    this.destroy = function() {
-        destroyed = true;
-        isOpen = false;
-
-        if(reconnectTimeoutId != null) {
-            clearTimeout(reconnectTimeoutId);
-            reconnectTimeoutId = null;
-        }
-
-        if(heartbeatIntervalId != null) {
-            clearInterval(heartbeatIntervalId);
-            heartbeatIntervalId = null;
-        }
-
-        if(ws != null) {
-            ws.close();
         }
     };
 

@@ -3,7 +3,6 @@
 
 import asyncio
 import json
-import logging
 import urllib.parse
 from typing import Any, Dict, List, Optional, Union, cast
 
@@ -20,8 +19,6 @@ from ...utils.appserver import (
     iter_random_pingable_appservers,
 )
 from .models import Database, Site
-
-logger = logging.getLogger(__name__)
 
 
 @database_sync_to_async
@@ -408,9 +405,6 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
         self.connected = False
 
         self.monitor_websocks: List[WebSocketClientProtocol] = []
-        self.browser_message_received = False
-        self.appserver_message_forwarded = False
-        self.close_reason: Optional[str] = None
         self.pending_browser_messages: List[Union[str, bytes]] = []
         self.monitor_connections_initialized = False
 
@@ -454,34 +448,14 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             self.monitor_connections_initialized = True
             self.pending_browser_messages.clear()
         else:
-            logger.warning(
-                (
-                    "Closing file monitor websocket for site %s because no "
-                    "appserver monitor sockets opened"
-                ),
-                self.site.id if self.site is not None else "?",
-            )
             self.connected = False
-            await self.close_with_reason("no_appserver_monitor_sockets")
+            await self.close_monitor()
 
     async def sleep_and_close(self, timeout: Union[int, float]) -> None:
         await asyncio.sleep(timeout)
-        await self.close_with_reason("timeout")
+        await self.close_monitor()
 
-    async def close_with_reason(self, reason: str) -> None:
-        self.close_reason = reason
-        logger.warning(
-            (
-                "Closing manager file monitor websocket for site %s "
-                "(reason=%s, browser_message_received=%s, "
-                "appserver_message_forwarded=%s, open_appserver_sockets=%s)"
-            ),
-            self.site.id if self.site is not None else "?",
-            reason,
-            self.browser_message_received,
-            self.appserver_message_forwarded,
-            len(self.monitor_websocks),
-        )
+    async def close_monitor(self) -> None:
         await self.close()
 
     async def open_monitor_connections(self) -> None:
@@ -505,18 +479,7 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                     for data in self.pending_browser_messages:
                         try:
                             await monitor_websock.send(data)
-                        except websocket_exceptions.ConnectionClosed as ex:
-                            logger.warning(
-                                (
-                                    "Appserver file monitor websocket closed while "
-                                    "replaying buffered browser message for site %s "
-                                    "on appserver %s: code=%s reason=%r"
-                                ),
-                                site_id,
-                                appserver_num,
-                                ex.code,
-                                ex.reason,
-                            )
+                        except websocket_exceptions.ConnectionClosed:
                             break
 
     async def monitor_mainloop(
@@ -530,30 +493,20 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                 if monitor_websock in self.monitor_websocks:
                     self.monitor_websocks.remove(monitor_websock)
                 if not self.monitor_websocks:
-                    await self.close_with_reason("all_appserver_monitor_sockets_closed")
+                    await self.close_monitor()
                 break
 
             if isinstance(msg, bytes):
-                self.appserver_message_forwarded = True
                 try:
                     await self.send(bytes_data=msg)
                 except Exception:  # pylint: disable=broad-except
-                    logger.exception(
-                        "Error forwarding binary file monitor message to browser for site %s",
-                        self.site.id if self.site is not None else "?",
-                    )
-                    await self.close_with_reason("browser_send_failed")
+                    await self.close_monitor()
                     break
             elif isinstance(msg, str):
-                self.appserver_message_forwarded = True
                 try:
                     await self.send(text_data=msg)
                 except Exception:  # pylint: disable=broad-except
-                    logger.exception(
-                        "Error forwarding file monitor message to browser for site %s",
-                        self.site.id if self.site is not None else "?",
-                    )
-                    await self.close_with_reason("browser_send_failed")
+                    await self.close_monitor()
                     break
 
     async def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
@@ -561,7 +514,7 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             await database_sync_to_async(self.site.refresh_from_db)()
 
             if not database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
-                await self.close_with_reason("site_permissions_revoked")
+                await self.close_monitor()
 
     async def operation_updated(
         self, event: Dict[str, Any]  # pylint: disable=unused-argument
@@ -585,31 +538,13 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                 return
 
             try:
-                self.browser_message_received = True
                 if not self.monitor_connections_initialized:
                     self.pending_browser_messages.append(data)
 
                 for monitor_websock in list(self.monitor_websocks):
                     await monitor_websock.send(data)
-            except websocket_exceptions.ConnectionClosed as ex:
-                logger.warning(
-                    (
-                        "Appserver file monitor websocket closed while forwarding "
-                        "browser message for site %s: code=%s reason=%r"
-                    ),
-                    self.site.id if self.site is not None else "?",
-                    ex.code,
-                    ex.reason,
-                )
-                await self.close_with_reason("appserver_monitor_socket_closed_during_forward")
-        else:
-            logger.warning(
-                (
-                    "Dropping browser file monitor message for site %s because "
-                    "manager websocket is not connected"
-                ),
-                self.site.id if self.site is not None else "?",
-            )
+            except websocket_exceptions.ConnectionClosed:
+                await self.close_monitor()
 
 
 class SiteLogsConsumer(AsyncWebsocketConsumer):

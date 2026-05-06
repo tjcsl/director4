@@ -53,10 +53,6 @@ $(function() {
             if(i != -1) {
                 components.splice(i, 1);
             }
-
-            if(typeof obj.destroy === "function") {
-                obj.destroy();
-            }
         });
     }
 

@@ -118,7 +118,6 @@ run_psql_db() {
 }
 for name in 'manager'; do
     run_psql "CREATE USER $name PASSWORD 'pwd';" || echo "User '$name' already exists"
-    run_psql "ALTER USER $name WITH PASSWORD 'pwd';"
     run_psql "CREATE DATABASE $name OWNER $name;" || echo "Database '$name' already exists"
 done
 

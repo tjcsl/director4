@@ -29,30 +29,7 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
     site_id = int(params["site_id"])
 
     monitor = SiteFilesMonitor(site_id)
-    try:
-        await monitor.start()
-    except Exception:  # pylint: disable=broad-except
-        logger.exception("Failed to start file monitor for site %s", site_id)
-        await websock.close()
-        return
-
-    async def log_monitor_exit() -> None:
-        try:
-            returncode = await monitor.wait()
-            stderr = await monitor.read_stderr()
-        except Exception:  # pylint: disable=broad-except
-            logger.exception("Failed to inspect file monitor exit for site %s", site_id)
-            return
-
-        if returncode != 0:
-            logger.error(
-                "File monitor for site %s exited with code %s: %s",
-                site_id,
-                returncode,
-                stderr.strip() or "<no stderr>",
-            )
-
-    monitor_exit_task = asyncio.create_task(log_monitor_exit())
+    await monitor.start()
 
     async def websock_loop() -> None:
         while True:
@@ -64,11 +41,6 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
             if isinstance(frame, str):
                 msg = json.loads(frame)
                 if not isinstance(msg, dict):
-                    logger.warning(
-                        "Ignoring non-dict file monitor payload for site %s: %r",
-                        site_id,
-                        msg,
-                    )
                     continue
 
                 if "action" in msg and "path" in msg:
@@ -76,26 +48,12 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
                         await monitor.add_watch(msg["path"])
                     elif msg["action"] == "remove":
                         await monitor.rm_watch(msg["path"])
-                    else:
-                        logger.warning(
-                            "Ignoring unknown file monitor action for site %s: %r",
-                            site_id,
-                            msg["action"],
-                        )
                 elif "heartbeat" in msg:
                     # Send it back
                     try:
                         await websock.send(frame)
                     except websockets.exceptions.ConnectionClosed:
                         return
-                else:
-                    logger.warning(
-                        "Ignoring unexpected file monitor message shape for site %s: %r",
-                        site_id,
-                        msg,
-                    )
-            else:
-                logger.warning("Ignoring binary file monitor frame for site %s", site_id)
 
     async def monitor_loop() -> None:
         async for event in monitor.aiter_events():
@@ -108,7 +66,6 @@ async def file_monitor_handler(  # pylint: disable=unused-argument
 
     await websock.close()
     await monitor.stop_wait(timeout=3)
-    await asyncio.gather(monitor_exit_task, return_exceptions=True)
 
 
 async def remove_all_site_files_dangerous_handler(  # pylint: disable=unused-argument
