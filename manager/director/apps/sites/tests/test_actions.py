@@ -65,8 +65,9 @@ class ActionsTestCase(DirectorTestCase):
             )
             self.assertEqual("Disabling site Nginx config", next(result))
 
+            self.assertEqual("Re-raising exception", next(result))
             with self.assertRaises(AppserverProtocolError):
-                self.assertEqual("Re-raising exception", next(result))
+                next(result)
 
             self.assertEqual(2, mock_req.call_count)
 

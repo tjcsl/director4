@@ -1,5 +1,6 @@
 import asyncio
 import multiprocessing
+import socket
 import time
 import unittest
 
@@ -7,6 +8,21 @@ import asyncssh
 from asyncssh import PermissionDenied
 
 from ..main import main
+
+
+def wait_for_port(host: str, port: int, process: multiprocessing.Process) -> None:
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        if not process.is_alive():
+            raise AssertionError("Shell server process exited before accepting connections")
+
+        try:
+            with socket.create_connection((host, port), timeout=0.1):
+                return
+        except OSError:
+            time.sleep(0.1)
+
+    raise AssertionError("Timed out waiting for shell server to accept connections")
 
 
 class ShellTest(unittest.TestCase):
@@ -24,7 +40,7 @@ class ShellTest(unittest.TestCase):
     def test_ssh_connection(self) -> None:
         process = multiprocessing.Process(target=main, name="main", args=("m",))
         process.start()
-        time.sleep(0.5)
+        wait_for_port("127.0.0.1", 2322, process)
 
         # Try to connect as "root"
 

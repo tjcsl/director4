@@ -46,9 +46,7 @@ else:
         app.logger.setLevel(gunicorn_error_logger.level)
     else:
         stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(
-            logging.Formatter("%(asctime)s [%(levelname)-8s]: %(message)s")
-        )
+        stream_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)-8s]: %(message)s"))
         stream_handler.setLevel(settings.LOG_LEVEL)
         app.logger.addHandler(stream_handler)  # pylint: disable=no-member
         app.logger.setLevel(settings.LOG_LEVEL)
