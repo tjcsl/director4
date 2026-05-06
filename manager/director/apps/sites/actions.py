@@ -48,9 +48,7 @@ def reload_nginx_on_appservers(
             try:
                 future.result()
             except AppserverRequestError as ex:
-                errors.append(
-                    "appserver {}: {}: {}".format(appserver, ex.__class__.__name__, ex)
-                )
+                errors.append("appserver {}: {}: {}".format(appserver, ex.__class__.__name__, ex))
 
     if errors:
         raise AppserverProtocolError("; ".join(errors))

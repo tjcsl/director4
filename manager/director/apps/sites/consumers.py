@@ -448,9 +448,7 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             # we get reconnected soon).
             asyncio.get_event_loop().create_task(
                 self.sleep_and_close(
-                    3600
-                    if len(self.monitor_websocks) == settings.DIRECTOR_NUM_APPSERVERS
-                    else 300
+                    3600 if len(self.monitor_websocks) == settings.DIRECTOR_NUM_APPSERVERS else 300
                 )
             )
             self.monitor_connections_initialized = True
