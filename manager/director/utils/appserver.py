@@ -3,6 +3,7 @@
 
 import http.client
 import json
+import logging
 import random
 import re
 import socket
@@ -19,6 +20,7 @@ from django.conf import settings
 from directorutil.ssl_context import create_internal_client_ssl_context
 
 appserver_ssl_context = create_internal_client_ssl_context(settings.DIRECTOR_APPSERVER_SSL)
+logger = logging.getLogger(__name__)
 
 
 class AppserverRequestError(Exception):
@@ -198,7 +200,15 @@ def appserver_open_http_request(
     try:
         response = urllib.request.urlopen(request, timeout=timeout, context=appserver_ssl_context)
     except urllib.error.HTTPError as ex:
-        raise AppserverProtocolError(ex.read().decode()) from ex
+        body = ex.read().decode(errors="replace")
+        logger.exception(
+            "Appserver HTTP error for %s %s: status=%s body=%r",
+            method,
+            full_url,
+            ex.code,
+            body,
+        )
+        raise AppserverProtocolError(body) from ex
     except urllib.error.URLError as ex:
         if isinstance(ex.reason, ConnectionError):
             raise AppserverConnectionError(str(ex)) from ex
@@ -206,6 +216,7 @@ def appserver_open_http_request(
         if isinstance(ex.reason, socket.timeout):
             raise AppserverTimeoutError(str(ex)) from ex
 
+        logger.exception("Appserver URL error for %s %s", method, full_url)
         raise AppserverProtocolError(str(ex)) from ex
     except socket.timeout as ex:
         raise AppserverTimeoutError(str(ex)) from ex

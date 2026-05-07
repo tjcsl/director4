@@ -98,6 +98,11 @@ def _load_vendor_modules(path: str) -> Iterable[Tuple[str, str]]:
                 yield (fname + "." + name, text)
 
 
+def _encode_vendor_module_env_name(name: str) -> str:
+    """Map module names to sudo-safe environment variable suffixes."""
+    return name.replace(".", "__DOT__")
+
+
 def _run_helper_script_prog(
     callback: Callable[[List[str], Dict[str, Any]], T], args: List[str], kwargs: Dict[str, Any]
 ) -> T:
@@ -124,7 +129,7 @@ def _run_helper_script_prog(
     kwargs["env"]["ORCHESTRATOR_HELPER_PROG"] = text
 
     for name, text in _load_vendor_modules(HELPER_SCRIPT_VENDOR_PATH):
-        kwargs["env"]["ORCHESTRATOR_HELPER_VENDOR_" + name] = text
+        kwargs["env"]["ORCHESTRATOR_HELPER_VENDOR_" + _encode_vendor_module_env_name(name)] = text
 
     # See docs/UMASK.md before touching this
     kwargs["env"]["ORCHESTRATOR_HELPER_UMASK"] = oct(settings.SITE_UMASK)
@@ -162,7 +167,7 @@ def ensure_site_directories_exist(site_id: int) -> None:
             *settings.SITE_DIRECTORY_COMMAND_PREFIX,
             "sh",
             "-c",
-            'umask "$1" && mkdir -p -- "$2"',
+            'umask "$1" && exec mkdir -p -- "$2"',
             "sh",
             oct(settings.SITE_UMASK)[2:],
             site_dir,

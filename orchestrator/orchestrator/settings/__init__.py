@@ -28,6 +28,12 @@ DOCKER_REGISTRY_AUTH_CONFIG = {"username": "user", "password": "user"}
 # API
 DOCKER_REGISTRY_TIMEOUT = 20
 
+# Maximum amount of time to wait for an in-container nginx reload command to finish.
+NGINX_RELOAD_TIMEOUT = 180
+
+# How frequently to poll the Docker exec status for nginx reload
+NGINX_RELOAD_POLL_INTERVAL = 0.1
+
 # "Maintainer" of custom docker images
 DOCKER_IMAGE_MAINTAINER = "CSL"
 

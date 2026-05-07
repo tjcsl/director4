@@ -27,7 +27,7 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
     vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
     vb.name = "director4-vagrant"
-    vb.memory = 2048
+    vb.memory = ENV.fetch("DIRECTOR4_VAGRANT_MEMORY", 2048).to_i
   end
 
   # Sync this repo to /home/vagrant/director

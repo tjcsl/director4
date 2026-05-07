@@ -405,6 +405,8 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
         self.connected = False
 
         self.monitor_websocks: List[WebSocketClientProtocol] = []
+        self.pending_browser_messages: List[Union[str, bytes]] = []
+        self.monitor_connections_initialized = False
 
     async def connect(self) -> None:
         if not self.scope["user"].is_authenticated:
@@ -426,38 +428,45 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
 
         self.connected = True
         await self.accept()
+        asyncio.get_event_loop().create_task(self.initialize_monitor_connections())
 
+    async def initialize_monitor_connections(self) -> None:
         await self.open_monitor_connections()
 
-        if self.monitor_websocks:
-            loop = asyncio.get_event_loop()
-            for monitor_websock in self.monitor_websocks:
-                loop.create_task(self.monitor_mainloop(monitor_websock))
+        if not self.connected:
+            return
 
+        if self.monitor_websocks:
             # If we've connected to all the appservers, trigger a close after 1 hour.
             # Otherwise, trigger it after 5 minutes (so if an appserver comes back online soon
             # we get reconnected soon).
-            loop.create_task(
+            asyncio.get_event_loop().create_task(
                 self.sleep_and_close(
                     3600 if len(self.monitor_websocks) == settings.DIRECTOR_NUM_APPSERVERS else 300
                 )
             )
+            self.monitor_connections_initialized = True
+            self.pending_browser_messages.clear()
         else:
             self.connected = False
-            await self.close()
+            await self.close_monitor()
 
     async def sleep_and_close(self, timeout: Union[int, float]) -> None:
         await asyncio.sleep(timeout)
+        await self.close_monitor()
+
+    async def close_monitor(self) -> None:
         await self.close()
 
     async def open_monitor_connections(self) -> None:
         assert self.site is not None
+        site_id = self.site.id
 
         for appserver_num in iter_pingable_appservers():
             try:
                 monitor_websock = await asyncio.wait_for(
                     appserver_open_websocket(
-                        appserver_num, "/ws/sites/{}/files/monitor".format(self.site.id)
+                        appserver_num, "/ws/sites/{}/files/monitor".format(site_id)
                     ),
                     timeout=1,
                 )
@@ -465,6 +474,13 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                 pass
             else:
                 self.monitor_websocks.append(monitor_websock)
+                asyncio.get_event_loop().create_task(self.monitor_mainloop(monitor_websock))
+                if self.pending_browser_messages:
+                    for data in self.pending_browser_messages:
+                        try:
+                            await monitor_websock.send(data)
+                        except websocket_exceptions.ConnectionClosed:
+                            break
 
     async def monitor_mainloop(
         self,
@@ -474,20 +490,31 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
             try:
                 msg = await monitor_websock.recv()
             except websocket_exceptions.ConnectionClosed:
-                await self.close()
+                if monitor_websock in self.monitor_websocks:
+                    self.monitor_websocks.remove(monitor_websock)
+                if not self.monitor_websocks:
+                    await self.close_monitor()
                 break
 
             if isinstance(msg, bytes):
-                await self.send(bytes_data=msg)
+                try:
+                    await self.send(bytes_data=msg)
+                except Exception:  # pylint: disable=broad-except
+                    await self.close_monitor()
+                    break
             elif isinstance(msg, str):
-                await self.send(text_data=msg)
+                try:
+                    await self.send(text_data=msg)
+                except Exception:  # pylint: disable=broad-except
+                    await self.close_monitor()
+                    break
 
     async def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
         if self.site is not None:
             await database_sync_to_async(self.site.refresh_from_db)()
 
             if not database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
-                await self.close()
+                await self.close_monitor()
 
     async def operation_updated(
         self, event: Dict[str, Any]  # pylint: disable=unused-argument
@@ -511,10 +538,13 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                 return
 
             try:
-                for monitor_websock in self.monitor_websocks:
+                if not self.monitor_connections_initialized:
+                    self.pending_browser_messages.append(data)
+
+                for monitor_websock in list(self.monitor_websocks):
                     await monitor_websock.send(data)
             except websocket_exceptions.ConnectionClosed:
-                await self.close()
+                await self.close_monitor()
 
 
 class SiteLogsConsumer(AsyncWebsocketConsumer):

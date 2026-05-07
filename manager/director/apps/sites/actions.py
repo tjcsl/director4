@@ -4,12 +4,14 @@
 import asyncio
 import json
 import random
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, AsyncGenerator, Dict, Iterator, Tuple, Union
 
 from django.conf import settings
 
 from ...utils.appserver import (
     AppserverProtocolError,
+    AppserverRequestError,
     appserver_open_http_request,
     appserver_open_websocket,
     iter_pingable_appservers,
@@ -17,6 +19,39 @@ from ...utils.appserver import (
 from ...utils.balancer import balancer_open_http_request, iter_pingable_balancers
 from ...utils.secret_generator import gen_database_password
 from .models import Domain, Site
+
+
+def reload_nginx_on_appservers(
+    appservers: Iterator[int],
+    *,
+    timeout: Union[int, float] = 180,
+) -> None:
+    appserver_list = list(appservers)
+    if not appserver_list:
+        return
+
+    errors = []
+
+    with ThreadPoolExecutor(max_workers=len(appserver_list)) as executor:
+        future_map = {
+            executor.submit(
+                appserver_open_http_request,
+                appserver,
+                "/sites/reload-nginx",
+                method="POST",
+                timeout=timeout,
+            ): appserver
+            for appserver in appserver_list
+        }
+
+        for future, appserver in future_map.items():
+            try:
+                future.result()
+            except AppserverRequestError as ex:
+                errors.append("appserver {}: {}: {}".format(appserver, ex.__class__.__name__, ex))
+
+    if errors:
+        raise AppserverProtocolError("; ".join(errors))
 
 
 def find_pingable_appservers(  # pylint: disable=unused-argument
@@ -44,9 +79,9 @@ def update_appserver_nginx_config(
             data={"data": json.dumps(site.serialize_for_appserver())},
             timeout=60,
         )
-    except AppserverProtocolError:
+    except AppserverRequestError as ex:
         # If an error occurs, disable the Nginx config
-        yield "Error updating Nginx config"
+        yield "Error updating Nginx config: {}: {}".format(ex.__class__.__name__, ex)
 
         yield "Disabling site Nginx config"
         appserver_open_http_request(
@@ -66,17 +101,11 @@ def update_appserver_nginx_config(
         try:
             for i in scope["pingable_appservers"]:
                 yield "Reloading Nginx config on appserver {}".format(i)
-
-                appserver_open_http_request(
-                    i,
-                    "/sites/reload-nginx",
-                    method="POST",
-                    timeout=120,
-                )
-        except AppserverProtocolError:
+            reload_nginx_on_appservers(scope["pingable_appservers"], timeout=180)
+        except AppserverRequestError as ex:
             # Error reloading; disable config
             # We're probably fine not reloading Nginx
-            yield "Error reloading Nginx config"
+            yield "Error reloading Nginx config: {}: {}".format(ex.__class__.__name__, ex)
 
             yield "Disabling site Nginx config"
             appserver_open_http_request(
@@ -109,13 +138,7 @@ def remove_appserver_nginx_config(
     yield "Reloading Nginx config on all appservers"
     for i in scope["pingable_appservers"]:
         yield "Reloading Nginx config on appserver {}".format(i)
-
-        appserver_open_http_request(
-            i,
-            "/sites/reload-nginx",
-            method="POST",
-            timeout=120,
-        )
+    reload_nginx_on_appservers(scope["pingable_appservers"], timeout=180)
 
     yield "Done"
 

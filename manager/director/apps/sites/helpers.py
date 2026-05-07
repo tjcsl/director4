@@ -2,6 +2,7 @@
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
 import contextlib
+import logging
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, overload
 
 from asgiref.sync import async_to_sync
@@ -13,6 +14,7 @@ from ...utils.emails import send_email
 from .models import Action, Operation, Site
 
 ActionCallback = Callable[[Site, Dict[str, Any]], Iterator[Union[Tuple[str, str], str]]]
+logger = logging.getLogger(__name__)
 
 
 class OperationWrapper:
@@ -86,6 +88,12 @@ class OperationWrapper:
             try:
                 self.run_action(action, callback, scope, new_action_callback=new_action_callback)
             except BaseException as ex:  # pylint: disable=broad-except
+                logger.exception(
+                    "Site operation %s failed during action %s for site %s",
+                    self.operation.type,
+                    action.slug,
+                    self.site.id,
+                )
                 action.message += "{}: {}\nScope: {}".format(ex.__class__.__name__, ex, scope)
                 action.result = False
                 action.save()

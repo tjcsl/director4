@@ -57,11 +57,14 @@ class ActionsTestCase(DirectorTestCase):
 
             # "director-apptest1:8000" obviously isn't pingable.
             self.assertEqual("Connecting to appserver 0 to update Nginx config", next(result))
-            self.assertEqual("Error updating Nginx config", next(result))
+            self.assertIn(
+                "Error updating Nginx config: AppserverProtocolError:",
+                next(result),
+            )
             self.assertEqual("Disabling site Nginx config", next(result))
 
             with self.assertRaises(AppserverProtocolError):
-                self.assertEqual("Re-raising exception", next(result))
+                next(result)
 
         # Now, patch that method to bypass it
         with patch(

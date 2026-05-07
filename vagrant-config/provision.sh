@@ -117,8 +117,8 @@ run_psql_db() {
     sudo -u postgres psql -U postgres -d "$dbname" -c "$@"
 }
 for name in 'manager'; do
-    run_psql "CREATE DATABASE $name OWNER $name;" || echo "Database '$name' already exists"
     run_psql "CREATE USER $name PASSWORD 'pwd';" || echo "User '$name' already exists"
+    run_psql "CREATE DATABASE $name OWNER $name;" || echo "Database '$name' already exists"
 done
 
 run_psql "ALTER USER postgres WITH PASSWORD 'pwd';"
@@ -269,7 +269,7 @@ echo "user" | docker login localhost:4433 --username user --password-stdin
 docker service rm director-postgres || true
 docker service create --replicas=1 \
     --publish published=5433,target=5432 \
-    --mount type=bind,source=/data/db/postgres,destination=/var/lib/postgresql/data \
+    --mount type=bind,source=/data/db/postgres,destination=/var/lib/postgresql \
     --env=POSTGRES_USER=postgres \
     --env=POSTGRES_PASSWORD=pwd \
     --network director-sites \
