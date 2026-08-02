@@ -56,7 +56,7 @@ def get_file_view(request: HttpRequest, site_id: int) -> Union[HttpResponse, Str
             timeout=10,
         )
     except AppserverProtocolError as ex:
-        return HttpResponse(str(ex), status=500)
+        return HttpResponse(str(ex), status=500, content_type="text/plain")
 
     def stream() -> Generator[bytes, None, None]:
         while True:
@@ -100,7 +100,7 @@ def download_zip_view(
             timeout=10,
         )
     except AppserverProtocolError as ex:
-        return HttpResponse(str(ex), status=500)
+        return HttpResponse(str(ex), status=500, content_type="text/plain")
 
     def stream() -> Generator[bytes, None, None]:
         while True:
@@ -144,7 +144,7 @@ def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
                 timeout=600,
             )
         except AppserverProtocolError as ex:
-            return HttpResponse(str(ex), status=500)
+            return HttpResponse(str(ex), status=500, content_type="text/plain")
 
         return HttpResponse("Success")
     else:
@@ -168,7 +168,7 @@ def write_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
                     timeout=600,
                 )
             except AppserverProtocolError as ex:
-                return HttpResponse(str(ex), status=500)
+                return HttpResponse(str(ex), status=500, content_type="text/plain")
 
         return HttpResponse("Success")
 
@@ -200,7 +200,7 @@ def create_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
             timeout=600,
         )
     except AppserverProtocolError as ex:
-        return HttpResponse(str(ex), status=500)
+        return HttpResponse(str(ex), status=500, content_type="text/plain")
 
     return HttpResponse("Success")
 
@@ -230,7 +230,7 @@ def remove_file_view(request: HttpRequest, site_id: int) -> HttpResponse:
             timeout=10,
         )
     except AppserverProtocolError as ex:
-        return HttpResponse(str(ex), status=500)
+        return HttpResponse(str(ex), status=500, content_type="text/plain")
 
     return HttpResponse("Sucess", content_type="text/plain")
 
@@ -260,7 +260,7 @@ def remove_directory_recur_view(request: HttpRequest, site_id: int) -> HttpRespo
             timeout=10,
         )
     except AppserverProtocolError as ex:
-        return HttpResponse(str(ex), status=500)
+        return HttpResponse(str(ex), status=500, content_type="text/plain")
 
     return HttpResponse("Success", content_type="text/plain")
 
@@ -292,7 +292,7 @@ def make_directory_view(request: HttpRequest, site_id: int) -> HttpResponse:
             timeout=10,
         )
     except AppserverProtocolError as ex:
-        return HttpResponse(str(ex), status=500)
+        return HttpResponse(str(ex), status=500, content_type="text/plain")
 
     return HttpResponse("Success", content_type="text/plain")
 
@@ -325,7 +325,7 @@ def chmod_view(request: HttpRequest, site_id: int) -> HttpResponse:
             timeout=10,
         )
     except AppserverProtocolError as ex:
-        return HttpResponse(str(ex), status=500)
+        return HttpResponse(str(ex), status=500, content_type="text/plain")
 
     return HttpResponse("Success", content_type="text/plain")
 
@@ -358,6 +358,6 @@ def rename_view(request: HttpRequest, site_id: int) -> HttpResponse:
             timeout=10,
         )
     except AppserverProtocolError as ex:
-        return HttpResponse(str(ex), status=500)
+        return HttpResponse(str(ex), status=500, content_type="text/plain")
 
     return HttpResponse("Success", content_type="text/plain")

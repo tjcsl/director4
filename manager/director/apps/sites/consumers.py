@@ -366,7 +366,7 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
         if self.site is not None:
             await database_sync_to_async(self.site.refresh_from_db)()
 
-            if not database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
+            if not await database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
                 await self.close()
 
     async def operation_updated(
@@ -513,7 +513,7 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
         if self.site is not None:
             await database_sync_to_async(self.site.refresh_from_db)()
 
-            if not database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
+            if not await database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
                 await self.close_monitor()
 
     async def operation_updated(
@@ -616,7 +616,7 @@ class SiteLogsConsumer(AsyncWebsocketConsumer):
         if self.site is not None:
             await database_sync_to_async(self.site.refresh_from_db)()
 
-            if not database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
+            if not await database_sync_to_async(self.site.can_be_edited_by)(self.scope["user"]):
                 await self.close()
 
     async def operation_updated(
@@ -727,11 +727,11 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
 
     async def site_updated(self, event: Dict[str, Any]) -> None:  # pylint: disable=unused-argument
         for site_id in self.site_ids:
-            site = Site.objects.get(id=site_id)
+            site = await database_sync_to_async(Site.objects.get)(id=site_id)
 
             await database_sync_to_async(site.refresh_from_db)()
 
-            if not database_sync_to_async(site.can_be_edited_by)(self.scope["user"]):
+            if not await database_sync_to_async(site.can_be_edited_by)(self.scope["user"]):
                 await self.close()
 
     async def operation_updated(
