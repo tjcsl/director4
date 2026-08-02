@@ -819,7 +819,7 @@ function FilesPane(container, uri, callbacks) {
             "Are you sure you want to delete this file?",
             [
                 "Are you sure you want to delete ",
-                $("<code>").append(path),
+                $("<code>").text(path),
                 "?",
             ],
             function(result) {
@@ -849,11 +849,11 @@ function FilesPane(container, uri, callbacks) {
             "Are you sure you want to delete this folder and ALL of its contents?",
             [
                 "Are you sure you want to delete ",
-                $("<code>").append(path),
+                $("<code>").text(path),
                 " and all of its contents? This action is PERMANENT and cannot be undone.",
                 "<br>",
                 "To confirm, please enter the name of the folder (",
-                $("<code>").append(splitPath(path)[1]),
+                $("<code>").text(splitPath(path)[1]),
                 ") below:",
             ],
             "",

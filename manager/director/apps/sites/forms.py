@@ -140,13 +140,6 @@ class DomainForm(forms.Form):
         label="Custom domain",
         max_length=255,
         required=False,
-        validators=[
-            validators.RegexValidator(
-                regex=r"^(?!(.*\.)?sites\.tjhsst\.edu$)[0-9a-zA-Z_\- .]+$",
-                message="You can only have one sites.tjhsst.edu domain, the automatically generated"
-                " one that matches the name of your site.",
-            ),
-        ],
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
@@ -155,13 +148,35 @@ class DomainForm(forms.Form):
 
         self.user_is_superuser = user_is_superuser
 
+    def clean_domain(self) -> str:
+        # Normalize first so every check below is case-insensitive and tolerant of trailing
+        # dots/whitespace (e.g. "SITES.TJHSST.EDU", "sites.tjhsst.edu.", "sites.tjhsst.edu ").
+        domain = (self.cleaned_data.get("domain") or "").strip().lower().rstrip(".")
+
+        if not domain:
+            return ""
+
+        # Nobody may register a sites.tjhsst.edu domain as a custom domain. The only
+        # sites.tjhsst.edu domain a site gets is the auto-generated one matching its name.
+        if domain == "sites.tjhsst.edu" or domain.endswith(".sites.tjhsst.edu"):
+            raise forms.ValidationError(
+                "You cannot register a sites.tjhsst.edu domain. The automatically generated one "
+                "that matches the name of your site is the only one available."
+            )
+
+        # Require a syntactically valid hostname (lowercase letters/digits/dashes, dot-separated).
+        # This also blocks leading dashes, spaces, and underscores.
+        if re.search(r"^[a-z0-9]+(-[a-z0-9]+)*(\.[a-z0-9]+(-[a-z0-9]+)*)+$", domain) is None:
+            raise forms.ValidationError("Enter a valid domain name.")
+
+        return domain
+
     def clean(self) -> Dict[str, Any]:
         cleaned_data = super().clean() or {}
         domain = cleaned_data.get("domain", "")
 
-        if not self.user_is_superuser:
-            if domain and domain.endswith("tjhsst.edu"):
-                self.add_error("domain", "Only administrators can add tjhsst.edu domains")
+        if not self.user_is_superuser and domain.endswith("tjhsst.edu"):
+            self.add_error("domain", "Only administrators can add tjhsst.edu domains")
 
         return cleaned_data
 

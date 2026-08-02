@@ -38,7 +38,10 @@
                 theme: "flat",
                 messageDefaults: {
                     hideAfter: 10,
-                    showCloseButton: true
+                    showCloseButton: true,
+                    // Render messages as text, not HTML. Many messages echo server error
+                    // bodies that can contain attacker-controlled filenames.
+                    escapeText: true
                 }
             }
 

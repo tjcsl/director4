@@ -35,7 +35,9 @@ def get_new_mode(old_mode: int, mode_str: Optional[str]) -> int:
     if not mode_str:
         return old_mode
     elif set(mode_str) < set("01234567"):
-        return int(mode_str, base=8)
+        # Mask to the low 9 permission bits so setuid/setgid/sticky can never be set on
+        # site files (users have no legitimate reason to, and it is an escalation footgun).
+        return int(mode_str, base=8) & 0o777
     elif mode_str.startswith(("+", "-")) and set(mode_str[1:]) < set("rwx"):
         mode_masks = {
             "r": stat.S_IRUSR + stat.S_IRGRP + stat.S_IROTH,
