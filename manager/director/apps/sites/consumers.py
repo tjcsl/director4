@@ -18,7 +18,27 @@ from ...utils.appserver import (
     iter_pingable_appservers,
     iter_random_pingable_appservers,
 )
-from .models import Database, Site
+from .models import Action, Database, Site
+
+
+def serialize_action_for_user(action: Action, datetime_format: str) -> Dict[str, Any]:
+    """Serialize an Action for the site owner's site-info view.
+
+    SECURITY: only non-sensitive fields are exposed here. The ``message``, ``before_state``
+    and ``after_state`` fields can contain internal error output (e.g. orchestrator exit
+    codes / tracebacks) and are deliberately NOT included -- that detail is shown only in the
+    superuser operations panel. Do not add them. This boundary is covered by test_consumers.py.
+    """
+    return {
+        "slug": action.slug,
+        "name": action.name,
+        "started_time": (
+            action.started_time.strftime(datetime_format)
+            if action.started_time is not None
+            else None
+        ),
+        "result": action.result,
+    }
 
 
 @database_sync_to_async
@@ -221,19 +241,10 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
                     else None
                 ),
                 "actions": [
-                    {
-                        "slug": action.slug,
-                        "name": action.name,
-                        "started_time": (
-                            action.started_time.strftime(datetime_format)
-                            if action.started_time is not None
-                            else None
-                        ),
-                        "result": action.result,
-                        # The following fields are intentionally omitted:
-                        # before_state, after_state, message
-                        # Do not add them in.
-                    }
+                    # Only non-sensitive fields are exposed to the site owner here; see the
+                    # SECURITY note on serialize_action_for_user (message/before_state/
+                    # after_state are intentionally omitted).
+                    serialize_action_for_user(action, datetime_format)
                     for action in self.site.operation.list_actions_in_order()
                 ],
             }

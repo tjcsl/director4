@@ -68,6 +68,7 @@ site_patterns: List[Union[URLPattern, URLResolver]] = [
     ),
     path("restart/", views.sites.restart_view, name="restart_service"),
     path("restart/raw/", views.sites.restart_raw_view, name="restart_service_raw"),
+    path("operations/reset/", views.sites.reset_operations_view, name="reset_operations"),
     # Admin-only
     path("resource-limits/", views.maintenance.resource_limits_view, name="resource_limits"),
     path("availability/", views.maintenance.availability_view, name="availability"),
