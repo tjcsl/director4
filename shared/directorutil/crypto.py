@@ -167,7 +167,7 @@ def decrypt_message(
 ) -> bytes:
     encoded_session_key, msg = (
         msg[: private_key.size_in_bytes()],
-        msg[private_key.size_in_bytes():],
+        msg[private_key.size_in_bytes() :],
     )
     nonce, msg = msg[:aes_nonce_length], msg[aes_nonce_length:]
     tag, msg = msg[:aes_tag_length], msg[aes_tag_length:]

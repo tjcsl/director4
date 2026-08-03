@@ -1,13 +1,9 @@
 #!/bin/bash
 cd "$(dirname -- "$(dirname -- "$(readlink -f "$0")")")"
 
-for cmd in black autopep8 isort; do
-    if [[ ! -x "$(which "$cmd")" ]]; then
-        echo "Could not find $cmd. Please make sure that black, autopep8, and isort are all installed."
-        exit 1
-    fi
-done
+if ! command -v ruff >/dev/null 2>&1; then
+    echo "Could not find ruff. Run 'pipenv install --dev' to install it."
+    exit 1
+fi
 
-# Order is important. There are a few things that black and autopep8 disagree on, and I side
-# with autopep8 on those.
-black shell && autopep8 --in-place --recursive shell && isort shell
+ruff check --fix shell && ruff format shell

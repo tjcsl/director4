@@ -195,7 +195,10 @@ def appserver_open_http_request(
     )
 
     request = urllib.request.Request(
-        full_url, method=method, data=data, headers=headers  # type: ignore
+        full_url,
+        method=method,
+        data=data,
+        headers=headers,  # type: ignore
     )
     try:
         response = urllib.request.urlopen(request, timeout=timeout, context=appserver_ssl_context)
