@@ -1,6 +1,7 @@
 import uuid
 
 from django.contrib.messages import get_messages
+from django.test import override_settings
 from django.urls import reverse
 
 from ....test.director_test import DirectorTestCase
@@ -195,6 +196,7 @@ class SitesTest(DirectorTestCase):
             [message.message for message in get_messages(response.wsgi_request)],
         )
 
+    @override_settings(FORBIDDEN_SITE_NAME_REGEX=r"^foobar\d+$")
     def test_create_view(self):
         user = self.login(accept_guidelines=True, make_admin=False, make_student=True)
 
@@ -203,6 +205,22 @@ class SitesTest(DirectorTestCase):
             follow=True,
         )
         self.assertEqual(200, response.status_code)
+
+        response = self.client.post(
+            reverse("sites:create"),
+            follow=True,
+            data={
+                "name": "foobar123",
+                "type": "dynamic",
+                "purpose": "project",
+                "users": user.id,
+                "student_agreement": True,
+            },
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(0, Site.objects.filter(name="foobar123").count())
+        # Confirm it was the forbidden-name check, not an unrelated validation error.
+        self.assertContains(response, "reserved for System Administrators")
 
         response = self.client.post(
             reverse("sites:create"),
@@ -218,6 +236,45 @@ class SitesTest(DirectorTestCase):
         self.assertEqual(200, response.status_code)
 
         self.assertEqual(1, Site.objects.filter(name="test").count())
+
+    @override_settings(FORBIDDEN_SITE_NAME_REGEX=r"^foobar\d+$")
+    def test_create_view_forbidden_name_allowed_for_superusers(self):
+        # Superusers are exempt from FORBIDDEN_SITE_NAME_REGEX and may create reserved names.
+        user = self.login(accept_guidelines=True, make_admin=True, make_student=True)
+
+        response = self.client.post(
+            reverse("sites:create"),
+            follow=True,
+            data={
+                "name": "foobar123",
+                "type": "dynamic",
+                "purpose": "project",
+                "users": user.id,
+                "student_agreement": True,
+            },
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(1, Site.objects.filter(name="foobar123").count())
+
+    @override_settings(FORBIDDEN_SITE_NAME_REGEX="[")
+    def test_create_view_invalid_forbidden_regex_blocks(self):
+        # An invalid regex must fail closed (block creation), not silently disable the check.
+        user = self.login(accept_guidelines=True, make_admin=False, make_student=True)
+
+        response = self.client.post(
+            reverse("sites:create"),
+            follow=True,
+            data={
+                "name": "anything",
+                "type": "dynamic",
+                "purpose": "project",
+                "users": user.id,
+                "student_agreement": True,
+            },
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(0, Site.objects.filter(name="anything").count())
+        self.assertContains(response, "misconfigured")
 
     def test_create_webdocs_view(self):
         user = self.login(accept_guidelines=True, make_admin=False, make_student=True)
