@@ -23,7 +23,12 @@ def _wait_for_exec_exit_code(client: DockerClient, exec_id: str) -> int:
     while True:
         exec_info = cast(Dict[str, Any], client.api.exec_inspect(exec_id))
 
-        if not exec_info["Running"]:
+        # Docker can briefly report Running=False with ExitCode=None in the instant after a
+        # detached exec finishes, before the exit status is reaped. The caller checks
+        # `exit_code != 0`, and None != 0 is True -- so returning None here turns a *successful*
+        # nginx reload into a spurious "Error reloading Nginx config". This race is the most
+        # common cause of nginx-reload flakiness; keep polling until the exit code is populated.
+        if not exec_info["Running"] and exec_info["ExitCode"] is not None:
             return cast(int, exec_info["ExitCode"])
 
         if time.monotonic() >= deadline:
@@ -219,4 +224,6 @@ def reload_nginx_config(client: DockerClient) -> None:
             exit_code = _wait_for_exec_exit_code(client, exec_id)
 
             if exit_code != 0:
-                raise OrchestratorActionError("Error reloading Nginx config")
+                raise OrchestratorActionError(
+                    "Error reloading Nginx config (`nginx -s reload` exited {})".format(exit_code)
+                )
