@@ -9,6 +9,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import validators
+from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 
 from .models import (
@@ -58,6 +59,28 @@ class SiteCreateForm(forms.ModelForm):
                 self.fields["users"].disabled = True
         else:
             self.initial_purpose = None
+
+    def clean_name(self) -> str:
+        name = self.cleaned_data.get("name", "")
+        forbidden_regex = settings.FORBIDDEN_SITE_NAME_REGEX
+        # Empty pattern = disabled (an empty regex would match every name).
+        if not self.user.is_superuser and forbidden_regex:
+            try:
+                is_reserved = re.search(forbidden_regex, name) is not None
+            except re.error as ex:
+                # Fail closed on an invalid regex so bad config is caught fast (site creation
+                # breaks) instead of silently letting reserved names through.
+                raise ValidationError(
+                    "Site name validation is misconfigured. Please contact the system"
+                    f" administrators at {settings.DIRECTOR_CONTACT_EMAIL}"
+                ) from ex
+            if is_reserved:
+                raise ValidationError(
+                    "Site name is reserved for System Administrators only."
+                    " If you believe this is an error, please contact the system administrators"
+                    f" at {settings.DIRECTOR_CONTACT_EMAIL}"
+                )
+        return name
 
     def clean(self) -> Dict[str, Any]:
         cleaned_data = super().clean() or {}

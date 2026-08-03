@@ -228,6 +228,10 @@ WHITELISTED_SITE_NAMES: Container[str] = set()
 BLACKLISTED_SITE_NAMES: Container[str] = set()
 BLACKLISTED_SITE_REGEXES: Iterable[Pattern[str]] = []
 
+# Non-superusers can't create sites whose names match this regex; superusers are exempt (e.g. use
+# r"^tjhsst\d+$" to reserve sysadmin namespaces). The default r"(?!)" never matches (feature off).
+FORBIDDEN_SITE_NAME_REGEX: str = r"(?!)"
+
 
 # The URL that will be used for various site types.
 # The site name is interpolated into this using str.format(). It is guaranteed to be
