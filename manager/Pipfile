@@ -26,7 +26,7 @@ pycryptodome = "~=3.20.0"
 # CVE-2026-48526 fix without a social-auth-core 4->5 major bump.
 pyjwt = {extras = ["crypto"], version = "~=2.13.0"}
 redis = "~=5.0.4"
-social-auth-app-django = "~=5.4.1"
+social-auth-app-django = "~=5.6.0"
 tinycss2 = "~=1.3.0"
 websockets = "~=16.0"
 
