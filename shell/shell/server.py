@@ -157,9 +157,7 @@ class ShellSSHSessionState(enum.Enum):
     CLOSED = 3
 
 
-class ShellSSHServerSession(
-    asyncssh.SSHServerSession[Any]
-):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa
+class ShellSSHServerSession(asyncssh.SSHServerSession[Any]):  # pylint: disable=too-many-instance-attributes, line-too-long # noqa
     def __init__(self, server: ShellSSHServer) -> None:
         assert server.username is not None
         assert server.sites is not None
@@ -345,7 +343,7 @@ class ShellSSHServerSession(
             if index < 0:
                 continue
 
-            raw_line, self.buffer = self.buffer[:index], self.buffer[index + 1:]
+            raw_line, self.buffer = self.buffer[:index], self.buffer[index + 1 :]
 
             line = raw_line.decode("latin-1")
 

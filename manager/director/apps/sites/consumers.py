@@ -165,7 +165,8 @@ class SiteConsumer(AsyncJsonWebsocketConsumer):
         await self.send_site_info()
 
     async def operation_updated(
-        self, event: Dict[str, Any]  # pylint: disable=unused-argument
+        self,
+        event: Dict[str, Any],  # pylint: disable=unused-argument
     ) -> None:
         await self.send_site_info()
 
@@ -381,7 +382,8 @@ class SiteTerminalConsumer(AsyncWebsocketConsumer):
                 await self.close()
 
     async def operation_updated(
-        self, event: Dict[str, Any]  # pylint: disable=unused-argument
+        self,
+        event: Dict[str, Any],  # pylint: disable=unused-argument
     ) -> None:
         pass
 
@@ -528,7 +530,8 @@ class SiteMonitorConsumer(AsyncWebsocketConsumer):
                 await self.close_monitor()
 
     async def operation_updated(
-        self, event: Dict[str, Any]  # pylint: disable=unused-argument
+        self,
+        event: Dict[str, Any],  # pylint: disable=unused-argument
     ) -> None:
         pass
 
@@ -631,7 +634,8 @@ class SiteLogsConsumer(AsyncWebsocketConsumer):
                 await self.close()
 
     async def operation_updated(
-        self, event: Dict[str, Any]  # pylint: disable=unused-argument
+        self,
+        event: Dict[str, Any],  # pylint: disable=unused-argument
     ) -> None:
         pass
 
@@ -746,7 +750,8 @@ class MultiSiteStatusConsumer(AsyncWebsocketConsumer):
                 await self.close()
 
     async def operation_updated(
-        self, event: Dict[str, Any]  # pylint: disable=unused-argument
+        self,
+        event: Dict[str, Any],  # pylint: disable=unused-argument
     ) -> None:
         pass
 

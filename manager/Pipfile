@@ -4,15 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-autopep8 = "~=2.3.2"
-black = "~=26.1.0"
 coverage = "~=7.13.2"
 django-stubs = "~=5.1.0"
-flake8 = "~=7.3.0"
-isort = "~=7.0.0"
 mypy = "~=1.19.1"
-pylint = "~=4.0.4"
-pylint-django = "~=2.7.0"
+ruff = "~=0.16.1"
 
 [packages]
 bleach = "~=6.4.0"

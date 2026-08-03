@@ -374,9 +374,9 @@ except ImportError:
 
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE = not DEBUG
 
-assert len(DIRECTOR_APPSERVER_HOSTS) == len(
-    DIRECTOR_APPSERVER_WS_HOSTS
-), "DIRECTOR_APPSERVER_HOSTS and DIRECTOR_APPSERVER_WS_HOSTS must be the same length"
+assert len(DIRECTOR_APPSERVER_HOSTS) == len(DIRECTOR_APPSERVER_WS_HOSTS), (
+    "DIRECTOR_APPSERVER_HOSTS and DIRECTOR_APPSERVER_WS_HOSTS must be the same length"
+)
 
 # We allow string memory limits in the model, but that's because we can do validation there.
 # If we allowed strings here, then a typo while editing secret.py could make nearly all sites on

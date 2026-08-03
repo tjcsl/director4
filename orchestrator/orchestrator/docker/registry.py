@@ -4,7 +4,7 @@
 import os
 from typing import Any, Dict, Mapping, Optional, Tuple, Union
 
-import requests  # type: ignore[import-untyped]
+import requests
 
 from .. import settings
 from ..exceptions import OrchestratorActionError
