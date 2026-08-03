@@ -21,3 +21,6 @@ mysqlclient = "~=2.2.7"
 psycopg2 = "~=2.9.11"
 pycryptodome = "~=3.23.0"
 websockets = "~=16.0"
+
+[requires]
+python_version = "3.13"

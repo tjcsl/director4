@@ -15,3 +15,6 @@ pylint = "~=4.0.4"
 [packages]
 asyncssh = "~=2.15.0"
 websockets = "~=16.0"
+
+[requires]
+python_version = "3.13"

@@ -1,10 +1,12 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "2f6cf7b7b683a6733253627da7cb9cdd78de2856cbc38ab78ec867e89ddf3a2f"
+            "sha256": "987553da02c0738b26de51d5200ef9d07dba0f3fecfcac250acca56ba5f566e5"
         },
         "pipfile-spec": 6,
-        "requires": {},
+        "requires": {
+            "python_version": "3.13"
+        },
         "sources": [
             {
                 "name": "pypi",
@@ -158,7 +160,7 @@
                 "sha256:e8097e8259b78c8feb5dd5b833b23f83ed588e821ef44cf1455082cfc9434440",
                 "sha256:f3fc7d15cba4174373df2496070faa4a927fe3ed772130d281808120aec7b61c"
             ],
-            "markers": "python_version >= '3.10'",
+            "markers": "platform_python_implementation != 'PyPy' or sys_platform != 'win32'",
             "version": "==6.1.4"
         },
         "celery": {
@@ -827,7 +829,7 @@
                 "sha256:600f49d217304a5902ac3c37e1281c9fe94e4d0489de643a9504c5cdfdfc6b29",
                 "sha256:b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992"
             ],
-            "markers": "python_version >= '3.10'",
+            "markers": "implementation_name != 'PyPy'",
             "version": "==3.0"
         },
         "pycryptodome": {
@@ -901,7 +903,7 @@
                 "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3",
                 "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.9.0.post0"
         },
         "python3-openid": {
@@ -949,7 +951,7 @@
                 "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
                 "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.17.0"
         },
         "social-auth-app-django": {
@@ -995,11 +997,11 @@
         },
         "traitlets": {
             "hashes": [
-                "sha256:7de0a3fabaf5971ff15c8905545f9febfa850309fb8e86e1b42bdb5b46b293ed",
-                "sha256:94a9967ba45e89e837cf9934029c8d019bea9149cfffa115ed8c1900f679beba"
+                "sha256:ed900c2b631aa3a112811139fa97b8d2c3bad5e989656bba4b7e52c7852c18c1",
+                "sha256:f775618166caa0396c8e337099240f2bd3e5e917d203b2e6fbe21a58d3cb1f6b"
             ],
             "markers": "python_version >= '3.10'",
-            "version": "==5.16.0"
+            "version": "==5.16.1"
         },
         "twisted": {
             "extras": [
@@ -1516,7 +1518,7 @@
                 "sha256:1e1ce33e978ae97fcfcff5638477032b801c46c7c65cf717f95fbc2248f79a9d",
                 "sha256:423092df4182177d4d8ba8290c8a5b640c66ab35ec7da59ccfa00f6fa3eea5fa"
             ],
-            "markers": "python_version >= '3.9'",
+            "markers": "python_version >= '3.11'",
             "version": "==0.4.1"
         },
         "django": {
@@ -1658,7 +1660,7 @@
                 "sha256:fadc63331f4388c3dc90090448f682a7e9feafc11481391c1e94f2f907a3976e",
                 "sha256:fc67741da44c6eaa90e01eafb586bbba9b51eb5b6ed381ee6f5ae72eb3316d21"
             ],
-            "markers": "python_version >= '3.9'",
+            "markers": "platform_python_implementation != 'PyPy'",
             "version": "==0.13.0"
         },
         "mccabe": {
