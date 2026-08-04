@@ -142,6 +142,7 @@ def _drop_postgres_database_force(cursor: Any, db_name: str) -> None:
 def create_database(database_info: Dict[str, Any]) -> None:
     if database_info["db_type"] == "postgres":
         with open_admin_cursor(database_info["host"], dbname="postgres") as cursor:
+            # check if the username exists
             cursor.execute(
                 "SELECT 1 FROM pg_catalog.pg_user WHERE usename = %s", (database_info["username"],)
             )
