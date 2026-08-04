@@ -5,10 +5,11 @@
 ## Overview
 Director 4.0 is a website management and hosting platform (based on the [former Director platform](https://github.com/tjcsl/director)) that is designed to scale. It replaces the former Director platform which has problems with performance, scalability, and ease of use.
 
-It is composed of three primary components:
+It is composed of four primary components:
 * `orchestrator`: The code that orchestrates the Docker containers
 * `manager`: The public-facing Django web application that provides an easy-to-use interface for managing websites.
 * `router`: The code that runs on the balancers and handles a lot of the frontend for custom domains.
+* `shell`: An SSH server (built on AsyncSSH) that gives users a terminal into their site's container.
 
 ## Architecture
 A full description of the project's architecture can be found in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -17,10 +18,9 @@ A full description of the project's architecture can be found in [docs/ARCHITECT
 
 ### Software Requirements
 * [Docker Engine](https://docs.docker.com/engine/): Used by the orchestrator to host sites that require dynamic generation
-* [Python 3.7+](https://www.python.org/): Used by all components
-* [RabbitMQ](https://www.rabbitmq.com/): Used by the manager to broker messages for long-running tasks
+* [Python 3.13](https://www.python.org/): Used by all components
 * [Celery](http://www.celeryproject.org/): Used by the manager to manage long-running tasks
-* [Redis](https://redis.io/): Used by Django Channels on the manager as a channel layer
+* [Redis](https://redis.io/): Used by the manager as the Django Channels channel layer, the Celery broker, and the cache
 * [PostgreSQL](https://www.postgresql.org/): Used by the manager as the relational database
 * [Nginx](https://nginx.org/): Used by the manager, orchestrator, and router as a reverse proxy, a load balancer, and for serving static files
 
