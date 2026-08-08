@@ -265,6 +265,23 @@ $(function() {
 
 
     layout.init();
+
+    if(new URLSearchParams(window.location.search).get("tab") == "process-log") {
+        var processLog = layout.root.getItemsByType("component").find(function(item) {
+            return item.componentName == "log";
+        });
+
+        if(processLog) {
+            processLog.parent.setActiveContentItem(processLog);
+        }
+        else {
+            layout.root.getItemsById("files")[0].addChild({
+                type: "component",
+                componentName: "log",
+            });
+        }
+    }
+
     $(window).resize(function() {
         layout.updateSize();
     });

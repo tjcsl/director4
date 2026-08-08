@@ -322,6 +322,11 @@ class SitesTest(DirectorTestCase):
 
         response = self.client.get(reverse("sites:info", kwargs={"site_id": site.id}))
         self.assertEqual(200, response.status_code)
+        self.assertContains(
+            response,
+            reverse("sites:editor", kwargs={"site_id": site.id}) + "?tab=process-log",
+        )
+        self.assertContains(response, "Process Log")
 
     def test_image_select_view(self):
         user = self.login(accept_guidelines=True, make_admin=False, make_student=True)
