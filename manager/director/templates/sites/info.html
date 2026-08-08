@@ -44,6 +44,7 @@
                 <p style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
                     <a href="{% url 'sites:terminal' site.id %}" class="btn btn-ion"><i class="fa fa-terminal"></i> Web Terminal</a>
                     <a href="{% url 'sites:editor' site.id %}" class="btn btn-ion"><i class="fa fa-folder-open"></i> Online Editor</a>
+                    <a href="{% url 'sites:editor' site.id %}?tab=process-log" class="btn btn-ion"><i class="fas fa-chart-line"></i> Process Log</a>
                     <form style="display:inline-block; margin:0;" method="POST" action="{% url 'sites:reset_operations' site.id %}">{% csrf_token %}<button class="btn btn-ion" title="Clear a stuck or failed operation and attempt to fix the site"><i class="fas fa-wrench"></i> Reset Operations</button></form>
                 </p>
 
