@@ -23,7 +23,10 @@ async def add_const(awaitable: Awaitable[T], const: U) -> Tuple[T, U]:
 
 def run_in_executor(
     executor: Optional[concurrent.futures.Executor],
-) -> Callable[[Callable[..., T]], Callable[..., Coroutine[Any, Any, T]], ]:
+) -> Callable[
+    [Callable[..., T]],
+    Callable[..., Coroutine[Any, Any, T]],
+]:
     """A decorator for synchronous functions to make them into coroutines (async functions)
     that automatically run in the specified executor.
 
@@ -41,7 +44,7 @@ def run_in_executor(
             def callback() -> T:
                 return func(*args, **kwargs)
 
-            return await asyncio.get_event_loop().run_in_executor(executor, callback)
+            return await asyncio.get_running_loop().run_in_executor(executor, callback)
 
         functools.update_wrapper(wrapper, func)
         return wrapper

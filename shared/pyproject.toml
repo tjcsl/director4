@@ -1,19 +1,16 @@
-[tool.black]
+[tool.ruff]
 line-length = 100
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-  | media
-  | migrations
-  | secret.*
-)/
-'''
+target-version = "py313"
+# secret* holds real credentials and may be invalid without them; migrations/media are generated.
+extend-exclude = ["migrations", "media", "secret*"]
+
+[tool.ruff.lint]
+# E/W (pycodestyle) + F (pyflakes) replace flake8; I replaces isort. Together with mypy (run
+# separately) this covers the old flake8 + isort + pylint --errors-only checks.
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.isort]
+section-order = ["future", "standard-library", "third-party", "directorutil", "local-folder"]
+
+[tool.ruff.lint.isort.sections]
+"directorutil" = ["directorutil"]

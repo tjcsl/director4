@@ -6,7 +6,9 @@ from typing import Optional
 from channels.auth import AuthMiddlewareStack
 from channels.generic.websocket import WebsocketConsumer
 from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.security.websocket import AllowedHostsOriginValidator
 
+from django.core.asgi import get_asgi_application
 from django.urls import path
 
 from director.apps.sites.consumers import (
@@ -30,19 +32,24 @@ class WebsocketCloseConsumer(WebsocketConsumer):
         pass
 
 
+django_asgi_app = get_asgi_application()
+
 application = ProtocolTypeRouter(
     {
-        "websocket": AuthMiddlewareStack(
-            URLRouter(
-                [
-                    path("sites/<int:site_id>/", SiteConsumer.as_asgi()),
-                    path("sites/<int:site_id>/terminal/", SiteTerminalConsumer.as_asgi()),
-                    path("sites/<int:site_id>/files/monitor/", SiteMonitorConsumer.as_asgi()),
-                    path("sites/<int:site_id>/logs/", SiteLogsConsumer.as_asgi()),
-                    path("sites/multi-status/", MultiSiteStatusConsumer.as_asgi()),
-                    path("<path:path>", WebsocketCloseConsumer.as_asgi()),
-                ]
+        "http": django_asgi_app,
+        "websocket": AllowedHostsOriginValidator(
+            AuthMiddlewareStack(
+                URLRouter(
+                    [
+                        path("sites/<int:site_id>/", SiteConsumer.as_asgi()),
+                        path("sites/<int:site_id>/terminal/", SiteTerminalConsumer.as_asgi()),
+                        path("sites/<int:site_id>/files/monitor/", SiteMonitorConsumer.as_asgi()),
+                        path("sites/<int:site_id>/logs/", SiteLogsConsumer.as_asgi()),
+                        path("sites/multi-status/", MultiSiteStatusConsumer.as_asgi()),
+                        path("<path:path>", WebsocketCloseConsumer.as_asgi()),
+                    ]
+                )
             )
-        )
+        ),
     }
 )

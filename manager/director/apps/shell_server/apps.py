@@ -5,4 +5,4 @@ from django.apps import AppConfig
 
 
 class ShellServerConfig(AppConfig):
-    name = "shell_server"
+    name = "director.apps.shell_server"

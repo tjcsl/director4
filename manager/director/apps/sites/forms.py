@@ -9,6 +9,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import validators
+from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 
 from .models import (
@@ -59,22 +60,43 @@ class SiteCreateForm(forms.ModelForm):
         else:
             self.initial_purpose = None
 
-    def clean(self) -> Dict[str, Any]:
-        cleaned_data = super().clean()
+    def clean_name(self) -> str:
+        name = self.cleaned_data.get("name", "")
+        forbidden_regex = settings.FORBIDDEN_SITE_NAME_REGEX
+        # Empty pattern = disabled (an empty regex would match every name).
+        if not self.user.is_superuser and forbidden_regex:
+            try:
+                is_reserved = re.search(forbidden_regex, name) is not None
+            except re.error as ex:
+                # Fail closed on an invalid regex so bad config is caught fast (site creation
+                # breaks) instead of silently letting reserved names through.
+                raise ValidationError(
+                    "Site name validation is misconfigured. Please contact the system"
+                    f" administrators at {settings.DIRECTOR_CONTACT_EMAIL}"
+                ) from ex
+            if is_reserved:
+                raise ValidationError(
+                    "Site name is reserved for System Administrators only."
+                    " If you believe this is an error, please contact the system administrators"
+                    f" at {settings.DIRECTOR_CONTACT_EMAIL}"
+                )
+        return name
 
-        if (
-            cleaned_data["name"][0] in string.digits
-            and cleaned_data.get("purpose", self.initial_purpose) != "user"
-            and not self.user.is_superuser
-        ):
+    def clean(self) -> Dict[str, Any]:
+        cleaned_data = super().clean() or {}
+        name = cleaned_data.get("name", "")
+        purpose = cleaned_data.get("purpose", self.initial_purpose)
+        users_value = cleaned_data.get("users") or []
+
+        if name and name[0] in string.digits and purpose != "user" and not self.user.is_superuser:
             self.add_error("name", "Project site names cannot start with a number")
 
-        if len(cleaned_data.get("users", [])) == 0:
+        if len(users_value) == 0:
             self.add_error("users", "You must select at least one user for this site")
 
         if (
             "users" in cleaned_data.keys()
-            and self.user not in cleaned_data["users"]
+            and self.user not in users_value
             and not self.user.is_superuser
         ):
             self.add_error("users", "You must include yourself as a user for this site")
@@ -127,9 +149,10 @@ class SiteNamesForm(forms.Form):
             self.fields["name"].disabled = True
 
     def clean(self) -> Dict[str, Any]:
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
+        name = cleaned_data.get("name", "")
 
-        if cleaned_data["name"][0] in string.digits and self.site.purpose != "user":
+        if name and name[0] in string.digits and self.site.purpose != "user":
             self.add_error("name", "Project site names cannot start with a number")
 
         return cleaned_data
@@ -140,13 +163,6 @@ class DomainForm(forms.Form):
         label="Custom domain",
         max_length=255,
         required=False,
-        validators=[
-            validators.RegexValidator(
-                regex=r"^(?!(.*\.)?sites\.tjhsst\.edu$)[0-9a-zA-Z_\- .]+$",
-                message="You can only have one sites.tjhsst.edu domain, the automatically generated"
-                " one that matches the name of your site.",
-            ),
-        ],
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
@@ -155,12 +171,35 @@ class DomainForm(forms.Form):
 
         self.user_is_superuser = user_is_superuser
 
-    def clean(self) -> Dict[str, Any]:
-        cleaned_data = super().clean()
+    def clean_domain(self) -> str:
+        # Normalize first so every check below is case-insensitive and tolerant of trailing
+        # dots/whitespace (e.g. "SITES.TJHSST.EDU", "sites.tjhsst.edu.", "sites.tjhsst.edu ").
+        domain = (self.cleaned_data.get("domain") or "").strip().lower().rstrip(".")
 
-        if not self.user_is_superuser:
-            if "domain" in cleaned_data and cleaned_data["domain"].endswith("tjhsst.edu"):
-                self.add_error("domain", "Only administrators can add tjhsst.edu domains")
+        if not domain:
+            return ""
+
+        # Nobody may register a sites.tjhsst.edu domain as a custom domain. The only
+        # sites.tjhsst.edu domain a site gets is the auto-generated one matching its name.
+        if domain == "sites.tjhsst.edu" or domain.endswith(".sites.tjhsst.edu"):
+            raise forms.ValidationError(
+                "You cannot register a sites.tjhsst.edu domain. The automatically generated one "
+                "that matches the name of your site is the only one available."
+            )
+
+        # Require a syntactically valid hostname (lowercase letters/digits/dashes, dot-separated).
+        # This also blocks leading dashes, spaces, and underscores.
+        if re.search(r"^[a-z0-9]+(-[a-z0-9]+)*(\.[a-z0-9]+(-[a-z0-9]+)*)+$", domain) is None:
+            raise forms.ValidationError("Enter a valid domain name.")
+
+        return domain
+
+    def clean(self) -> Dict[str, Any]:
+        cleaned_data = super().clean() or {}
+        domain = cleaned_data.get("domain", "")
+
+        if not self.user_is_superuser and domain.endswith("tjhsst.edu"):
+            self.add_error("domain", "Only administrators can add tjhsst.edu domains")
 
         return cleaned_data
 
@@ -184,9 +223,10 @@ class SiteMetaForm(forms.ModelForm):
             self.fields["purpose"].disabled = True
 
     def clean(self) -> Dict[str, Any]:
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
+        purpose = cleaned_data.get("purpose") or self.instance.purpose
 
-        if self.instance.name[0] in string.digits and cleaned_data["purpose"] != "user":
+        if self.instance.name[0] in string.digits and purpose != "user":
             self.add_error("name", "Project site names cannot start with a number")
 
         return cleaned_data
@@ -210,9 +250,11 @@ class DatabaseCreateForm(forms.Form):
 
 class ImageSelectForm(forms.Form):
     image = forms.ChoiceField(
-        choices=lambda: DockerImage.objects.filter_user_visible()  # type: ignore
-        .order_by("friendly_name")
-        .values_list("name", "friendly_name"),
+        choices=lambda: (
+            DockerImage.objects.filter_user_visible()  # type: ignore
+            .order_by("friendly_name")
+            .values_list("name", "friendly_name")
+        ),
         required=True,
         widget=forms.widgets.RadioSelect(),
     )
@@ -234,13 +276,15 @@ class ImageSelectForm(forms.Form):
     PACKAGE_NAME_REGEX = re.compile(r"^[a-zA-Z0-9_][-+=_.a-zA-Z0-9]*$")
 
     def clean(self) -> Dict[str, Any]:
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
+        packages_raw = cleaned_data.get("packages") or ""
 
         # Make sure the package names can all fit in the name field
         max_package_name_length = DockerImageExtraPackage._meta.get_field("name").max_length
-        package_names = cleaned_data["packages"].strip().split()
-        if any(len(name) > max_package_name_length for name in package_names):
-            self.add_error("packages", "One of your package names is too long")
+        package_names = packages_raw.strip().split()
+        if max_package_name_length is not None:
+            if any(len(name) > max_package_name_length for name in package_names):
+                self.add_error("packages", "One of your package names is too long")
         if any(self.PACKAGE_NAME_REGEX.search(name) is None for name in package_names):
             self.add_error("packages", "One of your package names is invalid")
 

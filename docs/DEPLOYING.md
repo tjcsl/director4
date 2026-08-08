@@ -8,15 +8,11 @@ Each section here corresponds to a component of Director 4.0.
 
 ### Dependencies
 
-The manager uses Redis as the channel layer for Channels, RabbitMQ as the broker for Celery, and Nginx to serve static files.
+The manager uses Redis as the channel layer for Channels, the broker for Celery, and the cache, and Nginx to serve static files.
 
 #### Redis
 
-Install [Redis](https://redis.io/). The default configuration should be sufficient.
-
-#### RabbitMQ
-
-[RabbitMQ](https://www.rabbitmq.com/) will also work out of the box. However, for security you should configure ot to only listen on `localhost`. This can be done by editing RabbitMQ's configuration file (usually located at `/etc/rabbitmq/rabbitmq.config`) to the following: `[{rabbit, [{tcp_listeners, [{"127.0.0.1", 5672}]}]}].`
+Install [Redis](https://redis.io/). Redis serves as the Django Channels channel layer, the Celery broker, and the cache. The default configuration works, but for security you should configure it to only listen on `localhost` and set a password.
 
 #### Nginx
 
@@ -72,12 +68,12 @@ mkdir /var/www/director
 cd /var/www/director
 chown director:director /var/www/director
 chmod 750 /var/www/director
-sudo -u director git clone 'https://github.com/tjresearch/research-theo_john.git'
+sudo -u director git clone 'https://github.com/tjcsl/director4.git'
 sudo -u director pipenv install
 ```
 
 After this, you will need to restart Nginx.
 
-Now you can start Celery with `pipenv run celery worker -A director --pool solo`, and Daphne with `pipenv run daphne -b 127.0.0.1 -p 9000 director.asgi:application`. Both should be run as the user you created in the previous step (if you ran the commands immediately above, this is the `director` user). You may wish to launch them using [supervisor](http://supervisord.org/) or your distribution's init system.
+Now you can start Celery with `pipenv run celery -A director worker`, and Daphne with `pipenv run daphne -b 127.0.0.1 -p 9000 director.asgi:application`. Both should be run as the user you created in the previous step (if you ran the commands immediately above, this is the `director` user). You may wish to launch them using [supervisor](http://supervisord.org/) or your distribution's init system.
 
 Note that you can run multiple Daphne workers. See [Nginx HTTP Load Balancing](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/) for more information on how to set up Nginx to handle this.

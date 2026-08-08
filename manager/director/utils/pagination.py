@@ -95,4 +95,4 @@ def paginate(
         if always_show_next_text:
             page_links.append((next_text, None))
 
-    return items[max(page.start_index() - 1, 0): page.end_index()], page_links
+    return items[max(page.start_index() - 1, 0) : page.end_index()], page_links

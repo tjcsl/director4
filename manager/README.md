@@ -10,4 +10,4 @@ This section lists some things to watch out for when developing.
 
 - In production, static files under `static/vendor` MAY have a significantly longer expiration time set. This reduces load on the server for static files that do not change frequently.
   - You can use `scripts/update-vendor.py` to download the latest vendored dependencies.
-- Travis is set up on this repository, and the build enforces very strict formatting and code styling. Run `scripts/format.sh` and `scripts/check.sh` locally before you push.
+- Continuous integration (GitHub Actions) enforces strict formatting and code styling. Run `scripts/format.sh` and `scripts/check.sh` locally before you push.

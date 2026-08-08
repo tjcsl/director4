@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from __future__ import annotations
+
 import argparse
 import asyncio
 import concurrent.futures
@@ -24,6 +26,7 @@ from .consumers import (
     status_handler,
     web_terminal_handler,
 )
+from .websockets_types import WebSocketClientProtocol
 
 logger = logging.getLogger(__package__)  # Since this is run with "python -m orchestrator.ws"
 
@@ -46,12 +49,26 @@ def create_server_ssl_context(options: argparse.Namespace) -> Optional[ssl.SSLCo
     return context
 
 
-async def route(websock: websockets.client.WebSocketClientProtocol, path: str) -> None:
+async def route(
+    websock: WebSocketClientProtocol,
+    path: Optional[str] = None,
+) -> None:
+    if path is None:
+        path = getattr(websock, "path", None)
+
+    if path is None:
+        request = getattr(websock, "request", None)
+        path = getattr(request, "path", None)
+
+    if not path:
+        await websock.close()
+        return
+
     routes: List[
         Tuple[
             Pattern[str],
             Callable[
-                [websockets.client.WebSocketClientProtocol, Dict[str, Any], asyncio.Event],
+                [WebSocketClientProtocol, Dict[str, Any], asyncio.Event],
                 Awaitable[None],
             ],
         ]
@@ -99,12 +116,12 @@ async def run_server(*args: Any, **kwargs: Any) -> None:
 
 def sigterm_handler() -> None:
     stop_event.set()
-    asyncio.get_event_loop().remove_signal_handler(signal.SIGTERM)
+    asyncio.get_running_loop().remove_signal_handler(signal.SIGTERM)
 
 
 def sigint_handler() -> None:
     stop_event.set()
-    asyncio.get_event_loop().remove_signal_handler(signal.SIGINT)
+    asyncio.get_running_loop().remove_signal_handler(signal.SIGINT)
 
 
 def main(argv: List[str]) -> None:
@@ -134,7 +151,8 @@ def main(argv: List[str]) -> None:
     handler.setFormatter(logging.Formatter("%(asctime)s: %(levelname)s: %(message)s"))
     logger.addHandler(handler)
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
     loop.add_signal_handler(signal.SIGTERM, sigterm_handler)
     loop.add_signal_handler(signal.SIGINT, sigint_handler)

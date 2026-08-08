@@ -7,6 +7,7 @@ from typing import Any, ContextManager, Dict, Optional
 
 import MySQLdb
 import psycopg2
+from psycopg2 import errorcodes
 from psycopg2 import sql as psql
 
 
@@ -104,6 +105,40 @@ def open_site_cursor(database_info: Dict[str, Any]) -> ContextManager[Any]:
     )
 
 
+def _drop_postgres_database_force(cursor: Any, db_name: str) -> None:
+    try:
+        cursor.execute(
+            psql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(psql.Identifier(db_name))
+        )
+    except psycopg2.Error as ex:
+        if ex.pgcode not in {
+            errorcodes.SYNTAX_ERROR,
+            errorcodes.FEATURE_NOT_SUPPORTED,
+            errorcodes.OBJECT_IN_USE,
+        }:
+            raise
+
+        cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", (db_name,))
+        if cursor.rowcount == 0:
+            return
+
+        cursor.execute(
+            psql.SQL("ALTER DATABASE {} WITH ALLOW_CONNECTIONS false").format(
+                psql.Identifier(db_name)
+            )
+        )
+        cursor.execute(
+            """
+            SELECT pg_terminate_backend(pid)
+            FROM pg_stat_activity
+            WHERE datname = %s
+              AND pid <> pg_backend_pid();
+            """,
+            (db_name,),
+        )
+        cursor.execute(psql.SQL("DROP DATABASE IF EXISTS {}").format(psql.Identifier(db_name)))
+
+
 def create_database(database_info: Dict[str, Any]) -> None:
     if database_info["db_type"] == "postgres":
         with open_admin_cursor(database_info["host"], dbname="postgres") as cursor:
@@ -188,11 +223,7 @@ def create_database(database_info: Dict[str, Any]) -> None:
 def delete_database(database_info: Dict[str, Any]) -> None:
     if database_info["db_type"] == "postgres":
         with open_admin_cursor(database_info["host"], dbname="postgres") as cursor:
-            cursor.execute(
-                psql.SQL("DROP DATABASE IF EXISTS {}").format(
-                    psql.Identifier(database_info["db_name"])
-                )
-            )
+            _drop_postgres_database_force(cursor, database_info["db_name"])
 
             cursor.execute(
                 psql.SQL("REVOKE ALL ON SCHEMA public FROM {}").format(

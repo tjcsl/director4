@@ -1,6 +1,6 @@
 # Architecture
 
-Note: This is written as if it is completed and working, but currently a lot of it is not. As a result, this is all subject to change.
+Note: Director 4.0 is deployed in production. This document describes the intended architecture; some details may still lag behind the code.
 
 ## Manager
 
@@ -18,7 +18,7 @@ The router runs Nginx to forward requests to the orchestrator(s), as well as a s
 
 ## Shell
 
-The shell server runs an SSH server using AsyncSSH. It communicates with the mamager
+The shell server runs an SSH server using AsyncSSH. It authenticates users and looks up their sites via the manager's `/shell-server/` endpoints, then connects to the orchestrator's Websocket server (`/ws/shell-server/`) to open a terminal into the user's site container.
 
 ## Communication between servers
 

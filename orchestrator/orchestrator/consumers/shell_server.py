@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+from __future__ import annotations
+
 import asyncio
 import base64
 import binascii
@@ -17,6 +19,7 @@ from directorutil import crypto
 from .. import settings
 from ..docker.utils import create_client
 from ..terminal import TerminalContainer
+from ..websockets_types import WebSocketClientProtocol
 from .utils import mainloop_auto_cancel, wait_for_event
 
 logger = logging.getLogger(__name__)
@@ -71,7 +74,7 @@ def load_token(token: bytes) -> Dict[str, Any]:
 
 
 async def ssh_shell_handler(
-    websock: websockets.client.WebSocketClientProtocol,
+    websock: WebSocketClientProtocol,
     params: Dict[str, Any],
     stop_event: asyncio.Event,
 ) -> None:

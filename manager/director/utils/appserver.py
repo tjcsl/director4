@@ -3,6 +3,7 @@
 
 import http.client
 import json
+import logging
 import random
 import re
 import socket
@@ -11,13 +12,15 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, Iterable, Iterator, Optional, Sequence, Tuple, Union
 
-import websockets
+from websockets.legacy.client import Connect as WebSocketConnect
+from websockets.legacy.client import connect as websocket_connect
 
 from django.conf import settings
 
 from directorutil.ssl_context import create_internal_client_ssl_context
 
 appserver_ssl_context = create_internal_client_ssl_context(settings.DIRECTOR_APPSERVER_SSL)
+logger = logging.getLogger(__name__)
 
 
 class AppserverRequestError(Exception):
@@ -192,12 +195,23 @@ def appserver_open_http_request(
     )
 
     request = urllib.request.Request(
-        full_url, method=method, data=data, headers=headers  # type: ignore
+        full_url,
+        method=method,
+        data=data,
+        headers=headers,  # type: ignore
     )
     try:
         response = urllib.request.urlopen(request, timeout=timeout, context=appserver_ssl_context)
     except urllib.error.HTTPError as ex:
-        raise AppserverProtocolError(ex.read().decode()) from ex
+        body = ex.read().decode(errors="replace")
+        logger.exception(
+            "Appserver HTTP error for %s %s: status=%s body=%r",
+            method,
+            full_url,
+            ex.code,
+            body,
+        )
+        raise AppserverProtocolError(body) from ex
     except urllib.error.URLError as ex:
         if isinstance(ex.reason, ConnectionError):
             raise AppserverConnectionError(str(ex)) from ex
@@ -205,6 +219,7 @@ def appserver_open_http_request(
         if isinstance(ex.reason, socket.timeout):
             raise AppserverTimeoutError(str(ex)) from ex
 
+        logger.exception("Appserver URL error for %s %s", method, full_url)
         raise AppserverProtocolError(str(ex)) from ex
     except socket.timeout as ex:
         raise AppserverTimeoutError(str(ex)) from ex
@@ -294,7 +309,7 @@ def appserver_open_websocket(
     ping_interval: Union[int, float] = 20,
     ping_timeout: Union[int, float] = 20,
     close_timeout: Union[int, float, None] = None,
-) -> websockets.client.Connect:
+) -> WebSocketConnect:
     assert path[0] == "/"
 
     appserver = get_appserver_addr(appserver, allow_random=True, websocket=True)
@@ -312,7 +327,7 @@ def appserver_open_websocket(
         "?" + urllib.parse.urlencode(params) if params else "",
     )
 
-    return websockets.connect(
+    return websocket_connect(
         full_url,
         extra_headers=extra_headers,
         ping_interval=ping_interval,

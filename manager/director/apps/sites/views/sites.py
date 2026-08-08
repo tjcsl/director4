@@ -132,6 +132,7 @@ def terminal_view(request: HttpRequest, site_id: int) -> HttpResponse:
     site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
 
     if request.GET.get("sql") and site.has_database and site.docker_image.is_custom:
+        assert site.database is not None
         if site.database.db_type == "mysql":
             command = [
                 "sh",
@@ -339,6 +340,29 @@ def regenerate_secrets_view(request: HttpRequest, site_id: int) -> HttpResponse:
 
     operations.regen_site_secrets(site)
 
+    return redirect("sites:info", site.id)
+
+
+@require_POST
+@login_required
+@require_accept_guidelines
+def reset_operations_view(request: HttpRequest, site_id: int) -> HttpResponse:
+    # editable_by_user() returns this site only if the user has edit access to it OR is a
+    # superuser; otherwise get_object_or_404 raises a 404. That enforces the requirement that
+    # the requester either has access to the site or is an admin/superuser.
+    site = get_object_or_404(Site.objects.editable_by_user(request.user), id=site_id)
+
+    # Equivalent of the admin "Remove and try to fix": clear any stuck or failed operation on
+    # the site (Site<->Operation is one-to-one, so a lingering operation would block fix_site
+    # with an IntegrityError), then run fix_site to bring the site back to a consistent state.
+    operation = site.get_operation()
+    if operation is not None:
+        operation.action_set.all().delete()
+        operation.delete()
+
+    operations.fix_site(site)
+
+    messages.success(request, "Resetting operations and attempting to fix the site.")
     return redirect("sites:info", site.id)
 
 

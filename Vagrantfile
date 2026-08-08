@@ -6,7 +6,7 @@
 Vagrant.require_version ">= 2.1.0"
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/focal64"
+  config.vm.box = "bento/ubuntu-24.04"
 
   config.vm.boot_timeout = 1000
 
@@ -27,7 +27,7 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
     vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
     vb.name = "director4-vagrant"
-    vb.memory = 2048
+    vb.memory = ENV.fetch("DIRECTOR4_VAGRANT_MEMORY", 2048).to_i
   end
 
   # Sync this repo to /home/vagrant/director

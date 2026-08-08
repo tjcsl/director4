@@ -1,11 +1,9 @@
 #!/bin/bash
 cd "$(dirname -- "$(dirname -- "$(readlink -f "$0")")")"
 
-for cmd in flake8 isort mypy pylint; do
-    if [[ ! -x "$(which "$cmd")" ]]; then
-        echo "Could not find $cmd. Please make sure that flake8, isort, mypy, and pylint are all installed."
-        exit 1
-    fi
-done
+if ! command -v ruff >/dev/null 2>&1; then
+    echo "Could not find ruff. Run 'pipenv install --dev' to install it."
+    exit 1
+fi
 
-flake8 shell && isort --check shell && mypy --strict -p shell && pylint shell
+ruff check shell && ruff format --check shell && mypy --strict -p shell

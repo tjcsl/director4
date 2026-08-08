@@ -181,9 +181,9 @@ $(function() {
                             action_elem.addClass("failed")
                             operation_header.text("OPERATION FAILED");
                             operation_subhead.addClass("small").append([
-                                "Please contact a Director administrator at ",
+                                "Click the Reset Operations button to fix. For any questions, please email ",
                                 $("<a>").attr("href", "mailto:" + DIRECTOR_CONTACT_EMAIL).text(DIRECTOR_CONTACT_EMAIL),
-                                " for assistance."
+                                "."
                             ]);
                         }
                         else if(action.started_time != null) {

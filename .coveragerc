@@ -1,0 +1,7 @@
+[run]
+omit =
+    */orchestrator/docker/templates/*
+
+[report]
+omit =
+    */orchestrator/docker/templates/*

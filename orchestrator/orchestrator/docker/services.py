@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 # (c) 2019 The TJHSST Director 4.0 Development Team & Contributors
 
+import time
 from typing import Any, Dict, List, Optional, cast
 
 import docker
@@ -13,6 +14,32 @@ from ..exceptions import OrchestratorActionError
 from .conversions import convert_cpu_limit, convert_memory_limit
 from .shared import gen_director_shared_params
 from .utils import get_swarm_node_id
+
+
+def _wait_for_exec_exit_code(client: DockerClient, exec_id: str) -> int:
+    start = time.monotonic()
+    deadline = start + settings.NGINX_RELOAD_TIMEOUT
+
+    while True:
+        exec_info = cast(Dict[str, Any], client.api.exec_inspect(exec_id))
+
+        # Docker can briefly report Running=False with ExitCode=None in the instant after a
+        # detached exec finishes, before the exit status is reaped. The caller checks
+        # `exit_code != 0`, and None != 0 is True -- so returning None here turns a *successful*
+        # nginx reload into a spurious "Error reloading Nginx config". This race is the most
+        # common cause of nginx-reload flakiness; keep polling until the exit code is populated.
+        if not exec_info["Running"] and exec_info["ExitCode"] is not None:
+            return cast(int, exec_info["ExitCode"])
+
+        if time.monotonic() >= deadline:
+            elapsed = time.monotonic() - start
+            raise OrchestratorActionError(
+                "Timed out reloading Nginx config after {:.1f}s (exec_id={})".format(
+                    elapsed, exec_id
+                )
+            )
+
+        time.sleep(settings.NGINX_RELOAD_POLL_INTERVAL)
 
 
 def get_service_by_name(client: DockerClient, service_name: str) -> Optional[Service]:
@@ -106,8 +133,8 @@ exec sleep 2147483647"""
                 failure_action="rollback",
                 max_failure_ratio=0,
                 # delay and monitor are in nanoseconds (1e9 seconds)
-                delay=int(5 * (10 ** 9)),
-                monitor=int(5 * (10 ** 9)),
+                delay=int(5 * (10**9)),
+                monitor=int(5 * (10**9)),
             ),
         }
     )
@@ -160,6 +187,8 @@ def list_service_tasks_for_node(service: Service, node_id: str) -> List[Dict[str
 
 def reload_nginx_config(client: DockerClient) -> None:
     service = get_service_by_name(client, settings.NGINX_SERVICE_NAME)
+    if service is None:
+        raise OrchestratorActionError("Nginx service does not exist")
 
     node_id = get_swarm_node_id(client)
     tasks = list_service_tasks_for_node(service, node_id=node_id)
@@ -170,20 +199,31 @@ def reload_nginx_config(client: DockerClient) -> None:
 
             container = client.containers.get(container_id)
 
-            exit_code, _ = container.exec_run(
-                ["nginx", "-s", "reload"],
-                stdout=False,
-                stderr=True,
-                stdin=False,
-                tty=False,
-                privileged=False,
-                user="root",
-                detach=False,
-                stream=False,
-                socket=False,
-                workdir="/",
-                demux=False,
+            exec_id = cast(
+                str,
+                client.api.exec_create(
+                    container.id,
+                    ["nginx", "-s", "reload"],
+                    stdin=False,
+                    stdout=False,
+                    stderr=True,
+                    tty=False,
+                    privileged=False,
+                    user="root",
+                    workdir="/",
+                )["Id"],
             )
 
+            client.api.exec_start(
+                exec_id,
+                tty=False,
+                detach=True,
+                socket=False,
+            )
+
+            exit_code = _wait_for_exec_exit_code(client, exec_id)
+
             if exit_code != 0:
-                raise OrchestratorActionError("Error reloading Nginx config")
+                raise OrchestratorActionError(
+                    "Error reloading Nginx config (`nginx -s reload` exited {})".format(exit_code)
+                )

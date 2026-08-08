@@ -40,7 +40,7 @@ function makeModalDialog(options, callback) {
 
     var modal_header = $("<div>").addClass("modal-header").appendTo(modal_content);
 
-    $("<h5>").addClass("modal-title").css("line-height", 1.2).append(options.title || "").appendTo(modal_header);
+    $("<h5>").addClass("modal-title").css("line-height", 1.2).text(options.title || "").appendTo(modal_header);
     if(options.closebtn) {
         $("<button>")
             .attr({"type": "button"})
