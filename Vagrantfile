@@ -27,7 +27,11 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
     vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
     vb.name = "director4-vagrant"
-    vb.memory = ENV.fetch("DIRECTOR4_VAGRANT_MEMORY", 2048).to_i
+
+    # You can change these settings by setting the environment variables DIRECTOR4_VAGRANT_CPUS and DIRECTOR4_VAGRANT_MEMORY when running vagrant up. For example, to give the VM 4 CPUs and 8GB of RAM, run:
+    # DIRECTOR4_VAGRANT_CPUS=4 DIRECTOR4_VAGRANT_MEMORY=8192 vagrant up
+    vb.cpus = Integer(ENV.fetch("DIRECTOR4_VAGRANT_CPUS", 4))
+    vb.memory = Integer(ENV.fetch("DIRECTOR4_VAGRANT_MEMORY", 4096))
   end
 
   # Sync this repo to /home/vagrant/director
