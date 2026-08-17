@@ -41,6 +41,9 @@ docker service rm director-mysql || true
 echo "Pruning networks"
 docker network prune || true
 
+echo "Pruning unused Docker data"
+docker system prune --force || true
+
 echo
 echo "Stopping Docker"
 sudo systemctl stop docker || true
