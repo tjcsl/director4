@@ -219,8 +219,18 @@ class SiteMetaForm(forms.ModelForm):
     def __init__(self, *args: Any, user: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
 
+        self.user = user
+
         if not user.is_superuser:
             self.fields["purpose"].disabled = True
+
+    def clean_users(self) -> Any:
+        users = self.cleaned_data["users"]
+
+        if not self.user.is_superuser and not users.exists():
+            raise ValidationError("Only administrators can remove all users from a site")
+
+        return users
 
     def clean(self) -> Dict[str, Any]:
         cleaned_data = super().clean() or {}
