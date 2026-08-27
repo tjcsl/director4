@@ -9,7 +9,7 @@ mypy = "~=1.19.1"
 ruff = "~=0.16.1"
 
 [packages]
-asyncssh = "~=2.15.0"
+asyncssh = "~=2.23.1"
 websockets = "~=16.0"
 
 [requires]
