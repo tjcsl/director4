@@ -86,7 +86,14 @@ class RequestTest(DirectorTestCase):
 
         user = self.login(make_teacher=False, make_admin=True)
 
-        student_user = User.objects.get_or_create(username="2020awilliam", is_student=True)[0]
+        student_user, _ = User.objects.get_or_create(
+            username="2020awilliam",
+            defaults={
+                "is_student": True,
+                "first_name": "Alex",
+                "last_name": "William",
+            },
+        )
         site_request = SiteRequest.objects.create(
             user=student_user,
             teacher=user,
@@ -96,6 +103,9 @@ class RequestTest(DirectorTestCase):
         )
 
         assert len(SiteRequest.objects.all()) == 1
+
+        response = self.client.get(reverse("request:approve_admin"))
+        self.assertContains(response, "Requested by Alex William (2020awilliam)")
 
         response = self.client.post(
             reverse("request:approve_admin"), follow=True, data={"request": site_request.id + 1}

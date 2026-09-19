@@ -45,3 +45,42 @@ class EditTest(DirectorTestCase):
         self.assertEqual(2, len(site.users.all()))
         self.assertIn(self.user, site.users.all())
         self.assertIn(self.user2, site.users.all())
+
+    def test_non_superuser_cannot_remove_all_users(self):
+        response = self.client.post(
+            reverse("sites:edit_meta", kwargs={"site_id": self.site.id}),
+            data={
+                "description": "this change should not be saved",
+                "purpose": "activity",
+                "users": [],
+            },
+        )
+
+        self.assertEqual(200, response.status_code)
+        self.assertFormError(
+            response.context["meta_form"],
+            "users",
+            "Only administrators can remove all users from a site",
+        )
+
+        self.site.refresh_from_db()
+        self.assertEqual("test", self.site.description)
+        self.assertEqual([self.user], list(self.site.users.all()))
+
+    def test_superuser_can_remove_all_users(self):
+        self.login(username="admin", accept_guidelines=True, make_admin=True)
+
+        response = self.client.post(
+            reverse("sites:edit_meta", kwargs={"site_id": self.site.id}),
+            data={
+                "description": "updated by an administrator",
+                "purpose": "activity",
+                "users": [],
+            },
+        )
+
+        self.assertRedirects(response, reverse("sites:info", kwargs={"site_id": self.site.id}))
+
+        self.site.refresh_from_db()
+        self.assertEqual("updated by an administrator", self.site.description)
+        self.assertFalse(self.site.users.exists())
