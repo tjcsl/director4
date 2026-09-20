@@ -135,7 +135,7 @@ secret.py
 
 # Vagrant
 .vagrant/
+/vagrant-config/output-director4-base/
 
 # PyCharm
 .idea/
-
